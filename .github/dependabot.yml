@@ -1,0 +1,21 @@
+# Dependabot version updates (freshness bumps). Security alerts/fixes are separate
+# and configured in repo settings, not here.
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # One grouped PR per week for minor/patch bumps across the csproj files.
+    # Majors arrive as individual PRs so breaking upgrades stay deliberate.
+    groups:
+      nuget-minor-patch:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  # The release pipeline is GitHub Actions; keep the pinned action majors current.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

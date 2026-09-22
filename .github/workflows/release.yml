@@ -1,0 +1,93 @@
+# A tag `vX.Y.Z` becomes a GitHub release: the Velopack installer, the full package and a delta
+# from the previous version, which installed copies pick up on their next launch.
+#
+# Signing is Azure Trusted Signing and is gated on four repository variables, so the workflow
+# releases unsigned until the account exists and signed from then on, with no edit here:
+#   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID  — the federated (OIDC) identity
+#   TRUSTED_SIGNING_ENDPOINT, TRUSTED_SIGNING_ACCOUNT, TRUSTED_SIGNING_PROFILE — the signing account
+# None is a secret; the identity has no password, GitHub's OIDC token is the credential.
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write   # create the release
+  id-token: write   # Azure OIDC sign-in for Trusted Signing
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Version from the tag
+        shell: pwsh
+        run: |
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Restore
+        run: |
+          dotnet tool restore
+          dotnet restore PiuScoresWatcher.sln
+
+      - name: Build
+        run: dotnet build PiuScoresWatcher.sln -c Release --no-restore -p:Version=${{ env.VERSION }}
+
+      - name: Test
+        run: dotnet test tests/PiuScoresWatcher.Tests/PiuScoresWatcher.Tests.csproj -c Release --no-build
+
+      - name: Publish the app
+        run: dotnet publish src/PiuScoresWatcher.App/PiuScoresWatcher.App.csproj -c Release -r win-x64 --self-contained false -o publish -p:Version=${{ env.VERSION }}
+
+      - name: Sign in to Azure (Trusted Signing)
+        if: vars.TRUSTED_SIGNING_ENDPOINT != ''
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Trusted Signing metadata
+        if: vars.TRUSTED_SIGNING_ENDPOINT != ''
+        shell: pwsh
+        run: |
+          @{
+            Endpoint = '${{ vars.TRUSTED_SIGNING_ENDPOINT }}'
+            CodeSigningAccountName = '${{ vars.TRUSTED_SIGNING_ACCOUNT }}'
+            CertificateProfileName = '${{ vars.TRUSTED_SIGNING_PROFILE }}'
+          } | ConvertTo-Json | Set-Content -Path trusted-signing.json -Encoding utf8
+          "SIGN_ARGS=--azureTrustedSignFile trusted-signing.json" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Package with Velopack
+        shell: pwsh
+        run: >
+          dotnet vpk pack
+          --packId PiuScoresWatcher
+          --packVersion ${{ env.VERSION }}
+          --packDir publish
+          --mainExe PiuScoresWatcher.exe
+          --packTitle "PIU Scores Watcher"
+          --packAuthors DrMurloc
+          --icon src/PiuScoresWatcher.App/Assets/app.ico
+          --framework net10.0-x64-desktop
+          --outputDir Releases
+          ${{ env.SIGN_ARGS }}
+
+      - name: Publish the GitHub release
+        shell: pwsh
+        run: >
+          dotnet vpk upload github
+          --repoUrl https://github.com/${{ github.repository }}
+          --token ${{ secrets.GITHUB_TOKEN }}
+          --outputDir Releases
+          --publish
+          --releaseName "v${{ env.VERSION }}"
+          --tag ${{ github.ref_name }}
+          --merge

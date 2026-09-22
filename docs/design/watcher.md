@@ -1,0 +1,150 @@
+# PIU Scores Watcher — the capture app for PUMP IT UP RISE
+
+Status: **structure only** (commit 1, 2026-09-22). Phase 2 of PIU Scores' RISE plan
+([rise.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/design/rise.md) §8): phase 1 added
+RISE as two mixes with the v2 plays write this app posts to; phase 3 (boards and PUMBILITY) is the site's.
+
+Owner decisions are marked **(owner, date)**; the rest are decided unless he objects. Open questions are §9.
+
+---
+
+## 1. What it is
+
+A Windows tray app. Install, paste the PIU Scores token, pick how it watches; then it sits in the tray, wakes
+when RISE starts, reads each result screen, posts the play, and a toast confirms it. The bar is the Warcraft
+Logs uploader: install → sign in → forget it.
+
+RISE writes a play down in exactly one place, the result screen (saves encrypted, no API, no Steam
+leaderboards — rise.md §1), so the screen is what gets read. Two ways to see it:
+
+- **Game-window mode** — capture the RISE window once a second while the game runs; a few-pixel check says
+  whether it is a result screen; only then is it read.
+- **Steam-screenshot mode (F12)** — watch RISE's Steam screenshots folder and read each new file. Costs
+  nothing during play; the player presses F12 on the result screen.
+
+## 2. Decisions
+
+- **D1 (owner, 2026-09-22). Its own public repo**, `DrMurloc/PiuScoresWatcher`, MIT. It shares PIU Scores'
+  conventions and none of its code: a partner tool that talks to the public API.
+- **D2 (owner, 2026-09-22). Auto-post with a toast.** No review queue in v1; a "hold for review" setting is
+  cheap to add later if players want it. The checksum (D10) is what makes auto-post safe.
+- **D3 (owner, 2026-09-22). No overlay.** Not an injected one (hooks the game's renderer, costs GPU every
+  frame, anti-cheat-adjacent, fragile across patches) and not a transparent always-on-top window (borderless
+  only). Feedback is a toast, a sound, and the site. A tiny always-on-top status *pill* — a plain window in a
+  corner — is a later option for people who want in-game confirmation; it is not an overlay.
+- **D4 (owner, 2026-09-22). Signed with Azure Trusted Signing.** The release workflow signs when the
+  account's variables exist and releases unsigned until then (HOW-TO-RUN §Signing). The account is the
+  owner's to create.
+- **D5. Two modes, both on by default.** Game-window and F12; a screen seen by both is one play (D11).
+  Low-power machines use F12 alone.
+- **D6. A tray app that starts with Windows** — default on, shown on the first-run screen, a toggle in
+  settings. Default-off's failure mode is an hour of unrecorded plays. Asleep, it checks every few seconds
+  whether a RISE window exists; it wakes when one does and sleeps when it goes. No Steam launch-option trick.
+- **D7. .NET 10 + WPF, Windows only.** .NET 10 is the current LTS, the site is on it, .NET 8 leaves support
+  in November 2026. WPF's Fluent theme makes a settings window presentable with no UI library. Avalonia is the
+  cross-platform route if Steam Deck demand appears (§9).
+- **D8. Velopack + GitHub Releases.** One-click per-user install, delta updates, the .NET Desktop Runtime
+  bootstrapped by the installer (framework-dependent build). The app checks for a newer release at start-up,
+  downloads it in the background and applies it on the next launch — RISE patches monthly and a moved layout
+  must be fixable without a support thread.
+- **D9. The token is pasted from `/Account` in v1.** A "link this device" flow (the app opens the browser,
+  the player clicks Approve) is a site change for later.
+- **D10. Two checksums, one authority.** The reader's output must recompute to the score on screen before it
+  leaves the machine; the server recomputes again and answers `400 judgments-do-not-reconcile` otherwise. The
+  three scoring rules are **copied** from PIU Scores with the site file cited, pinned by the owner's verified
+  screens — never a shared package, never a reference to the site's code.
+- **D11. Dedupe by content and time.** A result screen stays up as long as the player leaves it; the same
+  reading within a window is one play. Both modes feed one deduplicator. The server is idempotent on play
+  time as a second net.
+- **D12. Everything on disk lives under `%LOCALAPPDATA%\PiuScoresWatcher\`**: settings (never the token),
+  the token DPAPI-encrypted on its own, seven days of logs, and the screens the reader could not read, kept
+  for the send-to-the-developer button. No telemetry (PRIVACY.md).
+- **D13. The reader fails loud.** An unreadable screen is saved and surfaced; nothing is guessed, nothing
+  partial is posted. A failed screen becomes a fixture (with the player's ok) before the fix is written.
+- **D14. English only in v1.** A settings window has a dozen strings; the site's nine locales came with a
+  community behind them. Every string is the owner's copy (CONTRIBUTING §6).
+- **D15. The layout decides the mix.** Warm Up / Division screens post to `rise`, Arcade Station screens to
+  `riseArcade`; a Challenge result — a division badge where the song title goes — is an aggregate and is
+  skipped.
+- **D16. `source` names the mode**: `watcher-grab` or `watcher-f12`, so the site can weigh the two if their
+  readings ever differ (F12 files are JPEG; captures are lossless).
+- **D17. Core is headless** (no OS target, no UI/Windows/Velopack reference — ratcheted); every Windows API
+  sits in App behind a Core port. A fixture screenshot is a unit test on any machine.
+
+## 3. The pipeline
+
+`IScreenSource` (one adapter per mode) → `ResultScreenDetector` (pixel anchors; which station) →
+`ResultScreenReader` (digit templates from the game's own font at layout positions that scale with the window;
+the title by Windows OCR) → `PlayChecksum` (D10) → `Deduplicator` (D11) → `IPlaysClient` → `INotifier`.
+ARCHITECTURE.md draws it.
+
+The reader's inputs are the owner's 40 screenshots (18 distinct result screens, rise.md §10) at 1080p; other
+resolutions come from the alpha testers. Digits are matched against the game's font rather than OCR'd:
+on a fixed layout, template matching is more reliable than general OCR, and the checksum catches the rest.
+
+## 4. The API
+
+`POST api/v2/players/me/plays` (rise.md §6.3 D14; API.md), personal token, `Authorization: Basic
+base64("anything:<token>")`. One request per play:
+
+| Field | The watcher sends |
+|---|---|
+| `mix` | `rise` or `riseArcade` (D15) |
+| `source` | `watcher-grab` or `watcher-f12` (D16) |
+| `plays[]` | one play: `songName`, `chartType`, `level` (the server resolves the chart; `404` for an unknown title), `perfects`, `greats`, `goods`, `bads`, `misses`, `maxCombo`, `score`, `isBroken`, `playedAt` (the clock, ISO-8601 with offset) |
+| `award` | omitted — the server derives it from the judgments and would refuse a wrong claim anyway |
+| `recordBrokenAsBest` | omitted — the mix's default |
+
+`200` returns `recorded`, `mix`, `scoringModel`. `400` problem types the toast must turn into sentences:
+`judgments-do-not-reconcile` (a misread — should not reach the server past D10), `judgments-invalid`,
+`score-invalid`, `played-at-invalid`, `legacy-mix`, `source-required`, `plays-required`. `401` — the token.
+`404` — the song. `429` carries `Retry-After` (600 requests a minute per token; a session is nowhere near).
+
+`GET api/v2/players/me` verifies the token on the settings window and greets the player by name.
+
+## 5. Player experience
+
+1. **Install.** One download, one click, no wizard; a tray icon and a Start menu entry. Signed (D4), so no
+   SmartScreen warning once the account exists.
+2. **First run.** Paste the token (checked on the spot: "Connected as …"); choose the mode; Start with
+   Windows (on). Done.
+3. **Then nothing.** RISE starts, it wakes. A result screen → toast: "Recorded · Gargoyle S18 · 975,429 SS".
+   RISE closes, it sleeps. A screen it cannot read → a toast that says so and a button to send it.
+
+## 6. Phases — the commit plan
+
+| # | Commit | What lands |
+|---|---|---|
+| 1 | `chore: repository structure` | this: the three projects, the docs set, CLAUDE.md, CI and release workflows, the tray shell with settings/logs/update plumbing, the launch-option parser and the two ratchets |
+| 2 | `feat(core): the result-screen reader` | detector + reader over the fixture screenshots, the checksum (D10), `--replay` live end to end in `--dry-run` |
+| 3 | `feat: posting` | the DPAPI token store, `players/me` verification, the plays client, problem types → toast copy (placeholders), `--replay` posting to a local site |
+| 4 | `feat(app): capture` | window capture (once a second while RISE runs), the Steam screenshots folder watcher, the RISE process watch, the deduplicator (D11) |
+| 5 | `feat(app): settings` | the first-run flow, the mode switch, Start with Windows, the failed-screen button, the second-instance handoff to the running one |
+| 6 | `release: v0.1.0` | tag; the site's download card (a PIU Scores PR, owner's copy); alpha with two RISE players |
+
+Each commit green on build + tests on its own; docs first.
+
+## 7. Site side
+
+Small: a "Capture app" card on the RISE upload page — what it does, the download button
+(`releases/latest/download/PiuScoresWatcher-win-Setup.exe`), three setup steps — and a pointer from `/Account`
+beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14).
+
+## 8. Evidence
+
+- rise.md §1, §5 and §10 — the two stations, scoring verified to the point on 20 screens, the nine-grade
+  ladder, the marks, the grey grade, Challenge aggregates, the 40 screenshots.
+- The owner's Steam screenshots folder (`Steam\userdata\<id>\760\remote\2756930\screenshots`) — the F12
+  source and the base fixture set.
+
+## 9. Open questions
+
+- **Steam Deck.** RISE runs on Deck; the watcher is Windows-only and F12 screenshots on a Deck stay on the
+  Deck. Park until a Deck player asks; Avalonia is the route (D7).
+- **Name and art.** "PIU Scores Watcher" and the yellow-W icon are placeholders; the owner names it and
+  supplies the icon before v0.1.0.
+- **Windows 10's capture border.** The OS draws a thin yellow border around a captured window and Windows 10
+  cannot turn it off. Cosmetic; a line in the first-run copy, or steer Windows 10 players to F12 mode?
+- **Steam's "uncompressed copy" folder.** Steam can save a lossless PNG beside the JPEG; worth watching both?
+- **The second-instance handoff.** Today a second launch exits quietly; it should open the running instance's
+  settings (a named pipe or a window message) — commit 5.

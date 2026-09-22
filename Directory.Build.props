@@ -1,0 +1,24 @@
+<Project>
+
+  <!-- Shared by every project in the solution. A project overrides a property by setting it
+       after the SDK import, i.e. in its own PropertyGroup. -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+
+    <!-- Greenfield: a warning is a defect. NuGet's vulnerability audit (NU19xx) stays a warning —
+         Dependabot files the fix, and a transitive CVE must not break every build in the meantime. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+
+    <Authors>DrMurloc</Authors>
+    <Product>PIU Scores Watcher</Product>
+    <Copyright>Copyright (c) 2026 DrMurloc</Copyright>
+    <RepositoryUrl>https://github.com/DrMurloc/PiuScoresWatcher</RepositoryUrl>
+
+    <!-- The release workflow overrides this from the tag (-p:Version=x.y.z); locally it is a dev build. -->
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+</Project>

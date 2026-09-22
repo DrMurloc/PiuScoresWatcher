@@ -1,0 +1,32 @@
+# The PR gate: build Release and run the fast suite. Windows, because WPF only builds there.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore PiuScoresWatcher.sln
+
+      - name: Build
+        run: dotnet build PiuScoresWatcher.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test tests/PiuScoresWatcher.Tests/PiuScoresWatcher.Tests.csproj -c Release --no-build --logger trx --results-directory TestResults
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults

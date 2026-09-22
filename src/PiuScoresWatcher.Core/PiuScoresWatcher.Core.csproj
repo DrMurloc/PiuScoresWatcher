@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The headless half: recognizer, checksum, API contracts, settings model. Plain net10.0 with no
+       Windows target and no UI package, so a fixture screenshot is a unit test on any machine
+       (arch-test enforced, CoreStaysHeadlessTests). Windows enters only through PiuScoresWatcher.App. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>PiuScoresWatcher.Core</RootNamespace>
+  </PropertyGroup>
+
+</Project>

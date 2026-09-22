@@ -1,0 +1,21 @@
+root = true
+
+[*]
+indent_style = space
+end_of_line = crlf
+# No BOM: PIU Scores declares utf-8-bom but none of its files carry one, and a BOM in a
+# .gitignore, a workflow or global.json is a hazard for nothing.
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{cs,csproj,props,targets,sln,xml,xaml}]
+indent_size = 4
+
+[*.{json,yml,yaml}]
+indent_size = 2
+
+[*.md]
+indent_size = 2
+# Markdown uses two trailing spaces for hard line breaks; don't strip them.
+trim_trailing_whitespace = false

@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The Windows half: the tray icon, the settings window and every adapter that touches the OS
+       (capture, OCR, toasts, DPAPI, the Run key). Windows-versioned so the WinRT projections
+       (Windows.Graphics.Capture, Windows.Media.Ocr) resolve from the SDK with nothing installed. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>PiuScoresWatcher</AssemblyName>
+    <RootNamespace>PiuScoresWatcher.App</RootNamespace>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Only English resources ship; keeps the publish folder free of satellite assemblies. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- WPF's Fluent theme (ThemeMode on Application) is still marked experimental on .NET 10. -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+
+  <!-- Program.Main owns startup (the Velopack hook and the single-instance mutex run before any
+       WPF object exists), so App.xaml compiles as a Page: no second entry point is generated. -->
+  <ItemGroup>
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.4.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Velopack" Version="1.2.158" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PiuScoresWatcher.Core\PiuScoresWatcher.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
+
+</Project>
