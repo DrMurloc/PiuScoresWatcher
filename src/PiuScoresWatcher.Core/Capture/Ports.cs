@@ -40,11 +40,14 @@ public abstract record WatcherNotice
     /// <summary>A play the site recorded.</summary>
     public sealed record Recorded(ObservedPlay Play, PostOutcome.Recorded Outcome) : WatcherNotice;
 
-    /// <summary>A play the site would not take: refused, the song unknown, rate limited, or unreachable.</summary>
-    public sealed record NotRecorded(ObservedPlay Play, PostOutcome Outcome) : WatcherNotice;
+    /// <summary>A play the site would not take — refused, the song unknown, rate limited, unreachable — kept for review at <paramref name="SavedTo" />.</summary>
+    public sealed record NotRecorded(ObservedPlay Play, PostOutcome Outcome, string SavedTo) : WatcherNotice;
 
-    /// <summary>The token stopped working; nothing posts until it is replaced.</summary>
+    /// <summary>The token stopped working; nothing posts until it is replaced, and every play meanwhile is kept for review.</summary>
     public sealed record TokenRejected : WatcherNotice;
+
+    /// <summary>The first launch after an update.</summary>
+    public sealed record Updated(string Version) : WatcherNotice;
 
     /// <summary>A result screen that could not be read, kept at <paramref name="SavedTo" />.</summary>
     public sealed record Unreadable(string Reason, string SavedTo) : WatcherNotice;

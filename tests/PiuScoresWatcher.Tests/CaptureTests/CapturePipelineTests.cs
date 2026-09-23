@@ -127,6 +127,7 @@ public sealed class CapturePipelineTests
 
         Assert.IsType<PostOutcome.Unauthorized>(Assert.IsType<FrameOutcome.Posted>(outcome).Outcome);
         _notifier.Verify(n => n.Notify(It.IsAny<WatcherNotice.TokenRejected>()), Times.Once);
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
     }
 
     [Fact]
@@ -137,6 +138,25 @@ public sealed class CapturePipelineTests
 
         await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None);
 
-        _notifier.Verify(n => n.Notify(It.Is<WatcherNotice.NotRecorded>(x => x.Outcome is PostOutcome.SongUnknown)), Times.Once);
+        _notifier.Verify(n => n.Notify(It.Is<WatcherNotice.NotRecorded>(x => x.Outcome is PostOutcome.SongUnknown && x.SavedTo == @"C:\failed\frame.png")), Times.Once);
+    }
+
+    [Fact]
+    public async Task APlayTheSiteCouldNotBeReachedForIsKeptNotLost()
+    {
+        _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<CaptureSource>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PostOutcome.Failed(null, "the site is unreachable"));
+
+        await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None);
+
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), It.Is<string>(r => r.Contains("unreachable")), It.IsAny<ResultScreenReading?>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ARecordedPlayIsNotKept()
+    {
+        await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None);
+
+        _failed.VerifyNoOtherCalls();
     }
 }

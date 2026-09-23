@@ -30,7 +30,8 @@ public abstract record FrameOutcome
 /// <summary>
 ///     One frame in, one outcome out: detect, read, reconcile, dedupe, read the title, post, tell the
 ///     player. Frames from the window are cheap to retry, so one that has not settled is simply
-///     "not yet"; a screenshot file is final, so one that does not reconcile is kept for review.
+///     "not yet"; a screenshot file is final, so one that does not reconcile is kept for review, and
+///     so is any play the site does not record.
 ///     The title is read only for a play not seen before — the window shows the same screen once a
 ///     second, and OCR is the expensive step.
 /// </summary>
@@ -79,19 +80,17 @@ public sealed class CapturePipeline(
         var play = ObservedPlay.From(reading, title, frame.SeenAt);
         var outcome = await site.PostAsync(play, frame.Source, cancellationToken);
         deduplicator.Remember(key);
-        switch (outcome)
+        if (outcome is PostOutcome.Recorded recorded)
         {
-            case PostOutcome.Recorded recorded:
-                notifier.Notify(new WatcherNotice.Recorded(play, recorded));
-                break;
-            case PostOutcome.Unauthorized:
-                notifier.Notify(new WatcherNotice.TokenRejected());
-                break;
-            default:
-                notifier.Notify(new WatcherNotice.NotRecorded(play, outcome));
-                break;
+            notifier.Notify(new WatcherNotice.Recorded(play, recorded));
+            return new FrameOutcome.Posted(play, outcome);
         }
 
+        // Whatever the reason, a play the site did not record is kept, so a failure never loses one silently (D38).
+        var savedTo = failed.Save(frame, outcome.Describe(), reading);
+        notifier.Notify(outcome is PostOutcome.Unauthorized
+            ? new WatcherNotice.TokenRejected()
+            : new WatcherNotice.NotRecorded(play, outcome, savedTo));
         return new FrameOutcome.Posted(play, outcome);
     }
 
