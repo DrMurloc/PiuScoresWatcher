@@ -1,6 +1,7 @@
 using System.Windows;
 using Microsoft.Toolkit.Uwp.Notifications;
 using PiuScoresWatcher.App.Startup;
+using PiuScoresWatcher.App.Storage;
 using PiuScoresWatcher.Core.Exceptions;
 using PiuScoresWatcher.Core.Startup;
 using Velopack;
@@ -35,12 +36,15 @@ public static class Program
             return 2;
         }
 
+        // The site decides where this run keeps its data, before anything reads or writes (D44).
+        AppPaths.Use(options.Scope);
+
         // A replay is a command, not the tray app: it runs beside a running watcher (D39).
         if (options.ReplayFile is not null)
             return Replay.ReplayRunner.Run(options);
 
-        // A second launch asks the running watcher to open its settings, and leaves.
-        using var instance = SingleInstance.Claim();
+        // A second launch for the same site asks the running watcher to open its settings, and leaves.
+        using var instance = SingleInstance.Claim(options.Scope);
         if (instance is null)
             return 0;
 

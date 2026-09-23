@@ -30,6 +30,9 @@ public sealed record LaunchOptions(string? ReplayFile, bool DryRun, Uri? BaseUrl
 
     public Uri EffectiveBaseUrl => BaseUrl ?? ProductionBaseUrl;
 
+    /// <summary>What the site this run talks to decides: its data folder, its lock, its name on screen (D44).</summary>
+    public SiteScope Scope => new(EffectiveBaseUrl);
+
     public static LaunchOptions Parse(IReadOnlyList<string> args, string? baseUrlFromEnvironment = null)
     {
         string? replayFile = null;

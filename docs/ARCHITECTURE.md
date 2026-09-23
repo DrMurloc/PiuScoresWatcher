@@ -115,6 +115,8 @@ Everything the watcher writes lives under `%APPDATA%\PiuScoresWatcher\` — neve
 | `logs\watcher-<date>.log` | rolling daily logs, seven kept |
 | `failed\` | result screens that could not become a play — a PNG and a JSON note each — for the review dialog |
 
+A run pointed at any other site — a developer's local PIU Scores — keeps the same four under `dev\<host>-<port>\` beneath that folder and takes its own one-copy lock (D44), so it runs beside an installed copy and never reads or replaces its token.
+
 No telemetry. What leaves the machine is exactly one HTTP request per play, described in [PRIVACY.md](PRIVACY.md).
 
 ### Deliberately absent

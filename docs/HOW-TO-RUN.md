@@ -52,20 +52,22 @@ no title and says why in the log.
 
 ### Pointing at a local PIU Scores
 
-Run the site locally (its `docs/HOW-TO-RUN.md`: Aspire, Docker), note the Web app's `https://localhost:<port>`, and start the watcher with `--base-url https://localhost:<port>`. The token comes from that local site's `/Account` page (the dev-auth backdoor gives you an account). Never commit a base URL or a token anywhere.
+A dev run already does. The launch profile in `src/PiuScoresWatcher.App/Properties/launchSettings.json` points F5 and `dotnet run` at the site's local Aspire run, `https://localhost:7144` (the port is the site's own launch settings). Run the site locally (its `docs/HOW-TO-RUN.md`: Aspire, Docker) and paste a token from that local site's `/Account` page (the dev-auth backdoor gives you an account) into the dev copy's first-run window. For the real site from a dev build, pick the **Production** profile (`dotnet run --launch-profile Production`); `--base-url` still wins over either.
+
+A run against any site other than production keeps its own everything under `%APPDATA%\PiuScoresWatcher\dev\<host>-<port>\` — settings, token, logs, kept screens — and its own one-copy lock, so it runs beside an installed watcher without touching its token. Its window titles and tray tooltip name the site, which is how the two tray arrows tell apart. Never commit a token anywhere.
 
 The whole loop from a shell, with a real screen:
 
 ```sh
 $env:PIUSCORESWATCHER_TOKEN = "<a token from the local site's /Account>"
-dotnet run --project src/PiuScoresWatcher.App -- --base-url https://localhost:<port> --replay "<Steam>\userdata\<id>\760\remote\2756930\screenshots\<shot>.jpg"
+dotnet run --project src/PiuScoresWatcher.App -- --replay "<Steam>\userdata\<id>\760\remote\2756930\screenshots\<shot>.jpg"
 ```
 
 The report's `connection` says who the token is (`connected`, `unauthorized`, or why it failed), `posting` says what the site did with the play (`Recorded`, `Refused` with the problem slug, `SongUnknown`, `RateLimited`, `Failed`), and the play then shows in that account's journal on the site. Add `--dry-run` to see the reading without posting.
 
 ### Where it keeps things
 
-`%APPDATA%\PiuScoresWatcher\` — `settings.json`, `logs\` (rolling daily, seven kept), `failed\` (screens that couldn't be read, and plays PIU Scores didn't record, each with a note saying why). The settings window's **Open logs folder** button goes straight there. The token, when it exists, sits beside them DPAPI-encrypted, never inside the settings file.
+`%APPDATA%\PiuScoresWatcher\` (a dev run against another site: `dev\<host>-<port>\` beneath it) — `settings.json`, `logs\` (rolling daily, seven kept), `failed\` (screens that couldn't be read, and plays PIU Scores didn't record, each with a note saying why). The settings window's **Open logs folder** button goes straight there. The token, when it exists, sits beside them DPAPI-encrypted, never inside the settings file.
 
 ### If the game comes out black
 

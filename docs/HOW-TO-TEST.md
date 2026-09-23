@@ -61,6 +61,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] Plays before any token is pasted → kept as "not connected", one notification for the lot, and they show in Recent.
 - [ ] Pause from the tray → nothing posts; resume → it does.
 - [ ] Launch the watcher again while it runs → the running one's settings open.
+- [ ] F5 a dev build while the installed watcher runs → both run; the dev one's title and tooltip name the local site; connecting it leaves the installed one connected.
 - [ ] Sign out and back in → it is in the tray (Start with Windows); switched off → it isn't.
 - [ ] Uninstall → the tray icon, the Start menu entry and the sign-in entry are gone; reinstall → still connected, settings kept.
 

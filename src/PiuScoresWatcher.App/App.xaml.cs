@@ -206,7 +206,7 @@ public partial class App : Application
         var headline = Status.Headline;
         _statusItem.Header = headline;
         _pauseItem.Header = Status.Paused ? Copy.TrayResume : Copy.TrayPause;
-        _tray.ToolTipText = $"{Copy.AppName} — {headline}";
+        _tray.ToolTipText = $"{Copy.AppNameFor(_options.Scope)} — {headline}";
     }
 
     internal void ShowFirstRun()
@@ -249,6 +249,8 @@ public partial class App : Application
     private T Open<T>(Action whenClosed) where T : Window
     {
         var window = Services.GetRequiredService<T>();
+        // a dev run names its site, so its windows are never mistaken for the installed copy's (D44)
+        window.Title = Copy.AppNameFor(_options.Scope);
         window.Closed += (_, _) => whenClosed();
         return window;
     }

@@ -176,6 +176,12 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   decides what that shows — a token outcome is the token's notification and its switch, the play still lands in
   Recent. With no token stored nothing is sent: the play is kept as "not connected", not as a rejected token.
   Notifications sit under Recent in the settings window, so the list a player opens it for stays in view.
+- **D44 (owner, 2026-09-23). A dev run points at the local site and keeps its own data.** The launch profile makes
+  F5 and `dotnet run` talk to the site's local Aspire run (`https://localhost:7144`, the site's own launch
+  settings), with a second profile for production; the app itself still defaults to production, and an installed
+  copy never reads a launch profile. A run aimed at any site other than production keeps its settings, token, logs
+  and kept screens under `%APPDATA%\PiuScoresWatcher\dev\<host>-<port>\`, takes its own one-copy lock, and names the
+  site in its title and tray tooltip — so it runs beside the installed copy and never touches its token.
 
 ## 3. The pipeline
 

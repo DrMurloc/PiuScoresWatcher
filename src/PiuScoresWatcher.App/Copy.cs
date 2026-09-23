@@ -3,6 +3,7 @@ using PiuScoresWatcher.Core.Api;
 using PiuScoresWatcher.Core.Capture;
 using PiuScoresWatcher.Core.Domain;
 using PiuScoresWatcher.Core.Scoring;
+using PiuScoresWatcher.Core.Startup;
 
 namespace PiuScoresWatcher.App;
 
@@ -14,6 +15,9 @@ namespace PiuScoresWatcher.App;
 public static class Copy
 {
     public const string AppName = "PIU Scores Watcher";
+
+    /// <summary>The name on a window and in the tray tooltip; a dev run against another site adds the site (D44).</summary>
+    public static string AppNameFor(SiteScope scope) => scope.IsProduction ? AppName : $"{AppName} · {scope.Label}";
 
     // ---- First run ----
     public const string FirstRunHeadline = "Set up in three steps";
