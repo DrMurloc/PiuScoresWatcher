@@ -4,10 +4,13 @@ using H.NotifyIcon;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PiuScoresWatcher.App.Api;
+using PiuScoresWatcher.App.Security;
 using PiuScoresWatcher.App.Storage;
 using PiuScoresWatcher.App.Time;
 using PiuScoresWatcher.App.Updates;
 using PiuScoresWatcher.App.Views;
+using PiuScoresWatcher.Core.Api;
 using PiuScoresWatcher.Core.Settings;
 using PiuScoresWatcher.Core.Startup;
 using PiuScoresWatcher.Core.Time;
@@ -51,6 +54,9 @@ public partial class App : Application
         builder.Services.AddSingleton(_options);
         builder.Services.AddSingleton<IClock, SystemClock>();
         builder.Services.AddSingleton<ISettingsStore, JsonSettingsStore>();
+        builder.Services.AddSingleton<DpapiTokenStore>();
+        builder.Services.AddSingleton<ITokenStore>(services => new EnvironmentOrStoredToken(services.GetRequiredService<DpapiTokenStore>()));
+        builder.Services.AddSingleton(services => PiuScoresHttp.Client(_options, services.GetRequiredService<ITokenStore>()));
         builder.Services.AddHostedService<UpdateService>();
         builder.Services.AddTransient<SettingsWindow>();
 

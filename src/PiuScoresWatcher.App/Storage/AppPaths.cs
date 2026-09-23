@@ -20,6 +20,9 @@ public static class AppPaths
 
     public static string SettingsFile { get; } = Path.Combine(Root, "settings.json");
 
+    /// <summary>The personal token, DPAPI-encrypted for the Windows account; never inside the settings file.</summary>
+    public static string TokenFile { get; } = Path.Combine(Root, "token.bin");
+
     public static void EnsureCreated()
     {
         Directory.CreateDirectory(Logs);
