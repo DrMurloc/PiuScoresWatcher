@@ -4,13 +4,16 @@ using System.IO;
 namespace PiuScoresWatcher.App.Storage;
 
 /// <summary>
-///     Everything the watcher writes lives under one folder in the player's local profile —
-///     settings, logs, and the screens it could not read — so "what does it keep" has one answer.
+///     Everything the watcher writes lives under one folder in the player's profile — settings,
+///     the token, logs, and the screens it could not read — so "what does it keep" has one answer.
+///     It is <c>%APPDATA%\PiuScoresWatcher</c>, never <c>%LOCALAPPDATA%\PiuScoresWatcher</c>: that
+///     one is Velopack's install folder, replaced whole on install and removed on uninstall, and
+///     anything kept there would go with it (arch-test enforced, DataFolderTests).
 /// </summary>
 public static class AppPaths
 {
     public static string Root { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PiuScoresWatcher");
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PiuScoresWatcher");
 
     /// <summary>Rolling daily logs, seven kept.</summary>
     public static string Logs { get; } = Path.Combine(Root, "logs");
