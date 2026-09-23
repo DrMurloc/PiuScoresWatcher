@@ -5,12 +5,17 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PiuScoresWatcher.App.Api;
+using PiuScoresWatcher.App.Capture;
+using PiuScoresWatcher.App.Notifications;
+using PiuScoresWatcher.App.Ocr;
 using PiuScoresWatcher.App.Security;
 using PiuScoresWatcher.App.Storage;
 using PiuScoresWatcher.App.Time;
 using PiuScoresWatcher.App.Updates;
 using PiuScoresWatcher.App.Views;
 using PiuScoresWatcher.Core.Api;
+using PiuScoresWatcher.Core.Capture;
+using PiuScoresWatcher.Core.Recognition;
 using PiuScoresWatcher.Core.Settings;
 using PiuScoresWatcher.Core.Startup;
 using PiuScoresWatcher.Core.Time;
@@ -57,6 +62,25 @@ public partial class App : Application
         builder.Services.AddSingleton<DpapiTokenStore>();
         builder.Services.AddSingleton<ITokenStore>(services => new EnvironmentOrStoredToken(services.GetRequiredService<DpapiTokenStore>()));
         builder.Services.AddSingleton(services => PiuScoresHttp.Client(_options, services.GetRequiredService<ITokenStore>()));
+        builder.Services.AddSingleton<ResultScreenDetector>();
+        builder.Services.AddSingleton<ResultScreenReader>();
+        builder.Services.AddSingleton<ITitleReader, WindowsOcrTitleReader>();
+        builder.Services.AddSingleton<Deduplicator>();
+        builder.Services.AddSingleton<IFailedScreenStore, FailedScreenStore>();
+        builder.Services.AddSingleton<INotifier, LogNotifier>();
+        builder.Services.AddSingleton<CapturePipeline>();
+        builder.Services.AddSingleton<RiseProcessWatch>();
+        builder.Services.AddSingleton<IGameSession>(services => services.GetRequiredService<RiseProcessWatch>());
+        builder.Services.AddHostedService(services => services.GetRequiredService<RiseProcessWatch>());
+        builder.Services.AddSingleton<WindowCaptureSource>();
+        builder.Services.AddSingleton<Func<SteamScreenshotSource>>(services => () =>
+        {
+            var root = SteamPaths.Root();
+            var folders = SteamScreenshotFolders.Resolve(root, SteamPaths.AccountFolders(root),
+                services.GetRequiredService<ISettingsStore>().Load().SteamScreenshotsFolder);
+            return new SteamScreenshotSource(folders, services.GetRequiredService<ILogger<SteamScreenshotSource>>());
+        });
+        builder.Services.AddHostedService<CaptureService>();
         builder.Services.AddHostedService<UpdateService>();
         builder.Services.AddTransient<SettingsWindow>();
 
