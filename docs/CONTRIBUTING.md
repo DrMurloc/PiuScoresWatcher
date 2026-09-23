@@ -32,7 +32,7 @@ Architectural changes and large refactors must be communicated to me **before** 
 
 ### 6. Player-facing text is mine
 
-Every string a player reads — a toast, a menu item, the settings window, the privacy page — is written by me. Ship a placeholder and say so in the PR; don't write final copy.
+Every string a player reads — a notification, a menu item, the settings window, the privacy page — is written by me. They all live in one file, `src/PiuScoresWatcher.App/Copy.cs`; a change that needs a new one adds a placeholder there and says so in the PR. Don't write final copy.
 
 ## Build and test
 

@@ -2,8 +2,8 @@
 
 Status: **the MVP, on one pull request — #8** (2026-09-23, D33). Built so far: the reader reads every one of the
 owner's result screens and reconciles them; the client posts; the tray app captures the game window once a
-second while RISE runs and reads every F12 screenshot Steam writes, posting each reconciled play once. Still to
-come on the same PR: the first-run and settings windows, the toasts and Start with Windows (§6). Not yet tried
+second while RISE runs and reads every F12 screenshot Steam writes, posting each reconciled play once. Iteration 1 of
+the UI is being built on the same PR (§6, D34–D42). Not yet tried
 against the running game — that is the one loop at the end. Phase 2 of PIU
 Scores' RISE plan
 ([rise.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/design/rise.md) §8): phase 1 added
@@ -143,6 +143,34 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   owner tests it once, installed, at the end (§6) — not a PR or a loop per piece. Dependabot follows suit: one
   combined pull request a month for NuGet and the workflow actions together, every update type, CI as the check.
 
+- **D34 (owner, 2026-09-23). The icon is the PIU Scores arrow** — the site's favicon. The only copy is 77×77, so
+  the small sizes (16–64, the tray's among them) are cut from it directly and the large ones (128, 256) upscaled;
+  a bigger original would sharpen those.
+- **D35 (owner, 2026-09-23). Every notification can be turned off** — all at once, or kind by kind: every
+  recorded play, a play PIU Scores didn't take, a screen that couldn't be read, the token stopping working, an
+  update. All on by default (D2). With them off, the tray menu's status line and the settings window still say
+  when something is wrong.
+- **D36. Every string a player reads lives in one file, `src/PiuScoresWatcher.App/Copy.cs`.** XAML binds to it
+  (`{x:Static}`) and code formats through it, so the owner rewrites the copy in one place; the text there is the
+  mocks' placeholder copy until he does. Ratcheted: no literal text in XAML.
+- **D37 (owner, 2026-09-23). The mocks are iteration 1's contract**, with D34, D35 and one cut: the review
+  dialog shows the file rather than sending it (there is nowhere to send one yet), so the couldn't-read toast's
+  buttons are Review and Ignore.
+- **D38. A play the site didn't record is kept for review, whatever the reason** — refused, unknown song, the
+  token, a rate limit, no network — so a failure never loses a play silently; the review dialog shows each with
+  its reason. A retry button comes after the MVP.
+- **D39. First run opens whenever no token is stored**; after that the watcher starts in the tray. A second
+  launch asks the running one to open its settings (a named event), and a notification's click reaches the
+  running one too. A replay is a command and runs beside a running watcher.
+- **D40. Start with Windows is the per-user Run key**, written only for an installed copy (never a dev build),
+  following the setting (default on, D6), and removed with the notification registration by Velopack's
+  uninstall hook.
+- **D41. A notification's grade and award follow from the numbers**: RISE's nine-grade ladder and three marks on
+  `rise`, the Phoenix 2 ladder and the eight plates on `riseArcade`, copied from PIU Scores (`PhoenixLetterGrade`,
+  the `PhoenixPlate` tolerances, `AwardSets`) with the site file cited. A broken play shows its grade and no award.
+- **D42. "Updated" comes from the version the settings last saw**, not from Velopack's update hook, which runs
+  before any window can exist. Pause lives in memory: a relaunch watches again.
+
 ## 3. The pipeline
 
 `IScreenSource` (one adapter per mode) → `ResultScreenDetector` (pixel anchors; which station) →
@@ -185,8 +213,9 @@ base64("anything:<token>")`. One request per play:
    SmartScreen warning once the account exists.
 2. **First run.** Paste the token (checked on the spot: "Connected as …"); choose the mode; Start with
    Windows (on). Done.
-3. **Then nothing.** RISE starts, it wakes. A result screen → toast: "Recorded · Gargoyle S18 · 975,429 SS".
-   RISE closes, it sleeps. A screen it cannot read → a toast that says so, and the frame kept for review.
+3. **Then nothing.** RISE starts, it wakes. A result screen → a notification: "Recorded · Gargoyle · 5K S18 ·
+   975,429 · SS · Full Combo". RISE closes, it sleeps. A screen it cannot read → a notification that says so, and
+   the frame kept for review. Every kind of notification can be switched off (D35).
 
 ## 6. The MVP — one pull request (D33)
 
@@ -205,9 +234,9 @@ on the site with nothing else to do.
 | Watching the game window once a second; the F12 folders | done, not yet tried against the running game (D28–D32) |
 | Updates | done — checked at start-up, applied on the next launch (D8) |
 | The installer | wired in `release.yml`; built on the owner's PC for the loop |
-| First run, settings, the tray menu, toasts, the review dialog | to build, against the mocks — **waits on the owner's sign-off on the mocks** |
-| Start with Windows; a second launch opens the running one's settings | to build with the settings window |
-| Every player-facing string | placeholders until the owner rewrites them on the PR |
+| First run, settings, the tray menu, notifications, the review dialog | iteration 1 — the mocks approved with the arrow icon and switchable notifications (D34–D37) |
+| Start with Windows; a second launch opens the running one's settings | with the settings window (D39, D40) |
+| Every player-facing string | the mocks' placeholder copy, all in `App/Copy.cs` until the owner rewrites it (D36) |
 
 **The one loop.** When the UI is in: install the build made on the owner's PC, paste a token, and play one
 session — a Warm Up result, an Arcade Station result, F12 on one, one left up for a minute, a Division result if
@@ -246,6 +275,6 @@ beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14)
   and is kept for the developer, exactly as D13 says.
 - **Steam Deck.** RISE runs on Deck; the watcher is Windows-only and F12 screenshots on a Deck stay on the
   Deck. Park until a Deck player asks; Avalonia is the route (D7).
-- **Name and art.** "PIU Scores Watcher" and the yellow-W icon are placeholders; the owner names it and
-  supplies the icon before v0.1.0.
+- **The name.** "PIU Scores Watcher" is a placeholder; the owner names it before v0.1.0 (the icon is settled,
+  D34).
 - **Steam's "uncompressed copy" folder.** Steam can save a lossless PNG beside the JPEG; worth watching both?

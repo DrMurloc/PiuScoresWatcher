@@ -22,7 +22,7 @@ What the watcher is built with, and why each piece. "Planned" means the seam is 
 | **WPF `BitmapDecoder`** | decoding a screenshot for `--replay` | Already in the app; no image library needed in App. |
 | **SkiaSharp** (tests only) | decoding the fixture screenshots into pixels | Cross-platform, so the test project stays runnable wherever the SDK is; Core never decodes a file. |
 | **Pillow + numpy (+ UnityPy)** — `tools/reader-lab` | the prototype, the template generator, the sprite export | Not part of the solution; see the lab's README. |
-| **Windows Community Toolkit notifications** — planned | toasts | The "Recorded · Gargoyle S18 · 975,429 SS" confirmation; works from an unpackaged WPF app. |
+| **Windows Community Toolkit notifications** (`Microsoft.Toolkit.Uwp.Notifications`) | notifications (`ToastNotifier`) | Real Windows notifications with buttons from an unpackaged WPF app: it registers the app with Windows itself (no Start-menu shortcut needed) and delivers a click to the running watcher, or starts it with `-ToastActivated`. Unregistered by the uninstall hook. |
 | **xUnit 2.9.3 + Moq 4.20.72** | tests | PIU Scores' pair; no other doubling library. |
 | **Dependabot** | freshness bumps | Weekly, nuget grouped minor/patch, github-actions. |
 | **CodeQL** | static analysis | GitHub's default setup on the public repo (a repo setting, not a file). |

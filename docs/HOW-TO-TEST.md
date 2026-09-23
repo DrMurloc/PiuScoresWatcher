@@ -53,6 +53,12 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] A misread (cover part of the judgments with another window) → refused locally, saved under `failed\`, surfaced, not posted.
 - [ ] Wrong token → the settings window says so; nothing posts.
 - [ ] Quit RISE → the watcher sleeps (no capture, no CPU); start RISE → it wakes.
+- [ ] Install fresh → the first-run window; a bad token says so; a good one says who it is.
+- [ ] Notifications all off → no notification for a recorded play, and the settings window still lists it; one kind off → only that kind goes quiet.
+- [ ] Pause from the tray → nothing posts; resume → it does.
+- [ ] Launch the watcher again while it runs → the running one's settings open.
+- [ ] Sign out and back in → it is in the tray (Start with Windows); switched off → it isn't.
+- [ ] Uninstall → the tray icon, the Start menu entry and the sign-in entry are gone; reinstall → still connected, settings kept.
 
 ## What is not tested automatically, and why
 

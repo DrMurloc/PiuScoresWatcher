@@ -78,8 +78,8 @@ Adding a package outside its allowed project is a violation. Pin versions; Depen
 
 - WPF with the built-in Fluent theme (`ThemeMode="System"` on the Application); no third-party control library.
 - **The tray icon is the app.** `ShutdownMode="OnExplicitShutdown"`: windows come and go, only Quit exits. Startup lives in `Program.Main` (the Velopack hook, then the single-instance mutex, then WPF), so `App.xaml` compiles as a Page.
-- **Feedback is a toast** — never a window that takes focus from the game, and **never an overlay** of any kind (design D3).
-- **Player-facing strings are the owner's copy.** Ship placeholders and say so in the PR; never invent final copy. English only in v1 (D14).
+- **Feedback is a notification** — never a window that takes focus from the game, and **never an overlay** of any kind (design D3). **Every kind of notification can be switched off**, all at once or one by one (D35); state that matters (not connected, paused) is always visible in the tray menu's status line and the settings window, so switching notifications off never hides a problem.
+- **Player-facing strings are the owner's copy, and they all live in `src/PiuScoresWatcher.App/Copy.cs`** (D36). XAML binds with `{x:Static app:Copy.…}`, code formats through `Copy`; a new string is a placeholder in `Copy.cs`, called out in the PR. No literal text in XAML (arch-test enforced, `CopyLivesInOneFileTests`). English only in v1 (D14).
 - No color literals in XAML beyond what the theme provides; a brand color, when one arrives, is a resource with a name.
 
 ## Test conventions

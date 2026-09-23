@@ -69,9 +69,13 @@ PiuScoresWatcher.sln
 │                                    the ports IScreenSource / IGameSession / IFailedScreenStore / INotifier,
 │                                    WatcherNotice, SteamScreenshotFolders
 ├── src/PiuScoresWatcher.App         net10.0-windows10.0.19041.0 — WPF + adapters
-│   ├── Program.cs                   Velopack hook → single instance → launch options → replay or WPF
-│   ├── App.xaml(.cs)                the generic host, the tray icon, the settings window on demand
-│   ├── Views/                       SettingsWindow
+│   ├── Program.cs                   Velopack hook (+ uninstall clean-up) → launch options → replay, or
+│   │                                the single instance (a second launch opens the running one's settings) → WPF
+│   ├── App.xaml(.cs)                the generic host, the tray icon and its menu, first run or tray at start-up
+│   ├── Copy.cs                      every string a player reads (the owner's copy; placeholders until then)
+│   ├── Views/                       FirstRunWindow, SettingsWindow, ReviewWindow
+│   ├── Status/                      WatcherStatus (connection, pause, recent plays, what the tray and settings show)
+│   ├── Startup/                     StartupRegistration (the Run key, installed copies only), SingleInstance
 │   ├── Storage/                     AppPaths (%APPDATA%\PiuScoresWatcher), JsonSettingsStore, FailedScreenStore
 │   ├── Time/                        SystemClock
 │   ├── Updates/                     UpdateService (GitHub Releases, applied on next launch)
@@ -82,7 +86,7 @@ PiuScoresWatcher.sln
 │   ├── Capture/                     RiseProcessWatch (is the game running, which window), WindowCaptureSource
 │   │                                (PrintWindow once a second), SteamScreenshotSource + SteamPaths (the F12
 │   │                                folders), CaptureService (runs the sources, feeds the pipeline, logs)
-│   ├── Notifications/               LogNotifier (toasts, with the owner's copy, come with the settings window)
+│   ├── Notifications/               ToastNotifier (Windows notifications, each kind switchable) + the log
 │   └── Assets/                      app.ico (placeholder art)
 ├── tests/PiuScoresWatcher.Tests     xUnit + Moq (+ SkiaSharp to decode fixtures), references Core only
 │   ├── StartupTests/                LaunchOptionsTests
