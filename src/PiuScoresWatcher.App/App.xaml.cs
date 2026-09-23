@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using H.NotifyIcon;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -30,7 +31,8 @@ namespace PiuScoresWatcher.App;
 
 /// <summary>
 ///     The process: a generic host carrying the services and the background work, a tray icon whose
-///     menu leads with what the watcher is doing, and the windows on demand.
+///     menu leads with what the watcher is doing, and the windows on demand — first run while no token
+///     is stored (D39), settings, and the review window.
 /// </summary>
 public partial class App : Application
 {
@@ -40,7 +42,9 @@ public partial class App : Application
     private TaskbarIcon? _tray;
     private MenuItem? _statusItem;
     private MenuItem? _pauseItem;
+    private FirstRunWindow? _firstRun;
     private SettingsWindow? _settings;
+    private ReviewWindow? _review;
 
     internal App(LaunchOptions options, SingleInstance instance)
     {
@@ -61,11 +65,24 @@ public partial class App : Application
 
         var log = Services.GetRequiredService<ILogger<App>>();
         log.LogInformation("PIU Scores Watcher {Version} started against {BaseUrl}", AppVersion.Informational, _options.EffectiveBaseUrl);
+        // A tray app that dies on a window's mistake stops recording plays; log it and carry on.
+        DispatcherUnhandledException += (_, failure) =>
+        {
+            log.LogError(failure.Exception, "A window failed");
+            failure.Handled = true;
+        };
 
         _tray = CreateTray();
         Status.Changed += (_, _) => Dispatcher.BeginInvoke(RefreshTray);
         _instance.Listen(() => Dispatcher.BeginInvoke(ShowSettings));
-        _ = CheckConnectionAsync();
+
+        var settings = Services.GetRequiredService<ISettingsStore>();
+        AnnounceUpdate(settings);
+        Services.GetRequiredService<StartupRegistration>().Apply(settings.Load().StartWithWindows);
+        if (string.IsNullOrWhiteSpace(Services.GetRequiredService<ITokenStore>().Load()))
+            ShowFirstRun();
+        else
+            _ = Services.GetRequiredService<Connection>().CheckStoredAsync(CancellationToken.None);
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -99,9 +116,12 @@ public partial class App : Application
         builder.Services.AddSingleton<ResultScreenReader>();
         builder.Services.AddSingleton<ITitleReader, WindowsOcrTitleReader>();
         builder.Services.AddSingleton<Deduplicator>();
-        builder.Services.AddSingleton<IFailedScreenStore, FailedScreenStore>();
+        builder.Services.AddSingleton<FailedScreenStore>();
+        builder.Services.AddSingleton<IFailedScreenStore>(services => services.GetRequiredService<FailedScreenStore>());
         builder.Services.AddSingleton<WatcherStatus>();
         builder.Services.AddSingleton<INotifier, WatcherNotifier>();
+        builder.Services.AddSingleton<Connection>();
+        builder.Services.AddSingleton<StartupRegistration>();
         builder.Services.AddSingleton<CapturePipeline>();
         builder.Services.AddSingleton<RiseProcessWatch>();
         builder.Services.AddSingleton<IGameSession>(services => services.GetRequiredService<RiseProcessWatch>());
@@ -116,8 +136,24 @@ public partial class App : Application
         });
         builder.Services.AddHostedService<CaptureService>();
         builder.Services.AddHostedService<UpdateService>();
+        builder.Services.AddTransient<FirstRunWindow>();
         builder.Services.AddTransient<SettingsWindow>();
+        builder.Services.AddTransient<ReviewWindow>();
         return builder.Build();
+    }
+
+    /// <summary>
+    ///     The first launch of a new version says so (D42). Velopack applies an update before any window
+    ///     can exist, so the version the settings last saw is what tells an update from a first install.
+    /// </summary>
+    private void AnnounceUpdate(ISettingsStore settings)
+    {
+        var current = settings.Load();
+        if (current.LastSeenVersion == AppVersion.Short)
+            return;
+        if (current.LastSeenVersion is not null)
+            Services.GetRequiredService<INotifier>().Notify(new WatcherNotice.Updated(AppVersion.Short));
+        settings.Save(current with { LastSeenVersion = AppVersion.Short });
     }
 
     /// <summary>The tray icon and its menu: what the watcher is doing, then what the player can do about it.</summary>
@@ -166,25 +202,39 @@ public partial class App : Application
         _tray.ToolTipText = $"{Copy.AppName} — {headline}";
     }
 
-    /// <summary>Who the stored token belongs to, asked once at start-up; a token that fails leaves the status "not connected".</summary>
-    private async Task CheckConnectionAsync()
+    internal void ShowFirstRun()
     {
-        if (string.IsNullOrWhiteSpace(Services.GetRequiredService<ITokenStore>().Load()))
-            return;
-        if (await Services.GetRequiredService<IPlaysClient>().WhoAmIAsync(CancellationToken.None) is IdentityCheck.Connected connected)
-            Status.Connected(connected.Player);
+        _firstRun ??= Open<FirstRunWindow>(() => _firstRun = null);
+        Bring(_firstRun);
     }
 
     internal void ShowSettings()
     {
-        if (_settings is null)
-        {
-            _settings = Services.GetRequiredService<SettingsWindow>();
-            _settings.Closed += (_, _) => _settings = null;
-        }
+        _settings ??= Open<SettingsWindow>(() => _settings = null);
+        Bring(_settings);
+    }
 
-        _settings.Show();
-        _settings.Activate();
+    /// <summary>The review window, on the frame a notification was about when there is one.</summary>
+    internal void ShowReview(string? imagePath = null)
+    {
+        _review ??= Open<ReviewWindow>(() => _review = null);
+        _review.ShowScreen(imagePath);
+        Bring(_review);
+    }
+
+    private T Open<T>(Action whenClosed) where T : Window
+    {
+        var window = Services.GetRequiredService<T>();
+        window.Closed += (_, _) => whenClosed();
+        return window;
+    }
+
+    private static void Bring(Window window)
+    {
+        window.Show();
+        if (window.WindowState == WindowState.Minimized)
+            window.WindowState = WindowState.Normal;
+        window.Activate();
     }
 
     private void OpenSite()

@@ -170,6 +170,12 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   the `PhoenixPlate` tolerances, `AwardSets`) with the site file cited. A broken play shows its grade and no award.
 - **D42. "Updated" comes from the version the settings last saw**, not from Velopack's update hook, which runs
   before any window can exist. Pause lives in memory: a relaunch watches again.
+- **D43. Why a frame was kept is a closed list** (`KeptBecause`: four ways a screen can't be read, six ways a read
+  play isn't recorded, "not connected" among them), so the review window's sentence for each is copy (D36) and the
+  free-form detail stays in the note and the log. The pipeline reports every unrecorded play with the play; the App
+  decides what that shows — a token outcome is the token's notification and its switch, the play still lands in
+  Recent. With no token stored nothing is sent: the play is kept as "not connected", not as a rejected token.
+  Notifications sit under Recent in the settings window, so the list a player opens it for stays in view.
 
 ## 3. The pipeline
 

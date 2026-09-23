@@ -16,6 +16,7 @@ public sealed record NotificationSettings(bool Enabled, bool Recorded, bool NotR
         return Enabled && notice switch
         {
             WatcherNotice.Recorded => Recorded,
+            WatcherNotice.NotRecorded { Outcome.IsAboutTheToken: true } => TokenRejected,
             WatcherNotice.NotRecorded => NotRecorded,
             WatcherNotice.Unreadable => Unreadable,
             WatcherNotice.TokenRejected => TokenRejected,

@@ -13,7 +13,13 @@ internal static class RepositoryFiles
     /// <summary>Every C# file under a top-level folder of the checkout, build output excluded.</summary>
     public static IEnumerable<string> Sources(string folder)
     {
-        return Directory.EnumerateFiles(Path.Combine(Root, folder), "*.cs", SearchOption.AllDirectories)
+        return Files(folder, "*.cs");
+    }
+
+    /// <summary>Every file matching <paramref name="pattern" /> under a top-level folder of the checkout, build output excluded.</summary>
+    public static IEnumerable<string> Files(string folder, string pattern)
+    {
+        return Directory.EnumerateFiles(Path.Combine(Root, folder), pattern, SearchOption.AllDirectories)
             .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
                         && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal));
     }

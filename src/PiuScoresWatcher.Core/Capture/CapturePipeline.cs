@@ -57,16 +57,16 @@ public sealed class CapturePipeline(
                 return new FrameOutcome.NotAPlay();
             case ReadingStatus.NumbersNotShown:
                 return frame.Source == CaptureSource.SteamScreenshot
-                    ? Keep(frame, reading.Reason ?? "the numbers had not landed", reading)
+                    ? Keep(frame, KeptBecause.NumbersNotShown, reading.Reason ?? "the numbers had not landed", reading)
                     : new FrameOutcome.NotYet(reading.Reason ?? "the numbers have not landed");
             case ReadingStatus.Unreadable:
-                return Keep(frame, reading.Reason ?? "unreadable", reading);
+                return Keep(frame, KeptBecause.NumbersUnreadable, reading.Reason ?? "unreadable", reading);
         }
 
         var verdict = PlayChecksum.Verify(reading);
         if (!verdict.Reconciles)
             return frame.Source == CaptureSource.SteamScreenshot
-                ? Keep(frame, verdict.Problem ?? "the numbers do not agree", reading)
+                ? Keep(frame, KeptBecause.NumbersDisagree, verdict.Problem ?? "the numbers do not agree", reading)
                 : new FrameOutcome.NotYet(verdict.Problem ?? "the numbers do not agree yet");
 
         var key = PlayKey.Of(reading)!;
@@ -75,7 +75,7 @@ public sealed class CapturePipeline(
 
         var title = await titles.ReadAsync(frame.Image, reading.TitleRegion, cancellationToken);
         if (string.IsNullOrWhiteSpace(title))
-            return Keep(frame, "the song title could not be read", reading);
+            return Keep(frame, KeptBecause.TitleUnreadable, "the song title could not be read", reading);
 
         var play = ObservedPlay.From(reading, title, frame.SeenAt);
         var outcome = await site.PostAsync(play, frame.Source, cancellationToken);
@@ -87,18 +87,16 @@ public sealed class CapturePipeline(
         }
 
         // Whatever the reason, a play the site did not record is kept, so a failure never loses one silently (D38).
-        var savedTo = failed.Save(frame, KeptFor.NotRecorded, outcome.Describe(), reading);
-        notifier.Notify(outcome is PostOutcome.Unauthorized
-            ? new WatcherNotice.TokenRejected()
-            : new WatcherNotice.NotRecorded(play, outcome, savedTo));
+        var savedTo = failed.Save(frame, Kept.Because(outcome), outcome.Describe(), reading);
+        notifier.Notify(new WatcherNotice.NotRecorded(play, outcome, savedTo));
         return new FrameOutcome.Posted(play, outcome);
     }
 
-    private FrameOutcome Keep(CapturedFrame frame, string reason, ResultScreenReading reading)
+    private FrameOutcome Keep(CapturedFrame frame, KeptBecause because, string reason, ResultScreenReading reading)
     {
         if (PlayKey.Of(reading) is { } key)
             deduplicator.Remember(key);
-        var path = failed.Save(frame, KeptFor.Unreadable, reason, reading);
+        var path = failed.Save(frame, because, reason, reading);
         notifier.Notify(new WatcherNotice.Unreadable(reason, path));
         return new FrameOutcome.Kept(reason, path);
     }

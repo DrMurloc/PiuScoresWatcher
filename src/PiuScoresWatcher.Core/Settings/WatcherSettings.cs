@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace PiuScoresWatcher.Core.Settings;
 
 /// <summary>
@@ -18,5 +20,6 @@ public sealed record WatcherSettings(
 {
     public static WatcherSettings Default => new(CaptureMode.Both, StartWithWindows: true, SteamScreenshotsFolder: null);
 
+    [JsonIgnore]
     public NotificationSettings EffectiveNotifications => Notifications ?? NotificationSettings.Default;
 }

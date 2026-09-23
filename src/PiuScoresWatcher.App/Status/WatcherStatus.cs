@@ -21,6 +21,7 @@ public sealed class WatcherStatus
     private readonly IGameSession _game;
     private readonly object _gate = new();
     private readonly List<RecentPlay> _recent = [];
+    private bool _hasToken;
     private PlayerIdentity? _player;
     private bool _tokenRejected;
     private bool _paused;
@@ -41,6 +42,9 @@ public sealed class WatcherStatus
 
     /// <summary>Only pausing or resuming — what the capture loop restarts for.</summary>
     public event EventHandler? PausedChanged;
+
+    /// <summary>A token is stored. Its owner is <see cref="Player" /> once PIU Scores has said who it is.</summary>
+    public bool HasToken { get { lock (_gate) return _hasToken; } }
 
     public PlayerIdentity? Player { get { lock (_gate) return _player; } }
 
@@ -68,15 +72,24 @@ public sealed class WatcherStatus
 
     /// <summary>The one line the tray menu leads with.</summary>
     public string Headline =>
-        Player is null || TokenRejected ? Copy.StatusNotConnected
+        !HasToken || TokenRejected ? Copy.StatusNotConnected
         : Paused ? Copy.StatusPaused
         : GameRunning ? Copy.StatusWatching
         : Copy.StatusWaiting;
+
+    /// <summary>A token is stored; who it belongs to is not known yet (the site has not answered, or cannot be reached).</summary>
+    public void TokenStored()
+    {
+        lock (_gate)
+            _hasToken = true;
+        Raise();
+    }
 
     public void Connected(PlayerIdentity player)
     {
         lock (_gate)
         {
+            _hasToken = true;
             _player = player;
             _tokenRejected = false;
         }
@@ -87,7 +100,12 @@ public sealed class WatcherStatus
     public void Disconnected()
     {
         lock (_gate)
+        {
+            _hasToken = false;
             _player = null;
+            _tokenRejected = false;
+        }
+
         Raise();
     }
 
@@ -128,6 +146,8 @@ public sealed class WatcherStatus
                     break;
                 case WatcherNotice.NotRecorded notRecorded:
                     Add(new RecentPlay(notRecorded.Play, false, _clock.Now));
+                    if (notRecorded.Outcome is PostOutcome.Unauthorized)
+                        _tokenRejected = true;
                     break;
                 case WatcherNotice.TokenRejected:
                     _tokenRejected = true;

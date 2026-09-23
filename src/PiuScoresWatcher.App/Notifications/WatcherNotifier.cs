@@ -22,7 +22,7 @@ public sealed class WatcherNotifier(WatcherStatus status, ILogger<WatcherNotifie
                 log.LogWarning("Not recorded: {Play} — {Why}; kept at {Path}", Copy.PlayLine(n.Play), n.Outcome.Describe(), n.SavedTo);
                 break;
             case WatcherNotice.TokenRejected:
-                log.LogWarning("The PIU Scores token was rejected; plays are kept, not posted, until it is replaced");
+                log.LogWarning("The stored PIU Scores token was refused at start-up; plays are kept, not posted, until it is replaced");
                 break;
             case WatcherNotice.Unreadable u:
                 log.LogWarning("A result screen could not be read ({Reason}); kept at {Path}", u.Reason, u.SavedTo);

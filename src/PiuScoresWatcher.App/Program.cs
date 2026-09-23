@@ -12,8 +12,11 @@ public static class Program
     public static int Main(string[] args)
     {
         // Velopack first: on install, update and uninstall it runs its hooks and exits before any
-        // window exists, which is why startup is not in App.OnStartup.
-        VelopackApp.Build().Run();
+        // window exists, which is why startup is not in App.OnStartup. Uninstalling takes the Start
+        // with Windows entry with it (D40).
+        VelopackApp.Build()
+            .OnBeforeUninstallFastCallback(_ => StartupRegistration.Remove())
+            .Run();
 
         LaunchOptions options;
         try

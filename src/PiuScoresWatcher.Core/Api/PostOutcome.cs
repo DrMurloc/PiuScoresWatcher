@@ -25,6 +25,15 @@ public abstract record PostOutcome
         public override string Describe() => $"no chart matched{(Detail is null ? "" : $": {Detail}")}";
     }
 
+    /// <summary>Not recorded because of the token: none is stored, or PIU Scores refused the one that is.</summary>
+    public bool IsAboutTheToken => this is Unauthorized or NotConnected;
+
+    /// <summary>No token is stored, so nothing was sent.</summary>
+    public sealed record NotConnected : PostOutcome
+    {
+        public override string Describe() => "no token is stored; nothing was sent";
+    }
+
     /// <summary>A 401: the token is gone or revoked.</summary>
     public sealed record Unauthorized : PostOutcome
     {

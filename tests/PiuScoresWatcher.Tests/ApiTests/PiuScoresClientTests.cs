@@ -70,7 +70,7 @@ public sealed class PiuScoresClientTests
         var (client, exchange) = ClientOver(HttpStatusCode.OK, "{}", token: null);
 
         Assert.IsType<IdentityCheck.Unauthorized>(await client.WhoAmIAsync(CancellationToken.None));
-        Assert.IsType<PostOutcome.Unauthorized>(await client.PostAsync(Play, CaptureSource.Replay, CancellationToken.None));
+        Assert.IsType<PostOutcome.NotConnected>(await client.PostAsync(Play, CaptureSource.Replay, CancellationToken.None));
         Assert.Null(exchange.Request);
     }
 

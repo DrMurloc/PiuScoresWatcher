@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PiuScoresWatcher.Core.Api;
 using PiuScoresWatcher.Core.Capture;
+using PiuScoresWatcher.Core.Domain;
 using PiuScoresWatcher.Core.Settings;
 
 namespace PiuScoresWatcher.Tests.SettingsTests;
@@ -39,6 +41,18 @@ public sealed class NotificationSettingsTests
     }
 
     [Fact]
+    public void APlayLostToTheTokenFollowsTheTokenSwitchNotTheNotRecordedOne()
+    {
+        var play = new ObservedPlay(RiseMix.Rise, "Morrighan", ChartType.Single, 20, Judgments.From(900, 50, 10, 5, 3), 700, 945403, false,
+            DateTimeOffset.UnixEpoch);
+        var tokenOff = NotificationSettings.Default with { TokenRejected = false };
+
+        Assert.False(tokenOff.Allows(new WatcherNotice.NotRecorded(play, new PostOutcome.Unauthorized(), "where")));
+        Assert.False(tokenOff.Allows(new WatcherNotice.NotRecorded(play, new PostOutcome.NotConnected(), "where")));
+        Assert.True(tokenOff.Allows(new WatcherNotice.NotRecorded(play, new PostOutcome.SongUnknown(null), "where")));
+    }
+
+    [Fact]
     public void ASettingsFileFromBeforeNotificationsExistedMeansAllOn()
     {
         var settings = JsonSerializer.Deserialize<WatcherSettings>(
@@ -47,6 +61,14 @@ public sealed class NotificationSettingsTests
         Assert.Null(settings.Notifications);
         Assert.Equal(NotificationSettings.Default, settings.EffectiveNotifications);
         Assert.Null(settings.LastSeenVersion);
+    }
+
+    [Fact]
+    public void TheFileHoldsOnlyWhatThePlayerChose()
+    {
+        var json = JsonSerializer.Serialize(WatcherSettings.Default, Options);
+
+        Assert.DoesNotContain(nameof(WatcherSettings.EffectiveNotifications), json, StringComparison.Ordinal);
     }
 
     [Fact]

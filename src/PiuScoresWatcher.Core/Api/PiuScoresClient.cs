@@ -50,7 +50,7 @@ public sealed class PiuScoresClient(HttpClient http, ITokenStore tokens) : IPlay
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/v2/players/me/plays");
         if (!Authorize(request))
-            return new PostOutcome.Unauthorized();
+            return new PostOutcome.NotConnected();
         request.Content = JsonContent.Create(new PlaysRequestJson(play.Mix.ApiName(), source.Token(),
         [
             new PlayJson(play.SongName, play.ChartType.ToString(), play.Level, play.Judgments.Perfects, play.Judgments.Greats,

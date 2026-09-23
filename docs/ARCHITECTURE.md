@@ -44,7 +44,7 @@ The reader **fails loud**: an unreadable screen is saved under `failed/` and sur
 
 ### Enforcement over convention
 
-The rules above are ratcheted by `tests/PiuScoresWatcher.Tests/ArchitectureTests/`: Core stays headless (no OS target, no forbidden references); the wall clock is read in `SystemClock.cs` and nowhere else; nothing is written under `%LOCALAPPDATA%\PiuScoresWatcher`, the install folder. Rules are added, never removed. The machine-readable conventions live in [CLAUDE.md](../CLAUDE.md).
+The rules above are ratcheted by `tests/PiuScoresWatcher.Tests/ArchitectureTests/`: Core stays headless (no OS target, no forbidden references); the wall clock is read in `SystemClock.cs` and nowhere else; nothing is written under `%LOCALAPPDATA%\PiuScoresWatcher`, the install folder; every string a player reads comes from `App/Copy.cs` — no literal text in a window, and no text property set to a literal in code. Rules are added, never removed. The machine-readable conventions live in [CLAUDE.md](../CLAUDE.md).
 
 ---
 

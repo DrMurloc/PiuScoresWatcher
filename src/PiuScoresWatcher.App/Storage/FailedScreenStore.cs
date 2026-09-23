@@ -10,10 +10,13 @@ using PiuScoresWatcher.Core.Time;
 
 namespace PiuScoresWatcher.App.Storage;
 
+/// <summary>One frame kept for review, as the review window shows it; <paramref name="Detail" /> is for the log and the developer, never the player.</summary>
+public sealed record KeptScreen(string ImagePath, KeptBecause Because, string Detail, CaptureSource Source, DateTimeOffset SeenAt);
+
 /// <summary>
-///     A frame the pipeline could not turn into a play goes under <c>failed\</c> as a PNG beside a
-///     JSON note saying why and what was read. Nothing here leaves the machine until the player
-///     chooses to send it.
+///     A frame the pipeline could not turn into a recorded play goes under <c>failed\</c> as a PNG beside
+///     a JSON note saying why and what was read (D31, D38). Nothing here leaves the machine; the player
+///     looks at them in the review window and deletes them there.
 /// </summary>
 public sealed class FailedScreenStore(IClock clock) : IFailedScreenStore
 {
@@ -25,7 +28,10 @@ public sealed class FailedScreenStore(IClock clock) : IFailedScreenStore
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public string Save(CapturedFrame frame, KeptFor why, string reason, ResultScreenReading? reading)
+    /// <summary>Something was kept or deleted.</summary>
+    public event EventHandler? Changed;
+
+    public string Save(CapturedFrame frame, KeptBecause because, string detail, ResultScreenReading? reading)
     {
         Directory.CreateDirectory(AppPaths.Failed);
         var stem = $"{clock.Now:yyyyMMdd-HHmmss}-{frame.Source.Token()}";
@@ -44,8 +50,8 @@ public sealed class FailedScreenStore(IClock clock) : IFailedScreenStore
 
         File.WriteAllText(Path.ChangeExtension(path, ".json"), JsonSerializer.Serialize(new
         {
-            why,
-            reason,
+            because,
+            detail,
             source = frame.Source,
             origin = frame.Origin,
             seenAt = frame.SeenAt,
@@ -58,7 +64,57 @@ public sealed class FailedScreenStore(IClock clock) : IFailedScreenStore
                     reading.IsBroken, reading.LowestGlyphScore
                 }
         }, Json));
+        Changed?.Invoke(this, EventArgs.Empty);
         return path;
+    }
+
+    public int Count()
+    {
+        return Directory.Exists(AppPaths.Failed) ? Directory.EnumerateFiles(AppPaths.Failed, "*.png").Count() : 0;
+    }
+
+    /// <summary>What is kept, newest first; a note that cannot be read still lists its image.</summary>
+    public IReadOnlyList<KeptScreen> List()
+    {
+        if (!Directory.Exists(AppPaths.Failed))
+            return [];
+        return Directory.EnumerateFiles(AppPaths.Failed, "*.png").Select(Describe).OrderByDescending(k => k.SeenAt).ToList();
+    }
+
+    public void Delete(KeptScreen screen)
+    {
+        try
+        {
+            File.Delete(screen.ImagePath);
+            File.Delete(Path.ChangeExtension(screen.ImagePath, ".json"));
+        }
+        catch (Exception failure) when (failure is IOException or UnauthorizedAccessException)
+        {
+            // open in another program; it stays listed until a later try succeeds
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    private static KeptScreen Describe(string image)
+    {
+        var fallback = new KeptScreen(image, KeptBecause.NumbersUnreadable, "", CaptureSource.GameWindow, File.GetLastWriteTime(image));
+        try
+        {
+            using var note = JsonDocument.Parse(File.ReadAllText(Path.ChangeExtension(image, ".json")));
+            var root = note.RootElement;
+            return fallback with
+            {
+                Because = root.TryGetProperty("because", out var because) && Enum.TryParse<KeptBecause>(because.GetString(), out var kept) ? kept : fallback.Because,
+                Detail = root.TryGetProperty("detail", out var detail) ? detail.GetString() ?? "" : "",
+                Source = root.TryGetProperty("source", out var source) && Enum.TryParse<CaptureSource>(source.GetString(), out var from) ? from : CaptureSource.GameWindow,
+                SeenAt = root.TryGetProperty("seenAt", out var seen) && seen.TryGetDateTimeOffset(out var at) ? at : fallback.SeenAt
+            };
+        }
+        catch (Exception failure) when (failure is IOException or JsonException)
+        {
+            return fallback;
+        }
     }
 
     private static byte[] Pixels(ScreenImage image)

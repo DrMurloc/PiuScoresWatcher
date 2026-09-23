@@ -1,5 +1,6 @@
 using System.Globalization;
 using PiuScoresWatcher.Core.Api;
+using PiuScoresWatcher.Core.Capture;
 using PiuScoresWatcher.Core.Domain;
 using PiuScoresWatcher.Core.Scoring;
 
@@ -20,7 +21,14 @@ public static class Copy
     public const string TokenLabel = "Your PIU Scores token";
     public const string Connect = "Connect";
     public const string Checking = "Checking…";
-    public const string TokenHelp = "Create one on the PIU Scores site under Account → API tokens. It is stored encrypted on this PC and only ever sent to PIU Scores.";
+
+    /// <summary>{0} is the player's name, which is set in bold.</summary>
+    public const string ConnectedAs = "Connected as {0}";
+
+    public const string ConnectedUnchecked = "Token saved — PIU Scores hasn't answered yet";
+
+    /// <summary>{0} is <see cref="TokenPageLink" />, set as the link to the token page.</summary>
+    public const string TokenHelp = "Create one on {0}. It is stored encrypted on this PC and only ever sent to PIU Scores.";
     public const string TokenNotAccepted = "That token wasn't accepted. Check it on the site and paste it again.";
     public const string TokenUnchecked = "Couldn't reach PIU Scores to check the token. Try again in a moment.";
     public const string ModeQuestion = "How should it watch?";
@@ -28,11 +36,12 @@ public static class Copy
     public const string ModeGameDetail = "Looks at RISE once a second while it is running. Nothing else on your screen.";
     public const string ModeSteam = "My Steam screenshots";
     public const string ModeSteamDetail = "Press F12 on the result screen; the screenshot is read. Costs nothing during play.";
-    public const string ModeBoth = "Both (recommended)";
+    public const string Recommended = "(recommended)";
     public const string ModeBothDetail = "A screen seen twice is still one play.";
     public const string StartWithWindows = "Start with Windows";
     public const string StartWithWindowsDetail = "Sits in the tray, wakes when RISE starts, sleeps when it closes. Off, it only runs when you open it.";
     public const string PrivacyLink = "What it looks at and sends";
+    public const string NotRecordedShort = "not recorded";
     public const string Done = "Done";
 
     // ---- Settings ----
@@ -45,7 +54,6 @@ public static class Copy
     public const string ModeSteamShort = "Steam screenshots";
     public const string ModeBothShort = "Both";
     public const string Change = "Change";
-    public const string UseDetected = "Use the one found";
     public const string StartWithWindowsShort = "In the tray at sign-in; wakes when RISE starts.";
     public const string ShowNotifications = "Show notifications";
     public const string NotifyRecorded = "Every recorded play";
@@ -54,6 +62,8 @@ public static class Copy
     public const string NotifyTokenRejected = "When the token stops working";
     public const string NotifyUpdated = "When the watcher updates";
     public const string NoPlaysYet = "No plays yet since the watcher started.";
+    public const string NoMark = "—";
+    public const string Broken = "broken";
     public const string Review = "Review";
     public const string OpenLogs = "Open logs folder";
     public const string Quit = "Quit";
@@ -79,8 +89,11 @@ public static class Copy
     public const string NotRecordedTitle = "PIU Scores didn't accept this play";
     public const string TokenRejectedTitle = "Your token stopped working";
     public const string TokenRejectedBody = "Plays aren't being recorded. Reconnect in settings.";
+    public const string NotConnectedTitle = "The watcher isn't connected";
+    public const string NotConnectedBody = "Plays are kept, not posted. Connect in settings.";
     public const string Ignore = "Ignore";
     public const string OpenSettings = "Open settings";
+    public const string WhatChanged = "What changed";
 
     // ---- Review ----
     public const string ReviewUnreadableTitle = "This screen couldn't be read";
@@ -89,12 +102,10 @@ public static class Copy
     public const string ReviewNothing = "Nothing to review.";
     public const string ShowFile = "Show the file";
     public const string Delete = "Delete";
-    public const string Previous = "Previous";
-    public const string Next = "Next";
     public const string Privacy = "Privacy";
 
     // ---- Sentences with numbers in them ----
-    public static string ConnectedAs(string name) => $"Connected as {name}";
+    public static string TokenPageLink(Uri site) => $"{site.Host} → Account → API tokens";
 
     public static string StatusDetail(DateTimeOffset? lastRecorded, int playsToday, DateTimeOffset now)
     {
@@ -117,7 +128,29 @@ public static class Copy
     public static string FolderLine(bool chosen, bool exists) =>
         chosen ? "Steam screenshots folder · chosen" : exists ? "Steam screenshots folder · found" : "Steam screenshots folder · not found yet";
 
-    public static string ToReview(int count) => count == 1 ? "1 screen to review" : $"{count} screens to review";
+    /// <summary>The amber row under Recent: what is waiting in the review window.</summary>
+    public static string ToReview(int unreadable, int notRecorded)
+    {
+        var parts = new List<string>();
+        if (unreadable > 0)
+            parts.Add(unreadable == 1 ? "1 screen couldn't be read" : $"{unreadable} screens couldn't be read");
+        if (notRecorded > 0)
+            parts.Add(notRecorded == 1 ? "1 play wasn't recorded" : $"{notRecorded} plays weren't recorded");
+        return string.Join(" · ", parts);
+    }
+
+    /// <summary>A Recent row's age: <c>2 min</c>.</summary>
+    public static string AgoShort(DateTimeOffset at, DateTimeOffset now)
+    {
+        var span = now - at;
+        if (span < TimeSpan.FromMinutes(1))
+            return "now";
+        if (span < TimeSpan.FromHours(1))
+            return $"{(int)span.TotalMinutes} min";
+        return span < TimeSpan.FromDays(1)
+            ? $"{(int)span.TotalHours} h"
+            : at.LocalDateTime.ToString("MMM d", CultureInfo.CurrentCulture);
+    }
 
     public static string VersionLine(string version, bool? upToDate) => upToDate switch
     {
@@ -130,13 +163,13 @@ public static class Copy
 
     public static string Score(int score) => score.ToString("N0", CultureInfo.CurrentCulture);
 
-    /// <summary>The chart as the game names it: <c>5K S18</c>, <c>6K HD23</c>, <c>Arcade D18</c>.</summary>
+    /// <summary>The chart as the game names it: <c>5K S18</c>, <c>6K HD23</c>, <c>Arcade 5K S20</c>.</summary>
     public static string ChartLabel(RiseMix mix, ChartType type, int level) => (mix, type) switch
     {
         (RiseMix.Rise, ChartType.Single) => $"5K S{level}",
         (RiseMix.Rise, ChartType.HalfDouble) => $"6K HD{level}",
-        (RiseMix.RiseArcade, ChartType.Single) => $"Arcade S{level}",
-        (RiseMix.RiseArcade, ChartType.Double) => $"Arcade D{level}",
+        (RiseMix.RiseArcade, ChartType.Single) => $"Arcade 5K S{level}",
+        (RiseMix.RiseArcade, ChartType.Double) => $"Arcade 10K D{level}",
         _ => $"{type} {level}"
     };
 
@@ -162,34 +195,55 @@ public static class Copy
         if (Awards.Of(play.Mix, play.Judgments, play.IsBroken) is { } award)
             parts.Add(AwardName(play.Mix, award));
         if (play.IsBroken)
-            parts.Add("broken");
+            parts.Add(Broken);
         return string.Join(" · ", parts);
     }
 
     public static string NotRecordedBody(PostOutcome outcome) => outcome switch
     {
-        PostOutcome.Refused { ProblemType: "judgments-do-not-reconcile" } => "The judgments don't add up to the score — probably a misread. Kept for review.",
-        PostOutcome.Refused refused => $"PIU Scores refused it ({refused.ProblemType}). Kept for review.",
-        PostOutcome.SongUnknown => "PIU Scores doesn't know that song on this mix — probably a misread title. Kept for review.",
-        PostOutcome.RateLimited => "PIU Scores asked it to slow down. Kept for review.",
-        _ => "Couldn't reach PIU Scores. Kept for review."
+        PostOutcome.Refused { ProblemType: "judgments-do-not-reconcile" } => "The judgments don't add up to the score — probably a misread. Not recorded.",
+        PostOutcome.Refused => "PIU Scores refused it. Not recorded.",
+        PostOutcome.SongUnknown => "PIU Scores doesn't know that song on this mix — probably a misread title. Not recorded.",
+        PostOutcome.RateLimited => "PIU Scores asked the watcher to slow down. Not recorded.",
+        PostOutcome.Unauthorized => "The token wasn't accepted. Not recorded.",
+        PostOutcome.NotConnected => "The watcher isn't connected to PIU Scores. Not recorded.",
+        _ => "Couldn't reach PIU Scores. Not recorded."
     };
 
-    public static string ReviewTitle(bool notRecorded) => notRecorded ? ReviewNotRecordedTitle : ReviewUnreadableTitle;
+    public static string ReviewTitle(KeptBecause because) => because.WasRead() ? ReviewNotRecordedTitle : ReviewUnreadableTitle;
 
-    public static string ReviewDetail(string reason) => $"What happened: {reason}.";
+    /// <summary>The review window's one sentence on what went wrong.</summary>
+    public static string ReviewReason(KeptBecause because) => because switch
+    {
+        KeptBecause.NumbersUnreadable => "Some of the numbers couldn't be read, so nothing was recorded.",
+        KeptBecause.NumbersNotShown => "The screenshot was taken before the numbers finished counting, so nothing was recorded.",
+        KeptBecause.NumbersDisagree => "The judgment counts didn't add up to the score, so nothing was recorded.",
+        KeptBecause.TitleUnreadable => "The song title couldn't be read, so nothing was recorded.",
+        KeptBecause.Refused => "PIU Scores refused the play, so it wasn't recorded.",
+        KeptBecause.SongUnknown => "PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread.",
+        KeptBecause.TokenRejected => "The token wasn't accepted, so it wasn't recorded.",
+        KeptBecause.NotConnected => "The watcher wasn't connected to PIU Scores, so it wasn't recorded.",
+        KeptBecause.RateLimited => "PIU Scores asked the watcher to slow down, so it wasn't recorded.",
+        _ => "PIU Scores couldn't be reached, so it wasn't recorded."
+    };
 
-    public static string ReviewSeen(string source, int width, int height, DateTimeOffset seenAt) =>
-        $"{source} · {width}×{height} · {seenAt.LocalDateTime.ToString("g", CultureInfo.CurrentCulture)}";
+    /// <summary>Under the review window's picture: <c>Result screen · 1920×1080 · today 5:57 PM · game window</c>.</summary>
+    public static string ReviewSeen(CaptureSource source, int width, int height, DateTimeOffset seenAt, DateTimeOffset now)
+    {
+        var local = seenAt.LocalDateTime;
+        var time = local.ToString("t", CultureInfo.CurrentCulture);
+        var day = local.Date == now.LocalDateTime.Date ? $"today {time}"
+            : local.Date == now.LocalDateTime.Date.AddDays(-1) ? $"yesterday {time}"
+            : $"{local.ToString("MMM d", CultureInfo.CurrentCulture)} {time}";
+        return $"Result screen · {width}×{height} · {day} · {SourceName(source)}";
+    }
 
     public static string SourceName(CaptureSource source) => source switch
     {
-        CaptureSource.GameWindow => "Game window",
+        CaptureSource.GameWindow => "game window",
         CaptureSource.SteamScreenshot => "Steam screenshot",
-        _ => "Replay"
+        _ => "replay"
     };
 
-    public static string ReviewPosition(int index, int count) => $"{index} of {count}";
-
-    public static string DeleteAll(int count) => count == 1 ? Delete : $"Delete all {count}";
+    public static string DeleteAll(int count) => $"Delete all {count} unread screens";
 }
