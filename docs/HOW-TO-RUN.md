@@ -65,7 +65,7 @@ The report's `connection` says who the token is (`connected`, `unauthorized`, or
 
 ### Where it keeps things
 
-`%APPDATA%\PiuScoresWatcher\` — `settings.json`, `logs\` (rolling daily, seven kept), `failed\` (screens the reader could not read). The settings window's **Open logs folder** button goes straight there. The token, when it exists, sits beside them DPAPI-encrypted, never inside the settings file.
+`%APPDATA%\PiuScoresWatcher\` — `settings.json`, `logs\` (rolling daily, seven kept), `failed\` (screens that couldn't be read, and plays PIU Scores didn't record, each with a note saying why). The settings window's **Open logs folder** button goes straight there. The token, when it exists, sits beside them DPAPI-encrypted, never inside the settings file.
 
 ### If the game comes out black
 

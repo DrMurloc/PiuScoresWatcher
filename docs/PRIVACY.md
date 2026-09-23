@@ -6,7 +6,7 @@
 
 **What it sends.** One request per play, to PIU Scores, containing exactly: which mix, the song title, chart type and level, the five judgment counts, max combo, the score, whether the run was broken, when it was played, and which mode captured it. No screenshot is ever uploaded. Nothing is sent anywhere else, and nothing is sent about the machine, the player or the session.
 
-**What it keeps.** Under `%APPDATA%\PiuScoresWatcher\`: the settings (mode, Start with Windows, the screenshots folder), seven days of logs, and the result screens it could not read — those stay on the machine, and nothing sends them anywhere unless the player chooses to. The PIU Scores token is stored encrypted for the Windows account it was entered under; it is never written in clear and never leaves the machine except as the credential on the requests above.
+**What it keeps.** Under `%APPDATA%\PiuScoresWatcher\`: the settings (mode, Start with Windows, the screenshots folder, which notifications to show), seven days of logs, and the result screens it could not turn into a recorded play (unreadable, or not accepted by PIU Scores) — those stay on the machine, and nothing sends them anywhere unless the player chooses to. The PIU Scores token is stored encrypted for the Windows account it was entered under; it is never written in clear and never leaves the machine except as the credential on the requests above.
 
 **No telemetry.** The watcher does not phone home. Its only outbound traffic is the plays it posts to PIU Scores and its check of GitHub for a newer version at start-up.
 
