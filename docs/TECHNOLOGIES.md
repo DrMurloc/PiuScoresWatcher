@@ -16,8 +16,10 @@ What the watcher is built with, and why each piece. "Planned" means the seam is 
 | **Azure Trusted Signing** | code signing, so SmartScreen does not warn | Microsoft's managed signing service (about $10/month), signing in through GitHub's OIDC token — no certificate file, no secret in the repo. Wired in `release.yml`, gated on the account existing. |
 | **Windows DPAPI** (`System.Security.Cryptography.ProtectedData`) — planned | the token at rest | Encrypted for the Windows account, no key to manage. |
 | **Windows.Graphics.Capture** — planned | game-window mode | The OS capture path Game Bar and OBS use: the GPU hands over the frame, no CPU decode, works on fullscreen games. |
-| **Windows.Media.Ocr** — planned | reading the song title | Built into Windows 10/11, offline, free, good on clean UI text. The digits are read by template matching against the game's own font instead — more reliable than general OCR on a fixed layout. |
-| **SkiaSharp** — planned | decoding screenshots and pixel access | The same library PIU Scores renders its share cards with; MIT; no OpenCV-sized native dependency for a few template matches. |
+| **Windows.Media.Ocr** | reading the song title (`WindowsOcrTitleReader`) | Built into Windows 10/11, offline, free, good on clean UI text once the title bar is turned into black text on white and doubled in size. The digits are not OCR'd: they are matched against templates cut from the owner's screens and the game's own number sprites — more reliable than general OCR on a fixed layout, and it runs anywhere. |
+| **WPF `BitmapDecoder`** | decoding a screenshot for `--replay` | Already in the app; no image library needed in App. |
+| **SkiaSharp** (tests only) | decoding the fixture screenshots into pixels | Cross-platform, so the test project stays runnable wherever the SDK is; Core never decodes a file. |
+| **Pillow + numpy (+ UnityPy)** — `tools/reader-lab` | the prototype, the template generator, the sprite export | Not part of the solution; see the lab's README. |
 | **Windows Community Toolkit notifications** — planned | toasts | The "Recorded · Gargoyle S18 · 975,429 SS" confirmation; works from an unpackaged WPF app. |
 | **xUnit 2.9.3 + Moq 4.20.72** | tests | PIU Scores' pair; no other doubling library. |
 | **Dependabot** | freshness bumps | Weekly, nuget grouped minor/patch, github-actions. |

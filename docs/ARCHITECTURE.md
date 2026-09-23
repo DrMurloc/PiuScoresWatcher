@@ -32,7 +32,9 @@ IScreenSource ──► ResultScreenDetector ──► ResultScreenReader ──
 Two properties hold the whole thing up:
 
 1. **Cheap until it matters.** Polling a window once a second through the OS capture API costs nothing measurable; the detector looks at a handful of pixels; only a result screen triggers the read, once. F12 mode costs nothing at all during play — the game writes a file, the watcher reads a file.
-2. **Two checksums, one authority.** The reader's output must recompute to the score on screen before it leaves the machine, and the server recomputes it again and answers `400 judgments-do-not-reconcile` when it does not. A misread digit almost never reconciles, so a bad read is refused, not recorded. The server is the authority; the local check exists so the player hears "couldn't read that one" instead of a rejection.
+2. **Two checksums, one authority.** The reader's output must recompute to the score on screen before it leaves the machine — exactly, in integer arithmetic — and the accuracy the screen shows must land within a hundredth of the one the judgments make; the server recomputes the score again and answers `400 judgments-do-not-reconcile` when it does not. A misread digit almost never survives, so a bad read is refused, not recorded. The same check catches a frame taken while the score is still counting up: the judgments land a beat before the score does, and until they agree the frame is "not yet". The server is the authority; the local check exists so the player hears "couldn't read that one" instead of a rejection.
+
+The reader itself is template matching, not OCR: each layout's fields sit at fixed fractions of the frame, a field's ink is cut into glyphs by column projection, and each glyph, reduced to a 12×20 bitmap, is the character of its most similar template. The templates come from the owner's screens and from the game's own number sprites (`tools/reader-lab`), and every fixture screen reads back correctly with any one screen held out of the training set. Only the song title is OCR'd, by Windows, through the `ITitleReader` port.
 
 The reader **fails loud**: an unreadable screen is saved under `failed/` and surfaced through the tray, never guessed at. RISE patches monthly and a moved layout breaks the reader; the fix is a release, which installed copies pick up on their next launch, and the failed screen is how the fix gets written.
 
@@ -54,28 +56,36 @@ PiuScoresWatcher.sln
 │   ├── Startup/                     LaunchOptions (--replay, --dry-run, --base-url)
 │   ├── Settings/                    WatcherSettings, CaptureMode, ISettingsStore
 │   ├── Time/                        IClock
+│   ├── Domain/                      RiseMix, ChartType, Judgments
 │   ├── Exceptions/                  WatcherException and its kinds (player-showable messages)
-│   ├── Recognition/  (planned)      the detector, the reader, ResultScreen, the digit templates
-│   ├── Scoring/      (planned)      PlayChecksum — the three rules copied from PIU Scores
+│   ├── Recognition/                 ScreenImage, Layouts (both screens as fractions of the frame),
+│   │                                ResultScreenDetector, ResultScreenReader → ResultScreenReading,
+│   │                                the mask/segmenter/template machinery, templates.json (generated),
+│   │                                ITitleReader
+│   ├── Scoring/                     PhoenixScoring (the formula, copied from PIU Scores), PlayChecksum
 │   └── Api/          (planned)      the request/response records, IPlaysClient, the problem types
 ├── src/PiuScoresWatcher.App         net10.0-windows10.0.19041.0 — WPF + adapters
-│   ├── Program.cs                   Velopack hook → single instance → launch options → WPF
+│   ├── Program.cs                   Velopack hook → single instance → launch options → replay or WPF
 │   ├── App.xaml(.cs)                the generic host, the tray icon, the settings window on demand
 │   ├── Views/                       SettingsWindow
 │   ├── Storage/                     AppPaths (%LOCALAPPDATA%\PiuScoresWatcher), JsonSettingsStore
 │   ├── Time/                        SystemClock
 │   ├── Updates/                     UpdateService (GitHub Releases, applied on next launch)
+│   ├── Replay/                      ReplayRunner (a file through the pipeline, JSON on the console), WpfScreenDecoder
+│   ├── Ocr/                         WindowsOcrTitleReader (Windows.Media.Ocr over the title bar)
 │   ├── Capture/      (planned)      WindowCaptureSource, SteamScreenshotSource, RiseProcessWatch
-│   ├── Ocr/          (planned)      Windows.Media.Ocr for the title
 │   ├── Notifications/(planned)      toasts
 │   ├── Security/     (planned)      DpapiTokenStore
 │   └── Assets/                      app.ico (placeholder art)
-├── tests/PiuScoresWatcher.Tests     xUnit + Moq, references Core only
+├── tests/PiuScoresWatcher.Tests     xUnit + Moq (+ SkiaSharp to decode fixtures), references Core only
 │   ├── StartupTests/                LaunchOptionsTests
 │   ├── ArchitectureTests/           CoreStaysHeadlessTests, ClockSeamTests
-│   ├── RecognitionTests/ (planned)  fixture screenshots in, ResultScreen records out
-│   ├── TestHelpers/                 RepositoryFiles (root discovery for the source scans)
-│   └── Fixtures/         (planned)  the result screens, each with its expected reading
+│   ├── RecognitionTests/            every fixture screen through the detector, the reader and the checksum
+│   ├── ScoringTests/                PhoenixScoringTests, PlayChecksumTests
+│   ├── DomainTests/                 JudgmentsTests
+│   ├── TestHelpers/                 RepositoryFiles, FixtureScreens
+│   └── Fixtures/screens/            the owner's result screens (player card masked) + expected.json
+├── tools/reader-lab                 the Python prototype: labels, leave-one-out, sprite export, the template generator
 ├── .github/workflows                ci.yml (PR gate), release.yml (tag → signed GitHub release)
 └── docs/                            this set; design/watcher.md is the design of record
 ```

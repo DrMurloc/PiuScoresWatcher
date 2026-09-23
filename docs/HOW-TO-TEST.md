@@ -4,7 +4,7 @@
 
 The same rule as PIU Scores: **use the lowest-level test that would catch the regression**, and move up a rung only when the lower one would mock away the thing that might break. The watcher has three rungs, and the top one is a person with the game open — no automation drives RISE.
 
-1. **Unit tests** (`tests/PiuScoresWatcher.Tests/StartupTests/`, `RecognitionTests/`) — Core's pure logic. The launch-option parser; the detector and the reader over **fixture screenshots** (a PNG in, a `ResultScreen` record out, compared field by field against the expected reading stored beside it); the checksum against the owner's verified screens. Real objects, no mocks where avoidable, no clock calls (`FakeClock` once `IClock` has a consumer).
+1. **Unit tests** (`tests/PiuScoresWatcher.Tests/StartupTests/`, `RecognitionTests/`, `ScoringTests/`, `DomainTests/`) — Core's pure logic. The launch-option parser; the detector and the reader over **fixture screenshots** (a JPEG in, a `ResultScreenReading` out, compared field by field against `expected.json`, then the checksum); the Phoenix formula and the checksum against the owner's verified screens. Real objects, no mocks where avoidable, no clock calls (`FakeClock` once `IClock` has a consumer).
 2. **Architecture ratchets** (`ArchitectureTests/`) — Core stays headless (no OS target, no UI/Windows/Velopack reference); the wall clock is read only in `SystemClock.cs`. Rules are added, never removed. A third arrives with the first player-facing error string: no raw exception text reaches a toast or a window.
 3. **The checklist with the game** — for what only RISE can show. App's adapters (capture, the folder watcher, toasts, the token store) are thin by design and are exercised here, not mocked into meaninglessness.
 
@@ -25,7 +25,19 @@ No Windows API, no game, no network; it runs wherever the SDK does. This is the 
 
 ## Fixtures
 
-`tests/PiuScoresWatcher.Tests/Fixtures/` (copied to the test output). One folder per result-screen kind — Warm Up, Division, Arcade Station, Challenge (must be skipped), grey grade, each at the resolutions players actually use — holding the screenshot and its expected reading. The owner's own screens are the base set. Steam F12 screenshots are JPEG; window captures are lossless: keep one of each per kind, because the reader must survive both.
+`tests/PiuScoresWatcher.Tests/Fixtures/screens/` (copied to the test output): the owner's Steam screenshots with the player card blacked out, and `expected.json` saying what each one is. Every screen is one of five kinds:
+
+| Kind | What the reader must do with it |
+|---|---|
+| `result` | read every number, and the checksum must reconcile — Warm Up singles and half-doubles, the Arcade Station's singles and doubles, coloured and grey grades, 1080p and 720p |
+| `unsettled` | read every number, and the checksum must **refuse** it: a frame caught while the score was still counting up (the judgments are final a beat before the score is) |
+| `empty` | `NumbersNotShown` — the grade sticker is up, the number bars are still blank |
+| `aggregate` | `NotAPlay` — a Challenge result, four songs summed under a division badge where the song title goes |
+| `none` | not detected at all — WorldMax's mission summary, the title screen, the song wheel, a loading frame |
+
+Adding a screen is a lab job, not a hand edit: [tools/reader-lab/README.md](../tools/reader-lab/README.md) labels it, masks it, writes `expected.json` and regenerates the templates when a glyph is new. A player's screen is added only with their ok; the Arcade Station is the thin side of the set (four distinct results), so an Arcade result that fails to read is the first thing to ask for.
+
+Fixtures are decoded with SkiaSharp, a test-only dependency; Core never decodes a file.
 
 ## The checklist with the game
 

@@ -32,8 +32,8 @@ None of these is needed to run the watcher as a player does; an unknown switch i
 
 | Switch | What |
 |---|---|
-| `--replay <screenshot>` | Push one result screenshot through the whole pipeline without the game open. The way the reader gets developed, and the way a player's failed screen gets reproduced. (Logged as "not built yet" until the pipeline lands.) |
-| `--dry-run` | Read and report; never post. Pairs with `--replay`. |
+| `--replay <screenshot>` | One result screenshot through the whole pipeline without the game open — detection, the reading, the checksum, the title by Windows OCR — reported as JSON on the console that launched it (or, with no console, to `logs\replay.json`). The way the reader gets developed, and the way a player's failed screen gets reproduced. Exit 0: a play that reconciles; 1: a result screen that is not one (numbers not landed, a Challenge aggregate, unreadable, refused by the checksum); 3: not a result screen. |
+| `--dry-run` | Read and report; never post. Pairs with `--replay`. (A replay never posts today; the switch exists for when posting lands.) |
 | `--base-url <url>` | Where PIU Scores is. Absolute `http(s)` only. |
 | `PIUSCORESWATCHER_BASE_URL` | The same as `--base-url`, as an environment variable, for a shell you keep pointed at a local site. The switch wins when both are set. |
 
@@ -42,6 +42,10 @@ Pass switches through `dotnet run` after `--`:
 ```sh
 dotnet run --project src/PiuScoresWatcher.App -- --replay C:\shots\result.png --dry-run
 ```
+
+The title comes from the OCR built into Windows, which needs an English language pack with OCR installed
+(Settings → Time & language → Language; the default English install has it). Without one the report carries
+no title and says why in the log.
 
 ### Pointing at a local PIU Scores
 
