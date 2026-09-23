@@ -63,7 +63,8 @@ PiuScoresWatcher.sln
 │   │                                the mask/segmenter/template machinery, templates.json (generated),
 │   │                                ITitleReader
 │   ├── Scoring/                     PhoenixScoring (the formula, copied from PIU Scores), PlayChecksum
-│   └── Api/          (planned)      the request/response records, IPlaysClient, the problem types
+│   └── Api/                         ObservedPlay, CaptureSource, PostOutcome/IdentityCheck, IPlaysClient,
+│                                    ITokenStore, PiuScoresClient (the wire shape, over the App's HttpClient)
 ├── src/PiuScoresWatcher.App         net10.0-windows10.0.19041.0 — WPF + adapters
 │   ├── Program.cs                   Velopack hook → single instance → launch options → replay or WPF
 │   ├── App.xaml(.cs)                the generic host, the tray icon, the settings window on demand
@@ -71,16 +72,18 @@ PiuScoresWatcher.sln
 │   ├── Storage/                     AppPaths (%LOCALAPPDATA%\PiuScoresWatcher), JsonSettingsStore
 │   ├── Time/                        SystemClock
 │   ├── Updates/                     UpdateService (GitHub Releases, applied on next launch)
-│   ├── Replay/                      ReplayRunner (a file through the pipeline, JSON on the console), WpfScreenDecoder
+│   ├── Replay/                      ReplayRunner (a file through the pipeline, posted when a token is there), WpfScreenDecoder
 │   ├── Ocr/                         WindowsOcrTitleReader (Windows.Media.Ocr over the title bar)
+│   ├── Api/                         PiuScoresHttp — the HttpClient (site address, User-Agent, timeout)
+│   ├── Security/                    DpapiTokenStore, EnvironmentOrStoredToken (the dev seam)
 │   ├── Capture/      (planned)      WindowCaptureSource, SteamScreenshotSource, RiseProcessWatch
 │   ├── Notifications/(planned)      toasts
-│   ├── Security/     (planned)      DpapiTokenStore
 │   └── Assets/                      app.ico (placeholder art)
 ├── tests/PiuScoresWatcher.Tests     xUnit + Moq (+ SkiaSharp to decode fixtures), references Core only
 │   ├── StartupTests/                LaunchOptionsTests
 │   ├── ArchitectureTests/           CoreStaysHeadlessTests, ClockSeamTests
 │   ├── RecognitionTests/            every fixture screen through the detector, the reader and the checksum
+│   ├── ApiTests/                    PiuScoresClientTests (the wire shape over a stub handler), ObservedPlayTests
 │   ├── ScoringTests/                PhoenixScoringTests, PlayChecksumTests
 │   ├── DomainTests/                 JudgmentsTests
 │   ├── TestHelpers/                 RepositoryFiles, FixtureScreens
@@ -97,7 +100,7 @@ Everything the watcher writes lives under `%LOCALAPPDATA%\PiuScoresWatcher\`:
 | Path | What |
 |---|---|
 | `settings.json` | the player's choices — mode, Start with Windows, the screenshots folder override. Never the token |
-| `token.bin` (planned) | the PIU Scores token, DPAPI-encrypted for the Windows account |
+| `token.bin` | the PIU Scores token, DPAPI-encrypted for the Windows account |
 | `logs\watcher-<date>.log` | rolling daily logs, seven kept |
 | `failed\` | result screens the reader could not parse, for the "send to the developer" button |
 

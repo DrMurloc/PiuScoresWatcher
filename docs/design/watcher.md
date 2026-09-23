@@ -1,8 +1,9 @@
 # PIU Scores Watcher — the capture app for PUMP IT UP RISE
 
-Status: **the reader reads** (commit 2, 2026-09-22): every one of the owner's result screens reads back to the
-numbers on it and reconciles, `--replay` runs a screenshot end to end with the title by Windows OCR; nothing is
-captured live or posted yet. Phase 2 of PIU Scores' RISE plan
+Status: **the reader reads and the client posts** (commits 2–3, 2026-09-23): every one of the owner's result
+screens reads back to the numbers on it and reconciles; `--replay` runs a screenshot end to end — the title by
+Windows OCR, and, given a token, the play posted to PIU Scores. Nothing is captured live yet. Phase 2 of PIU
+Scores' RISE plan
 ([rise.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/design/rise.md) §8): phase 1 added
 RISE as two mixes with the v2 plays write this app posts to; phase 3 (boards and PUMBILITY) is the site's.
 
@@ -97,6 +98,19 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   reconciles (commit 4), and a fixture of that kind (`unsettled`) pins the refusal.
 - **D23. Fixtures carry the player card blacked out**, always, by the lab (owner, 2026-09-22). The card is the
   only personal thing on a result screen and no field the reader uses is near it.
+- **D25. One play per request, posted as read.** `ObservedPlay` is a complete, reconciled reading plus the
+  title the OCR read plus the clock; the award is never claimed (the server derives it), `recordBrokenAsBest`
+  is never sent (the mix's default). `source` is `watcher-grab`, `watcher-f12` or `watcher-replay`. The chart
+  type goes as the enum name (`Single`, `HalfDouble`, `Double`) and the title as read: the server matches the
+  song name exactly, case-insensitively, on the mix — a title the OCR garbles is a 404, never a wrong chart.
+- **D26. Every answer the server can give is an outcome, not an exception.** Recorded, Refused (a 400 with its
+  problem slug — `judgments-do-not-reconcile`, `played-at-invalid`, …), SongUnknown (404), Unauthorized (401),
+  RateLimited (429 with `Retry-After`), Failed (anything else, including no network). Each carries what a toast
+  needs; the toast copy itself is the owner's and arrives with the settings window.
+- **D27. The token is DPAPI at rest, and an environment variable is the only other way in.** `token.bin` is
+  encrypted for the Windows account; `PIUSCORESWATCHER_TOKEN` stands in for it during development (never
+  persisted), which is how `--replay` posts to a local site before the settings window exists. The token is
+  sent as the Basic password with a throwaway username, exactly as the site documents.
 - **D24. WorldMax is skipped, and no station has a stage-break result screen.** WorldMax ends on a mission
   summary without the five counts, so it cannot be posted and never detects; a broken run in the Arcade Station
   never reaches a result, and in Warm Up the grey grade is the whole story. `isBroken` is the grey sticker.
@@ -152,7 +166,7 @@ base64("anything:<token>")`. One request per play:
 |---|---|---|
 | 1 | `chore: repository structure` — **done** | the three projects, the docs set, CLAUDE.md, CI and release workflows, the tray shell with settings/logs/update plumbing, the launch-option parser and the two ratchets |
 | 2 | `feat(core): the result-screen reader` — **done** (four commits: docs, fixtures + lab, Core, App) | detector + reader over the fixture screens, the Phoenix formula and the checksum (D10, D21), the templates from screens and sprites (D19), `--replay` end to end with the title by Windows OCR |
-| 3 | `feat: posting` | the DPAPI token store, `players/me` verification, the plays client, problem types → toast copy (placeholders), `--replay` posting to a local site |
+| 3 | `feat: posting` — **done** (three commits: docs, Core, App) | the plays client on the site's wire shape (D25, D26), the DPAPI token store and the environment seam (D27), `--replay` says who the token is and posts a reconciled play unless `--dry-run`. **Owner's loop:** a token on a local site, a real screen through `--replay --base-url`, the journal on the site |
 | 4 | `feat(app): capture` | window capture (once a second while RISE runs), the Steam screenshots folder watcher, the RISE process watch, the deduplicator (D11) |
 | 5 | `feat(app): settings` | the first-run flow, the mode switch, Start with Windows, the failed-screen button, the second-instance handoff to the running one |
 | 6 | `release: v0.1.0` | tag; the site's download card (a PIU Scores PR, owner's copy); alpha with two RISE players |

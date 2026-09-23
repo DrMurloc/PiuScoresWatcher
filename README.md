@@ -3,9 +3,9 @@
 A Windows desktop app that watches for scores in PUMP IT UP RISE and records them on
 [PIU Scores](https://piuscores.arroweclip.se).
 
-Status: **the reader reads.** `--replay <screenshot>` takes a result screen through detection, the
-reading, the checksum and the title OCR and prints what it made of it; nothing is captured live or
-posted yet. The plan is [docs/design/watcher.md](docs/design/watcher.md).
+Status: **the reader reads and the client posts.** `--replay <screenshot>` takes a result screen
+through detection, the reading, the checksum and the title OCR, and — given a token — posts the play
+to PIU Scores; nothing is captured live yet. The plan is [docs/design/watcher.md](docs/design/watcher.md).
 
 ## What it will do
 

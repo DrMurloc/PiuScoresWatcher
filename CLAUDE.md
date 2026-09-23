@@ -47,8 +47,8 @@ Core ◄── App          Tests → Core only
 
 | Project | Allowed packages | Forbidden |
 |---|---|---|
-| `PiuScoresWatcher.Core` (`net10.0`) | none — the BCL | anything with a UI, a Windows API, a network client or a process model. The recognizer works on pixel buffers handed to it; the checksum is arithmetic; the API contracts are records. No OS platform target, no reference to a UI/Windows/Velopack assembly (arch-test enforced, `CoreStaysHeadlessTests`) |
-| `PiuScoresWatcher.App` (`net10.0-windows10.0.19041.0`) | `H.NotifyIcon.Wpf`, `Microsoft.Extensions.Hosting`, `Serilog.Extensions.Hosting` + `Serilog.Sinks.File`, `Velopack`; planned: `SkiaSharp` (decode + pixels), the Windows Community Toolkit notifications package (toasts), `System.Security.Cryptography.ProtectedData` (the token) | EF, MediatR, MassTransit, any of the site's machinery — this is one feature, not a system |
+| `PiuScoresWatcher.Core` (`net10.0`) | none — the BCL. `System.Net.Http` is the BCL: `Api/PiuScoresClient` lives here so the wire shape is unit-tested with a fake handler; the App builds the `HttpClient` (address, User-Agent, timeout) and hands it in | anything with a UI, a Windows API or a process model. The recognizer works on pixel buffers handed to it; the checksum is arithmetic; the API contracts are records. No OS platform target, no reference to a UI/Windows/Velopack assembly (arch-test enforced, `CoreStaysHeadlessTests`) |
+| `PiuScoresWatcher.App` (`net10.0-windows10.0.19041.0`) | `H.NotifyIcon.Wpf`, `Microsoft.Extensions.Hosting`, `Serilog.Extensions.Hosting` + `Serilog.Sinks.File`, `Velopack` (`System.Security.Cryptography.ProtectedData` needs no reference: the Windows TFM carries it, and NU1510 fails the build if it is added); planned: the Windows Community Toolkit notifications package (toasts) | EF, MediatR, MassTransit, any of the site's machinery — this is one feature, not a system |
 | `PiuScoresWatcher.Tests` (`net10.0`) | `xunit` 2.9.3, `Moq` 4.20.72, `Microsoft.NET.Test.Sdk`, `coverlet.collector`, `SkiaSharp` (decoding fixture screenshots — Core never decodes a file) | other doubling libraries; a project reference to App (App is covered by source-scan ratchets and by a human with the game open) |
 
 Adding a package outside its allowed project is a violation. Pin versions; Dependabot moves them.
@@ -69,7 +69,9 @@ Adding a package outside its allowed project is a violation. Pin versions; Depen
 - **Which mix** is decided by the layout: a Warm Up / Division screen posts to `rise`, an Arcade Station screen to `riseArcade`; a Challenge result (a division badge where the song title goes) is skipped — it is an aggregate, not a play.
 - **Settings are a JSON file; the token is never in it.** The token is DPAPI-encrypted on its own under `%LOCALAPPDATA%\PiuScoresWatcher\`.
 - `--replay` and `--base-url` are dev seams. Nothing in code defaults to a non-production URL; an unknown switch is refused, not ignored.
-- **The site's API contract is read, never guessed**: PumpItUpScoreTracker `docs/API.md` and its Swagger are shape truth for `GET api/v2/players/me` and `POST api/v2/players/me/plays`. Auth is `Authorization: Basic base64("anything:<token>")`.
+- **The site's API contract is read, never guessed**: PumpItUpScoreTracker `docs/API.md` and its Swagger are shape truth for `GET api/v2/players/me` and `POST api/v2/players/me/plays`. Auth is `Authorization: Basic base64("anything:<token>")`. A problem's `type` is `https://piuscores.arroweclip.se/errors/<slug>`; the mix and chart-type tokens are enum names, case-insensitive; the song name must match the catalog exactly. `ApiTests/PiuScoresClientTests` pins all of it from this side — a change there is a contract change, not a casual edit.
+- **The token is never on a command line and never in a file in clear.** DPAPI (`token.bin`) at rest; `PIUSCORESWATCHER_TOKEN` in the environment is the one dev seam, never persisted.
+- **Every server answer is a `PostOutcome`, never an exception**; a toast or a log line is built from the outcome. Player-facing wording for outcomes is the owner's copy (arrives with the settings window).
 
 ## UI conventions
 
@@ -84,7 +86,7 @@ Adding a package outside its allowed project is a violation. Pin versions; Depen
 See [docs/HOW-TO-TEST.md](docs/HOW-TO-TEST.md) for the philosophy; the agent-facing specifics:
 
 - **xUnit 2.9.3 + Moq 4.20.72.** No `FakeItEasy`, `NSubstitute`, `AutoFixture`. Talk about doubles by role (stub / mock / fake), not by library type.
-- **Folder-as-tag**: `StartupTests/`, `DomainTests/`, `ScoringTests/` and `RecognitionTests/` (unit — real objects, fixtures in, records out), `ArchitectureTests/` (ratchets — rules are added, never removed). No per-test traits.
+- **Folder-as-tag**: `StartupTests/`, `DomainTests/`, `ScoringTests/`, `RecognitionTests/` and `ApiTests/` (unit — real objects, fixtures in, records out; the API client over a stub `HttpMessageHandler`), `ArchitectureTests/` (ratchets — rules are added, never removed). No per-test traits.
 - **Naming**: `<TypeName>Tests.cs`, one class per subject; method names describe behavior (`AnUnknownSwitchIsRefusedRatherThanIgnored`), never implementation.
 - **Fixtures**: result screenshots under `tests/PiuScoresWatcher.Tests/Fixtures/screens/` (copied to output) with `expected.json`, written by `tools/reader-lab/fixtures.py`. The owner's own screens are the base set; a player's screen is added only with their ok. Never commit the game's sprites (`tools/reader-lab/sprites/` is ignored).
 - **Builders** in `TestData/` (`<Type>Builder`, `WithX` returning `this`, `Build()`); **`FakeClock`** in `TestHelpers/` once `IClock` has a consumer. Never `DateTime.Now` in a test.

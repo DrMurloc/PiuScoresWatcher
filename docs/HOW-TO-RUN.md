@@ -33,7 +33,8 @@ None of these is needed to run the watcher as a player does; an unknown switch i
 | Switch | What |
 |---|---|
 | `--replay <screenshot>` | One result screenshot through the whole pipeline without the game open — detection, the reading, the checksum, the title by Windows OCR — reported as JSON on the console that launched it (or, with no console, to `logs\replay.json`). The way the reader gets developed, and the way a player's failed screen gets reproduced. Exit 0: a play that reconciles; 1: a result screen that is not one (numbers not landed, a Challenge aggregate, unreadable, refused by the checksum); 3: not a result screen. |
-| `--dry-run` | Read and report; never post. Pairs with `--replay`. (A replay never posts today; the switch exists for when posting lands.) |
+| `--dry-run` | Read and report; never post. Pairs with `--replay`. Without it, a replay that reconciles and has a title **posts the play** whenever a token is available. |
+| `PIUSCORESWATCHER_TOKEN` | A personal token in the environment stands in for the stored one — the way a replay posts to a local site before the settings window exists. Never persisted. |
 | `--base-url <url>` | Where PIU Scores is. Absolute `http(s)` only. |
 | `PIUSCORESWATCHER_BASE_URL` | The same as `--base-url`, as an environment variable, for a shell you keep pointed at a local site. The switch wins when both are set. |
 
@@ -50,6 +51,15 @@ no title and says why in the log.
 ### Pointing at a local PIU Scores
 
 Run the site locally (its `docs/HOW-TO-RUN.md`: Aspire, Docker), note the Web app's `https://localhost:<port>`, and start the watcher with `--base-url https://localhost:<port>`. The token comes from that local site's `/Account` page (the dev-auth backdoor gives you an account). Never commit a base URL or a token anywhere.
+
+The whole loop from a shell, with a real screen:
+
+```sh
+$env:PIUSCORESWATCHER_TOKEN = "<a token from the local site's /Account>"
+dotnet run --project src/PiuScoresWatcher.App -- --base-url https://localhost:<port> --replay "<Steam>\userdata\<id>\760\remote\2756930\screenshots\<shot>.jpg"
+```
+
+The report's `connection` says who the token is (`connected`, `unauthorized`, or why it failed), `posting` says what the site did with the play (`Recorded`, `Refused` with the problem slug, `SongUnknown`, `RateLimited`, `Failed`), and the play then shows in that account's journal on the site. Add `--dry-run` to see the reading without posting.
 
 ### Where it keeps things
 
