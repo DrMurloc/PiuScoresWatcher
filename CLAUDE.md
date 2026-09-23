@@ -55,7 +55,8 @@ Adding a package outside its allowed project is a violation. Pin versions; Depen
 
 ### Ports and adapters
 
-- Every boundary crosses a **port defined in Core** and implemented by an **adapter in App**: `IClock` → `SystemClock`; `ISettingsStore` → `JsonSettingsStore`; planned `IScreenSource` (window capture · Steam screenshot folder), `IResultScreenReader`, `IPlaysClient`, `ITokenStore`, `INotifier`, `IStartupRegistration`. Naming: `I*Source`, `I*Reader`, `I*Client`, `I*Store`. **One implementation per port**, except `IScreenSource`, which has one per capture mode.
+- Every boundary crosses a **port defined in Core** and implemented by an **adapter in App**: `IClock` → `SystemClock`; `ISettingsStore` → `JsonSettingsStore`; `ITokenStore` → `DpapiTokenStore`; `ITitleReader` → `WindowsOcrTitleReader`; `IPlaysClient` → `PiuScoresClient` (Core, over the App's `HttpClient`); `IScreenSource` → `WindowCaptureSource` and `SteamScreenshotSource`; `IGameSession` → `RiseProcessWatch`; `IFailedScreenStore` → `FailedScreenStore`; `INotifier` → `LogNotifier` (toasts later); planned `IStartupRegistration`. Naming: `I*Source`, `I*Reader`, `I*Client`, `I*Store`. **One implementation per port**, except `IScreenSource`, which has one per capture mode.
+- **`CapturePipeline` is Core and is the only place a frame becomes a play**; `CaptureService` (App) only runs the sources and feeds it one frame at a time. A source never reads a screen, and the pipeline never touches a file or a window.
 - DI is the generic host in `App.xaml.cs`; registrations are explicit, there is no reflection scan.
 - **The clock is `IClock`.** `DateTime*.Now`, `UtcNow` and `Today` appear in `SystemClock.cs` and nowhere else under `src/` (arch-test enforced, `ClockSeamTests`). A play's `playedAt`, the dedupe window and every log line read the port.
 
@@ -86,7 +87,7 @@ Adding a package outside its allowed project is a violation. Pin versions; Depen
 See [docs/HOW-TO-TEST.md](docs/HOW-TO-TEST.md) for the philosophy; the agent-facing specifics:
 
 - **xUnit 2.9.3 + Moq 4.20.72.** No `FakeItEasy`, `NSubstitute`, `AutoFixture`. Talk about doubles by role (stub / mock / fake), not by library type.
-- **Folder-as-tag**: `StartupTests/`, `DomainTests/`, `ScoringTests/`, `RecognitionTests/` and `ApiTests/` (unit — real objects, fixtures in, records out; the API client over a stub `HttpMessageHandler`), `ArchitectureTests/` (ratchets — rules are added, never removed). No per-test traits.
+- **Folder-as-tag**: `StartupTests/`, `DomainTests/`, `ScoringTests/`, `RecognitionTests/`, `ApiTests/` and `CaptureTests/` (unit — real objects, fixtures in, records out; the API client over a stub `HttpMessageHandler`; the pipeline with Moq doubles for the site, the title reader, the failed store and the notifier), `ArchitectureTests/` (ratchets — rules are added, never removed). No per-test traits.
 - **Naming**: `<TypeName>Tests.cs`, one class per subject; method names describe behavior (`AnUnknownSwitchIsRefusedRatherThanIgnored`), never implementation.
 - **Fixtures**: result screenshots under `tests/PiuScoresWatcher.Tests/Fixtures/screens/` (copied to output) with `expected.json`, written by `tools/reader-lab/fixtures.py`. The owner's own screens are the base set; a player's screen is added only with their ok. Never commit the game's sprites (`tools/reader-lab/sprites/` is ignored).
 - **Builders** in `TestData/` (`<Type>Builder`, `WithX` returning `this`, `Build()`); **`FakeClock`** in `TestHelpers/` once `IClock` has a consumer. Never `DateTime.Now` in a test.

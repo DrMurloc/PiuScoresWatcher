@@ -15,7 +15,7 @@ PUMP IT UP RISE (Steam app 2756930) is the official PC port, played with hands â
 | Lifebar | its own HP model; Warm Up is "break off" â€” HP 0 does not end the song, but the grade turns **grey** | "break on": HP 0 ends the song, like the arcade |
 | Holds | the head of every hold is a judged tap; pre-holding scores a MISS | arcade behavior |
 
-Nothing exports: saves are encrypted, the game server has no web surface, Steam publishes no leaderboards. The result screen is the only place a play is written down, which is why this app exists.
+Nothing exports: saves are encrypted, the game server has no web surface, Steam publishes no leaderboards. The result screen is the only place a play is written down, which is why this app exists. The Steam build runs as `PUMP IT UP RISE.exe`, in a borderless fullscreen window by default; Steam's F12 puts a JPEG of the screen under `<Steam>\userdata\<account>\760\remote\2756930\screenshots`.
 
 ## The result screen
 

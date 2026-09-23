@@ -24,6 +24,8 @@ dotnet run --project src/PiuScoresWatcher.App
 
 A tray icon appears (a yellow W on navy — placeholder art). Left-click or **Open settings** opens the window; **Quit** exits. Closing the window does not exit; the tray icon is the app.
 
+From that moment it watches, in the mode `settings.json` says (both by default): the RISE window once a second while `PUMP IT UP RISE.exe` has one, and every JPEG Steam writes into RISE's screenshots folders. Until the toasts exist, the log is the feedback — `logs\watcher-<date>.log` says "RISE started; watching its window", then per result screen either `Recorded: <song> <type> <level> — <score>` or why not (`Not recorded: … no chart matched`, `kept for review — …`, `The PIU Scores token was rejected`). A screen the reader could not turn into a play is under `failed\` as a PNG with a JSON note beside it. Nothing posts without a token: connect in settings once that exists, or set `PIUSCORESWATCHER_TOKEN` for a dev run.
+
 A dev run from `bin/` is not an "installed" copy, so the update check logs "skipping" and does nothing — Velopack only updates what it installed.
 
 ### Dev switches
@@ -65,9 +67,9 @@ The report's `connection` says who the token is (`connected`, `unauthorized`, or
 
 `%LOCALAPPDATA%\PiuScoresWatcher\` — `settings.json`, `logs\` (rolling daily, seven kept), `failed\` (screens the reader could not read). The settings window's **Open logs folder** button goes straight there. The token, when it exists, sits beside them DPAPI-encrypted, never inside the settings file.
 
-### A Windows 10 wrinkle
+### If the game comes out black
 
-While a window is being captured, Windows 10 draws a thin yellow border around it. Windows 11 lets an app turn that off; Windows 10 does not. It is cosmetic, and F12 mode does not capture at all.
+Game-window mode copies the window through Windows' own compositor (`PrintWindow`), which works for the borderless fullscreen Unity uses by default. A setup that returns black frames — exclusive fullscreen, an unusual overlay — shows up as a watcher that never sees a result screen while F12 mode still works; say so, and the Graphics Capture path gets added for it.
 
 ## Packaging locally
 

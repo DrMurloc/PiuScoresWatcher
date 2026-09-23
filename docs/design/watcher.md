@@ -1,8 +1,9 @@
 # PIU Scores Watcher — the capture app for PUMP IT UP RISE
 
-Status: **the reader reads and the client posts** (commits 2–3, 2026-09-23): every one of the owner's result
-screens reads back to the numbers on it and reconciles; `--replay` runs a screenshot end to end — the title by
-Windows OCR, and, given a token, the play posted to PIU Scores. Nothing is captured live yet. Phase 2 of PIU
+Status: **it watches** (commits 2–4, 2026-09-23): the reader reads every one of the owner's result screens
+and reconciles them; the client posts; the tray app captures the game window once a second while RISE runs
+and reads every F12 screenshot Steam writes, posting each reconciled play once. Untested against the running
+game until the owner's loop; feedback is the log until the toasts and settings window land. Phase 2 of PIU
 Scores' RISE plan
 ([rise.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/design/rise.md) §8): phase 1 added
 RISE as two mixes with the v2 plays write this app posts to; phase 3 (boards and PUMBILITY) is the site's.
@@ -111,6 +112,26 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   encrypted for the Windows account; `PIUSCORESWATCHER_TOKEN` stands in for it during development (never
   persisted), which is how `--replay` posts to a local site before the settings window exists. The token is
   sent as the Basic password with a throwaway username, exactly as the site documents.
+- **D28. Game-window mode copies the window with `PrintWindow`, not the Graphics Capture API.** Once a
+  second while a `PUMP IT UP RISE` process has a window, its client area is rendered through DWM
+  (`PW_RENDERFULLCONTENT`) into a bitmap — a CPU copy of one frame, a few milliseconds, no border drawn
+  on Windows 10, no Direct3D interop, and nothing but that one window ever captured. A frame identical
+  to the last (a sparse pixel fingerprint) is skipped before the detector sees it. If a player's setup
+  comes out black (exclusive fullscreen), Graphics Capture is the fallback to add then, not now.
+- **D29. Handled once per ten minutes, keyed by the numbers.** A play is remembered when it is posted or
+  kept for review — never when it was merely "not yet" — so the window's once-a-second view of the same
+  result screen costs a detect and a read and nothing more, and OCR runs once per play. The key is mix,
+  type, level, judgments, max combo, score and the broken flag; the title is left out because OCR may
+  spell it differently between frames.
+- **D30. A window frame that does not reconcile waits; a screenshot that does not is kept.** The window
+  brings a new frame every second, so "not yet" is right there; an F12 file is final, so the same
+  frame is saved under `failed\` with why. A title the OCR cannot read is kept either way.
+- **D31. Failed screens are a PNG and a JSON note** — the frame as captured, and why it failed with what
+  was read — under `failed\`, until the player sends or deletes them (the review dialog, commit 5).
+- **D32. F12 folders are found, not asked for.** `HKCU\Software\Valve\Steam\SteamPath` gives the Steam
+  root, every numeric folder under `userdata` is an account, and RISE's screenshots sit at
+  `760\remote\2756930\screenshots` under each; the settings' folder override replaces the lot. A file is
+  read once its size has held still and it opens, because Steam writes the JPEG in steps.
 - **D24. WorldMax is skipped, and no station has a stage-break result screen.** WorldMax ends on a mission
   summary without the five counts, so it cannot be posted and never detects; a broken run in the Arcade Station
   never reaches a result, and in Warm Up the grey grade is the whole story. `isBroken` is the grey sticker.
@@ -167,7 +188,7 @@ base64("anything:<token>")`. One request per play:
 | 1 | `chore: repository structure` — **done** | the three projects, the docs set, CLAUDE.md, CI and release workflows, the tray shell with settings/logs/update plumbing, the launch-option parser and the two ratchets |
 | 2 | `feat(core): the result-screen reader` — **done** (four commits: docs, fixtures + lab, Core, App) | detector + reader over the fixture screens, the Phoenix formula and the checksum (D10, D21), the templates from screens and sprites (D19), `--replay` end to end with the title by Windows OCR |
 | 3 | `feat: posting` — **done** (three commits: docs, Core, App) | the plays client on the site's wire shape (D25, D26), the DPAPI token store and the environment seam (D27), `--replay` says who the token is and posts a reconciled play unless `--dry-run`. **Owner's loop:** a token on a local site, a real screen through `--replay --base-url`, the journal on the site |
-| 4 | `feat(app): capture` | window capture (once a second while RISE runs), the Steam screenshots folder watcher, the RISE process watch, the deduplicator (D11) |
+| 4 | `feat(app): capture` — **built, awaiting the owner's loop** (three commits: docs, Core, App) | the pipeline (detect → read → reconcile → dedupe → title → post → notify), the window source over `PrintWindow` (D28), the Steam screenshots watcher (D32), the RISE process watch, the deduplicator (D29), failed screens (D31), notices to the log until toasts exist. **Owner's loop:** RISE open, the watcher running with a token, a Warm Up and an Arcade result, F12 on one, a screen left up — the checklist in HOW-TO-TEST |
 | 5 | `feat(app): settings` | the first-run flow, the mode switch, Start with Windows, the failed-screen button, the second-instance handoff to the running one |
 | 6 | `release: v0.1.0` | tag; the site's download card (a PIU Scores PR, owner's copy); alpha with two RISE players |
 

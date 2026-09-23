@@ -31,7 +31,7 @@ IScreenSource ──► ResultScreenDetector ──► ResultScreenReader ──
 
 Two properties hold the whole thing up:
 
-1. **Cheap until it matters.** Polling a window once a second through the OS capture API costs nothing measurable; the detector looks at a handful of pixels; only a result screen triggers the read, once. F12 mode costs nothing at all during play — the game writes a file, the watcher reads a file.
+1. **Cheap until it matters.** Copying the game window once a second (`PrintWindow`, a few milliseconds of CPU) and fingerprinting it costs nothing measurable, and a frame that has not changed goes no further; the detector looks at a handful of pixels; only a result screen triggers the read, and OCR and the post run once per play. F12 mode costs nothing at all during play — the game writes a file, the watcher reads a file.
 2. **Two checksums, one authority.** The reader's output must recompute to the score on screen before it leaves the machine — exactly, in integer arithmetic — and the accuracy the screen shows must land within a hundredth of the one the judgments make; the server recomputes the score again and answers `400 judgments-do-not-reconcile` when it does not. A misread digit almost never survives, so a bad read is refused, not recorded. The same check catches a frame taken while the score is still counting up: the judgments land a beat before the score does, and until they agree the frame is "not yet". The server is the authority; the local check exists so the player hears "couldn't read that one" instead of a rejection.
 
 The reader itself is template matching, not OCR: each layout's fields sit at fixed fractions of the frame, a field's ink is cut into glyphs by column projection, and each glyph, reduced to a 12×20 bitmap, is the character of its most similar template. The templates come from the owner's screens and from the game's own number sprites (`tools/reader-lab`), and every fixture screen reads back correctly with any one screen held out of the training set. Only the song title is OCR'd, by Windows, through the `ITitleReader` port.
@@ -63,8 +63,11 @@ PiuScoresWatcher.sln
 │   │                                the mask/segmenter/template machinery, templates.json (generated),
 │   │                                ITitleReader
 │   ├── Scoring/                     PhoenixScoring (the formula, copied from PIU Scores), PlayChecksum
-│   └── Api/                         ObservedPlay, CaptureSource, PostOutcome/IdentityCheck, IPlaysClient,
-│                                    ITokenStore, PiuScoresClient (the wire shape, over the App's HttpClient)
+│   ├── Api/                         ObservedPlay, CaptureSource, PostOutcome/IdentityCheck, IPlaysClient,
+│   │                                ITokenStore, PiuScoresClient (the wire shape, over the App's HttpClient)
+│   └── Capture/                     CapturePipeline (one frame → one outcome), Deduplicator + PlayKey,
+│                                    the ports IScreenSource / IGameSession / IFailedScreenStore / INotifier,
+│                                    WatcherNotice, SteamScreenshotFolders
 ├── src/PiuScoresWatcher.App         net10.0-windows10.0.19041.0 — WPF + adapters
 │   ├── Program.cs                   Velopack hook → single instance → launch options → replay or WPF
 │   ├── App.xaml(.cs)                the generic host, the tray icon, the settings window on demand
@@ -76,14 +79,18 @@ PiuScoresWatcher.sln
 │   ├── Ocr/                         WindowsOcrTitleReader (Windows.Media.Ocr over the title bar)
 │   ├── Api/                         PiuScoresHttp — the HttpClient (site address, User-Agent, timeout)
 │   ├── Security/                    DpapiTokenStore, EnvironmentOrStoredToken (the dev seam)
-│   ├── Capture/      (planned)      WindowCaptureSource, SteamScreenshotSource, RiseProcessWatch
-│   ├── Notifications/(planned)      toasts
+│   ├── Capture/                     RiseProcessWatch (is the game running, which window), WindowCaptureSource
+│   │                                (PrintWindow once a second), SteamScreenshotSource + SteamPaths (the F12
+│   │                                folders), CaptureService (runs the sources, feeds the pipeline, logs)
+│   ├── Notifications/               LogNotifier (toasts, with the owner's copy, come with the settings window)
 │   └── Assets/                      app.ico (placeholder art)
 ├── tests/PiuScoresWatcher.Tests     xUnit + Moq (+ SkiaSharp to decode fixtures), references Core only
 │   ├── StartupTests/                LaunchOptionsTests
 │   ├── ArchitectureTests/           CoreStaysHeadlessTests, ClockSeamTests
 │   ├── RecognitionTests/            every fixture screen through the detector, the reader and the checksum
 │   ├── ApiTests/                    PiuScoresClientTests (the wire shape over a stub handler), ObservedPlayTests
+│   ├── CaptureTests/                CapturePipelineTests (fixture frames through the real reader, doubles around it),
+│   │                                DeduplicatorTests, SteamScreenshotFoldersTests
 │   ├── ScoringTests/                PhoenixScoringTests, PlayChecksumTests
 │   ├── DomainTests/                 JudgmentsTests
 │   ├── TestHelpers/                 RepositoryFiles, FixtureScreens
