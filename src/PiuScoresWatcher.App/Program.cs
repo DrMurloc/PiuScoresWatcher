@@ -35,6 +35,10 @@ public static class Program
             return 2;
         }
 
+        // A replay is a command, not the tray app: one file through the pipeline, a report, an exit code.
+        if (options.ReplayFile is not null)
+            return Replay.ReplayRunner.Run(options);
+
         var app = new App(options);
         app.InitializeComponent();
         return app.Run();

@@ -16,6 +16,8 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <!-- WPF's Fluent theme (ThemeMode on Application) is still marked experimental on .NET 10. -->
     <NoWarn>$(NoWarn);WPF0001</NoWarn>
+    <!-- LibraryImport (the console attach for the replay switch) generates unsafe marshalling code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <!-- Program.Main owns startup (the Velopack hook and the single-instance mutex run before any
