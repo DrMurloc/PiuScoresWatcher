@@ -3,10 +3,10 @@
 A Windows desktop app that watches for scores in PUMP IT UP RISE and records them on
 [PIU Scores](https://piuscores.arroweclip.se).
 
-Status: **it watches, untested against the running game.** The tray app captures the RISE window once a
-second while the game runs and reads every F12 screenshot, posting each reconciled play once; feedback
-is the log until the toasts and the settings window land. The plan is
-[docs/design/watcher.md](docs/design/watcher.md).
+Status: **the MVP is being built on one pull request, #8.** The reader, posting and capture are in: the tray
+app captures the RISE window once a second while the game runs and reads every F12 screenshot, posting each
+reconciled play once. The first-run and settings windows and the toasts are next; then one test session with
+the game, then v0.1.0. The plan is [docs/design/watcher.md](docs/design/watcher.md) §6.
 
 ## What it will do
 

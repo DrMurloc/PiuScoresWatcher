@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- **Windows 10 version 2004 (build 19041) or Windows 11.** The capture API the watcher will use (`Windows.Graphics.Capture`) needs it; the manifest and the target framework say so.
+- **Windows 10 version 2004 (build 19041) or Windows 11.** The target framework and the built-in OCR the title is read with expect it; the manifest says so.
 - **.NET 10 SDK** — the version in [`global.json`](../global.json) (`10.0.401`, rolling forward to later 10.0 feature bands). `dotnet --list-sdks` to check.
 - Optional: **Visual Studio 2022 17.14+** with the ".NET desktop development" workload for the XAML designer, or Rider. Nothing here needs an IDE — the CLI builds and runs everything.
 - No Windows SDK install: the Windows API projections arrive through the `net10.0-windows10.0.19041.0` target framework as a NuGet reference.
@@ -65,7 +65,7 @@ The report's `connection` says who the token is (`connected`, `unauthorized`, or
 
 ### Where it keeps things
 
-`%LOCALAPPDATA%\PiuScoresWatcher\` — `settings.json`, `logs\` (rolling daily, seven kept), `failed\` (screens the reader could not read). The settings window's **Open logs folder** button goes straight there. The token, when it exists, sits beside them DPAPI-encrypted, never inside the settings file.
+`%APPDATA%\PiuScoresWatcher\` — `settings.json`, `logs\` (rolling daily, seven kept), `failed\` (screens the reader could not read). The settings window's **Open logs folder** button goes straight there. The token, when it exists, sits beside them DPAPI-encrypted, never inside the settings file.
 
 ### If the game comes out black
 

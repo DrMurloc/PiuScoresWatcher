@@ -1,9 +1,10 @@
 # PIU Scores Watcher — the capture app for PUMP IT UP RISE
 
-Status: **it watches** (commits 2–4, 2026-09-23): the reader reads every one of the owner's result screens
-and reconciles them; the client posts; the tray app captures the game window once a second while RISE runs
-and reads every F12 screenshot Steam writes, posting each reconciled play once. Untested against the running
-game until the owner's loop; feedback is the log until the toasts and settings window land. Phase 2 of PIU
+Status: **the MVP, on one pull request — #8** (2026-09-23, D33). Built so far: the reader reads every one of the
+owner's result screens and reconciles them; the client posts; the tray app captures the game window once a
+second while RISE runs and reads every F12 screenshot Steam writes, posting each reconciled play once. Still to
+come on the same PR: the first-run and settings windows, the toasts and Start with Windows (§6). Not yet tried
+against the running game — that is the one loop at the end. Phase 2 of PIU
 Scores' RISE plan
 ([rise.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/design/rise.md) §8): phase 1 added
 RISE as two mixes with the v2 plays write this app posts to; phase 3 (boards and PUMBILITY) is the site's.
@@ -60,9 +61,11 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
 - **D11. Dedupe by content and time.** A result screen stays up as long as the player leaves it; the same
   reading within a window is one play. Both modes feed one deduplicator. The server is idempotent on play
   time as a second net.
-- **D12. Everything on disk lives under `%LOCALAPPDATA%\PiuScoresWatcher\`**: settings (never the token),
-  the token DPAPI-encrypted on its own, seven days of logs, and the screens the reader could not read, kept
-  for the send-to-the-developer button. No telemetry (PRIVACY.md).
+- **D12. Everything on disk lives under `%APPDATA%\PiuScoresWatcher\`**: settings (never the token), the token
+  DPAPI-encrypted on its own, seven days of logs, and the screens the reader could not read, kept for review. Not
+  `%LOCALAPPDATA%\PiuScoresWatcher\`: that is Velopack's install folder, replaced whole on every install and
+  removed on uninstall, so a reinstall would sign the player out and lose their settings (found 2026-09-23,
+  ratcheted). No telemetry (PRIVACY.md).
 - **D13. The reader fails loud.** An unreadable screen is saved and surfaced; nothing is guessed, nothing
   partial is posted. A failed screen becomes a fixture (with the player's ok) before the fix is written.
 - **D14. English only in v1.** A settings window has a dozen strings; the site's nine locales came with a
@@ -96,7 +99,7 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   Accuracy is compared by its digits (the '.' is too small to segment, the '%' sometimes splits).
 - **D22. A frame that reads but does not reconcile is "not yet", not "wrong".** The numbers land in two beats —
   judgments, then a score that counts up for about two seconds — so the watcher keeps reading until a frame
-  reconciles (commit 4), and a fixture of that kind (`unsettled`) pins the refusal.
+  reconciles (the window source, D28), and a fixture of that kind (`unsettled`) pins the refusal.
 - **D23. Fixtures carry the player card blacked out**, always, by the lab (owner, 2026-09-22). The card is the
   only personal thing on a result screen and no field the reader uses is near it.
 - **D25. One play per request, posted as read.** `ObservedPlay` is a complete, reconciled reading plus the
@@ -127,7 +130,7 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   brings a new frame every second, so "not yet" is right there; an F12 file is final, so the same
   frame is saved under `failed\` with why. A title the OCR cannot read is kept either way.
 - **D31. Failed screens are a PNG and a JSON note** — the frame as captured, and why it failed with what
-  was read — under `failed\`, until the player sends or deletes them (the review dialog, commit 5).
+  was read — under `failed\`, until the player deals with them in the review dialog.
 - **D32. F12 folders are found, not asked for.** `HKCU\Software\Valve\Steam\SteamPath` gives the Steam
   root, every numeric folder under `userdata` is an account, and RISE's screenshots sit at
   `760\remote\2756930\screenshots` under each; the settings' folder override replaces the lot. A file is
@@ -135,6 +138,10 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
 - **D24. WorldMax is skipped, and no station has a stage-break result screen.** WorldMax ends on a mission
   summary without the five counts, so it cannot be posted and never detects; a broken run in the Arcade Station
   never reaches a result, and in Warm Up the grey grade is the whole story. `isBroken` is the grey sticker.
+
+- **D33 (owner, 2026-09-23). One pull request for the MVP.** Everything through `v0.1.0` lands on #8 and the
+  owner tests it once, installed, at the end (§6) — not a PR or a loop per piece. Dependabot follows suit: one
+  combined pull request a month for NuGet and the workflow actions together, every update type, CI as the check.
 
 ## 3. The pipeline
 
@@ -179,20 +186,41 @@ base64("anything:<token>")`. One request per play:
 2. **First run.** Paste the token (checked on the spot: "Connected as …"); choose the mode; Start with
    Windows (on). Done.
 3. **Then nothing.** RISE starts, it wakes. A result screen → toast: "Recorded · Gargoyle S18 · 975,429 SS".
-   RISE closes, it sleeps. A screen it cannot read → a toast that says so and a button to send it.
+   RISE closes, it sleeps. A screen it cannot read → a toast that says so, and the frame kept for review.
 
-## 6. Phases — the commit plan
+## 6. The MVP — one pull request (D33)
 
-| # | Commit | What lands |
-|---|---|---|
-| 1 | `chore: repository structure` — **done** | the three projects, the docs set, CLAUDE.md, CI and release workflows, the tray shell with settings/logs/update plumbing, the launch-option parser and the two ratchets |
-| 2 | `feat(core): the result-screen reader` — **done** (four commits: docs, fixtures + lab, Core, App) | detector + reader over the fixture screens, the Phoenix formula and the checksum (D10, D21), the templates from screens and sprites (D19), `--replay` end to end with the title by Windows OCR |
-| 3 | `feat: posting` — **done** (three commits: docs, Core, App) | the plays client on the site's wire shape (D25, D26), the DPAPI token store and the environment seam (D27), `--replay` says who the token is and posts a reconciled play unless `--dry-run`. **Owner's loop:** a token on a local site, a real screen through `--replay --base-url`, the journal on the site |
-| 4 | `feat(app): capture` — **built, awaiting the owner's loop** (three commits: docs, Core, App) | the pipeline (detect → read → reconcile → dedupe → title → post → notify), the window source over `PrintWindow` (D28), the Steam screenshots watcher (D32), the RISE process watch, the deduplicator (D29), failed screens (D31), notices to the log until toasts exist. **Owner's loop:** RISE open, the watcher running with a token, a Warm Up and an Arcade result, F12 on one, a screen left up — the checklist in HOW-TO-TEST |
-| 5 | `feat(app): settings` | the first-run flow, the mode switch, Start with Windows, the failed-screen button, the second-instance handoff to the running one |
-| 6 | `release: v0.1.0` | tag; the site's download card (a PIU Scores PR, owner's copy); alpha with two RISE players |
+Everything from the reader to the installer lands on **one pull request, #8**, and is tested in **one loop at
+the end**. Commits inside it stay small — docs first, each green on its own — but nothing ships as a separate
+PR. (Commit 1, the repository structure, went straight to `main`: an empty repository has nothing to open a PR
+against.)
 
-Each commit green on build + tests on its own; docs first.
+The MVP is the Warcraft Logs bar of §1: download, paste a token, play — and every result screen becomes a play
+on the site with nothing else to do.
+
+| Piece | State on #8 |
+|---|---|
+| Reading a result screen; the checksum | done — every fixture reads and reconciles (D18–D24) |
+| Posting a play; the token at rest | done (D25–D27) |
+| Watching the game window once a second; the F12 folders | done, not yet tried against the running game (D28–D32) |
+| Updates | done — checked at start-up, applied on the next launch (D8) |
+| The installer | wired in `release.yml`; built on the owner's PC for the loop |
+| First run, settings, the tray menu, toasts, the review dialog | to build, against the mocks — **waits on the owner's sign-off on the mocks** |
+| Start with Windows; a second launch opens the running one's settings | to build with the settings window |
+| Every player-facing string | placeholders until the owner rewrites them on the PR |
+
+**The one loop.** When the UI is in: install the build made on the owner's PC, paste a token, and play one
+session — a Warm Up result, an Arcade Station result, F12 on one, one left up for a minute, a Division result if
+convenient, and a dozen Arcade Station plays for the missing `5` (§9) — then check the site's journal. HOW-TO-TEST's
+checklist is the script. Anything it turns up is fixed on #8.
+
+**Then** merge, tag `v0.1.0`, and the release workflow publishes the installer — signed once the Trusted Signing
+variables exist (D4).
+
+**After the MVP**, each on its own schedule: the site's download card (§7, the owner's copy), the alpha with two
+RISE players, the Graphics Capture fallback if a setup comes out black (D28), and sending a failed screen to the
+developer — in the MVP the review dialog shows the file, because there is nowhere to send one yet (decided unless
+the owner objects).
 
 ## 7. Site side
 
@@ -220,8 +248,4 @@ beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14)
   Deck. Park until a Deck player asks; Avalonia is the route (D7).
 - **Name and art.** "PIU Scores Watcher" and the yellow-W icon are placeholders; the owner names it and
   supplies the icon before v0.1.0.
-- **Windows 10's capture border.** The OS draws a thin yellow border around a captured window and Windows 10
-  cannot turn it off. Cosmetic; a line in the first-run copy, or steer Windows 10 players to F12 mode?
 - **Steam's "uncompressed copy" folder.** Steam can save a lossless PNG beside the JPEG; worth watching both?
-- **The second-instance handoff.** Today a second launch exits quietly; it should open the running instance's
-  settings (a named pipe or a window message) — commit 5.

@@ -44,7 +44,7 @@ The reader **fails loud**: an unreadable screen is saved under `failed/` and sur
 
 ### Enforcement over convention
 
-The rules above are ratcheted by `tests/PiuScoresWatcher.Tests/ArchitectureTests/`: Core stays headless (no OS target, no forbidden references); the wall clock is read in `SystemClock.cs` and nowhere else. Rules are added, never removed. The machine-readable conventions live in [CLAUDE.md](../CLAUDE.md).
+The rules above are ratcheted by `tests/PiuScoresWatcher.Tests/ArchitectureTests/`: Core stays headless (no OS target, no forbidden references); the wall clock is read in `SystemClock.cs` and nowhere else; nothing is written under `%LOCALAPPDATA%\PiuScoresWatcher`, the install folder. Rules are added, never removed. The machine-readable conventions live in [CLAUDE.md](../CLAUDE.md).
 
 ---
 
@@ -72,7 +72,7 @@ PiuScoresWatcher.sln
 │   ├── Program.cs                   Velopack hook → single instance → launch options → replay or WPF
 │   ├── App.xaml(.cs)                the generic host, the tray icon, the settings window on demand
 │   ├── Views/                       SettingsWindow
-│   ├── Storage/                     AppPaths (%LOCALAPPDATA%\PiuScoresWatcher), JsonSettingsStore
+│   ├── Storage/                     AppPaths (%APPDATA%\PiuScoresWatcher), JsonSettingsStore, FailedScreenStore
 │   ├── Time/                        SystemClock
 │   ├── Updates/                     UpdateService (GitHub Releases, applied on next launch)
 │   ├── Replay/                      ReplayRunner (a file through the pipeline, posted when a token is there), WpfScreenDecoder
@@ -102,14 +102,14 @@ PiuScoresWatcher.sln
 
 ### Data on disk
 
-Everything the watcher writes lives under `%LOCALAPPDATA%\PiuScoresWatcher\`:
+Everything the watcher writes lives under `%APPDATA%\PiuScoresWatcher\` — never under `%LOCALAPPDATA%\PiuScoresWatcher\`, which is Velopack's install folder: the installer replaces it whole and uninstall removes it, so data kept there would vanish with every reinstall (ratcheted, `DataFolderTests`).
 
 | Path | What |
 |---|---|
 | `settings.json` | the player's choices — mode, Start with Windows, the screenshots folder override. Never the token |
 | `token.bin` | the PIU Scores token, DPAPI-encrypted for the Windows account |
 | `logs\watcher-<date>.log` | rolling daily logs, seven kept |
-| `failed\` | result screens the reader could not parse, for the "send to the developer" button |
+| `failed\` | result screens that could not become a play — a PNG and a JSON note each — for the review dialog |
 
 No telemetry. What leaves the machine is exactly one HTTP request per play, described in [PRIVACY.md](PRIVACY.md).
 

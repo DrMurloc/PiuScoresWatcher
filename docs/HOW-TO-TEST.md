@@ -5,7 +5,7 @@
 The same rule as PIU Scores: **use the lowest-level test that would catch the regression**, and move up a rung only when the lower one would mock away the thing that might break. The watcher has three rungs, and the top one is a person with the game open — no automation drives RISE.
 
 1. **Unit tests** (`tests/PiuScoresWatcher.Tests/StartupTests/`, `RecognitionTests/`, `ScoringTests/`, `DomainTests/`) — Core's pure logic. The launch-option parser; the detector and the reader over **fixture screenshots** (a JPEG in, a `ResultScreenReading` out, compared field by field against `expected.json`, then the checksum); the Phoenix formula and the checksum against the owner's verified screens. Real objects, no mocks where avoidable, no clock calls (`FakeClock` once `IClock` has a consumer).
-2. **Architecture ratchets** (`ArchitectureTests/`) — Core stays headless (no OS target, no UI/Windows/Velopack reference); the wall clock is read only in `SystemClock.cs`. Rules are added, never removed. A third arrives with the first player-facing error string: no raw exception text reaches a toast or a window.
+2. **Architecture ratchets** (`ArchitectureTests/`) — Core stays headless (no OS target, no UI/Windows/Velopack reference); the wall clock is read only in `SystemClock.cs`; nothing is written into Velopack's install folder. Rules are added, never removed. A third arrives with the first player-facing error string: no raw exception text reaches a toast or a window.
 3. **The checklist with the game** — for what only RISE can show. App's adapters (capture, the folder watcher, toasts, the token store) are thin by design and are exercised here, not mocked into meaninglessness.
 
 Tests are classified by **folder-as-tag**; no per-test traits.
@@ -13,7 +13,7 @@ Tests are classified by **folder-as-tag**; no per-test traits.
 Two hard rules on dependency realism:
 
 - **A fixture screenshot is the real thing.** The reader is tested on actual result screens at actual resolutions, never on synthesized images. When a player sends a screen the reader could not read, it becomes a fixture (with their ok) *before* the fix is written.
-- **Never test the capture API with a fake window.** If the question is "does `Windows.Graphics.Capture` hand us the RISE frame", the answer comes from the checklist.
+- **Never test the capture API with a fake window.** If the question is "does `PrintWindow` hand us the RISE frame", the answer comes from the checklist.
 
 ## Running the tests
 
@@ -41,7 +41,7 @@ Fixtures are decoded with SkiaSharp, a test-only dependency; Core never decodes 
 
 ## The checklist with the game
 
-Run before a release that touches capture, the reader or posting. Use `--replay` on the fixtures first; then, live, with `--base-url` at a local PIU Scores:
+This is the MVP's one loop (watcher.md §6, D33) — the installed build, a token, one session with the game — and afterwards the check before any release that touches capture, the reader or posting. `--replay` on a fixture first proves the build reads; then, live:
 
 - [ ] Warm Up result → posted to `rise`, toast names the song, chart and score; the site's journal shows the play.
 - [ ] Arcade Station result → posted to `riseArcade`, plate and plus grade read correctly.
