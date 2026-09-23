@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using H.NotifyIcon;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Toolkit.Uwp.Notifications;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PiuScoresWatcher.App.Api;
@@ -75,6 +76,12 @@ public partial class App : Application
         _tray = CreateTray();
         Status.Changed += (_, _) => Dispatcher.BeginInvoke(RefreshTray);
         _instance.Listen(() => Dispatcher.BeginInvoke(ShowSettings));
+        // A click on a notification reaches this process whether it is running or Windows starts it for the click.
+        ToastNotificationManagerCompat.OnActivated += activation =>
+        {
+            var arguments = ToastArguments.Parse(activation.Argument);
+            Dispatcher.BeginInvoke(() => OnNotificationClicked(arguments));
+        };
 
         var settings = Services.GetRequiredService<ISettingsStore>();
         AnnounceUpdate(settings);
@@ -220,6 +227,23 @@ public partial class App : Application
         _review ??= Open<ReviewWindow>(() => _review = null);
         _review.ShowScreen(imagePath);
         Bring(_review);
+    }
+
+    private void OnNotificationClicked(ToastArguments arguments)
+    {
+        arguments.TryGetValue(ToastAction.Key, out string? action);
+        switch (action)
+        {
+            case ToastAction.Review:
+                ShowReview(arguments.TryGetValue(ToastAction.Path, out string? path) ? path : null);
+                break;
+            case ToastAction.Release:
+                Links.Open(Links.Release(arguments.TryGetValue(ToastAction.Version, out string? version) ? version : AppVersion.Short));
+                break;
+            default:
+                ShowSettings();
+                break;
+        }
     }
 
     private T Open<T>(Action whenClosed) where T : Window

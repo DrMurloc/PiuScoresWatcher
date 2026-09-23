@@ -240,11 +240,11 @@ on the site with nothing else to do.
 | Watching the game window once a second; the F12 folders | done, not yet tried against the running game (D28–D32) |
 | Updates | done — checked at start-up, applied on the next launch (D8) |
 | The installer | wired in `release.yml`; built on the owner's PC for the loop |
-| First run, settings, the tray menu, notifications, the review dialog | iteration 1 — the mocks approved with the arrow icon and switchable notifications (D34–D37) |
-| Start with Windows; a second launch opens the running one's settings | with the settings window (D39, D40) |
+| First run, settings, the tray menu, notifications, the review dialog | built — iteration 1 of the mocks, with the arrow icon and switchable notifications (D34–D38, D43); smoke-tested on dropped F12 screenshots, not yet with the game |
+| Start with Windows; a second launch opens the running one's settings | built (D39, D40); the second launch smoke-tested, the Run key waits for an installed copy |
 | Every player-facing string | the mocks' placeholder copy, all in `App/Copy.cs` until the owner rewrites it (D36) |
 
-**The one loop.** When the UI is in: install the build made on the owner's PC, paste a token, and play one
+**The one loop.** The UI is in. Install the build made on the owner's PC, paste a token, and play one
 session — a Warm Up result, an Arcade Station result, F12 on one, one left up for a minute, a Division result if
 convenient, and a dozen Arcade Station plays for the missing `5` (§9) — then check the site's journal. HOW-TO-TEST's
 checklist is the script. Anything it turns up is fixed on #8.

@@ -1,4 +1,5 @@
 using System.Windows;
+using Microsoft.Toolkit.Uwp.Notifications;
 using PiuScoresWatcher.App.Startup;
 using PiuScoresWatcher.Core.Exceptions;
 using PiuScoresWatcher.Core.Startup;
@@ -13,9 +14,13 @@ public static class Program
     {
         // Velopack first: on install, update and uninstall it runs its hooks and exits before any
         // window exists, which is why startup is not in App.OnStartup. Uninstalling takes the Start
-        // with Windows entry with it (D40).
+        // with Windows entry and the notification registration with it (D40).
         VelopackApp.Build()
-            .OnBeforeUninstallFastCallback(_ => StartupRegistration.Remove())
+            .OnBeforeUninstallFastCallback(_ =>
+            {
+                StartupRegistration.Remove();
+                ToastNotificationManagerCompat.Uninstall();
+            })
             .Run();
 
         LaunchOptions options;
