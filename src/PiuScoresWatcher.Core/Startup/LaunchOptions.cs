@@ -22,6 +22,12 @@ public sealed record LaunchOptions(string? ReplayFile, bool DryRun, Uri? BaseUrl
 
     public static readonly LaunchOptions None = new(null, false, null);
 
+    /// <summary>
+    ///     Switches Windows adds itself — a notification's click starts the watcher with
+    ///     <c>-ToastActivated</c>, a COM activation with <c>-Embedding</c>. Not ours to refuse.
+    /// </summary>
+    private static readonly HashSet<string> WindowsSwitches = new(StringComparer.OrdinalIgnoreCase) { "-ToastActivated", "-Embedding" };
+
     public Uri EffectiveBaseUrl => BaseUrl ?? ProductionBaseUrl;
 
     public static LaunchOptions Parse(IReadOnlyList<string> args, string? baseUrlFromEnvironment = null)
@@ -33,6 +39,8 @@ public sealed record LaunchOptions(string? ReplayFile, bool DryRun, Uri? BaseUrl
         for (var i = 0; i < args.Count; i++)
         {
             var arg = args[i];
+            if (WindowsSwitches.Contains(arg))
+                continue;
             switch (arg.ToLowerInvariant())
             {
                 case "--replay":

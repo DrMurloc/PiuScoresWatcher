@@ -27,10 +27,17 @@ public interface IGameSession
     event EventHandler<bool>? RunningChanged;
 }
 
-/// <summary>Keeps a frame the pipeline could not turn into a play, for the developer; returns where it went.</summary>
+/// <summary>Why a frame was kept for review: the reader could not make a play of it, or the site did not record the play.</summary>
+public enum KeptFor
+{
+    Unreadable,
+    NotRecorded
+}
+
+/// <summary>Keeps a frame the pipeline could not turn into a recorded play, for review; returns where it went.</summary>
 public interface IFailedScreenStore
 {
-    string Save(CapturedFrame frame, string reason, ResultScreenReading? reading);
+    string Save(CapturedFrame frame, KeptFor why, string reason, ResultScreenReading? reading);
 }
 
 /// <summary>What the player is told about. The App turns each notice into a toast; the copy is the owner's.</summary>

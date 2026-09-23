@@ -25,7 +25,7 @@ public sealed class FailedScreenStore(IClock clock) : IFailedScreenStore
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public string Save(CapturedFrame frame, string reason, ResultScreenReading? reading)
+    public string Save(CapturedFrame frame, KeptFor why, string reason, ResultScreenReading? reading)
     {
         Directory.CreateDirectory(AppPaths.Failed);
         var stem = $"{clock.Now:yyyyMMdd-HHmmss}-{frame.Source.Token()}";
@@ -44,6 +44,7 @@ public sealed class FailedScreenStore(IClock clock) : IFailedScreenStore
 
         File.WriteAllText(Path.ChangeExtension(path, ".json"), JsonSerializer.Serialize(new
         {
+            why,
             reason,
             source = frame.Source,
             origin = frame.Origin,

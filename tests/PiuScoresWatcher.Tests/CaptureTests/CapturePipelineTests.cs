@@ -28,7 +28,7 @@ public sealed class CapturePipelineTests
             .ReturnsAsync("Morrighan");
         _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<CaptureSource>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PostOutcome.Recorded(1, "Rise"));
-        _failed.Setup(f => f.Save(It.IsAny<CapturedFrame>(), It.IsAny<string>(), It.IsAny<ResultScreenReading?>()))
+        _failed.Setup(f => f.Save(It.IsAny<CapturedFrame>(), It.IsAny<KeptFor>(), It.IsAny<string>(), It.IsAny<ResultScreenReading?>()))
             .Returns(@"C:\failed\frame.png");
     }
 
@@ -104,6 +104,7 @@ public sealed class CapturePipelineTests
 
         var kept = Assert.IsType<FrameOutcome.Kept>(outcome);
         Assert.Equal(@"C:\failed\frame.png", kept.SavedTo);
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptFor.Unreadable, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
         _notifier.Verify(n => n.Notify(It.IsAny<WatcherNotice.Unreadable>()), Times.Once);
     }
 
@@ -127,7 +128,7 @@ public sealed class CapturePipelineTests
 
         Assert.IsType<PostOutcome.Unauthorized>(Assert.IsType<FrameOutcome.Posted>(outcome).Outcome);
         _notifier.Verify(n => n.Notify(It.IsAny<WatcherNotice.TokenRejected>()), Times.Once);
-        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), It.IsAny<KeptFor>(), It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
     }
 
     [Fact]
@@ -149,7 +150,7 @@ public sealed class CapturePipelineTests
 
         await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None);
 
-        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), It.Is<string>(r => r.Contains("unreachable")), It.IsAny<ResultScreenReading?>()), Times.Once);
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptFor.NotRecorded, It.Is<string>(r => r.Contains("unreachable")), It.IsAny<ResultScreenReading?>()), Times.Once);
     }
 
     [Fact]

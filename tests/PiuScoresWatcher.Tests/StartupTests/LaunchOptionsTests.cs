@@ -86,6 +86,14 @@ public sealed class LaunchOptionsTests
         Assert.Throws<InvalidLaunchOptionsException>(() => LaunchOptions.Parse([], value));
     }
 
+    [Theory]
+    [InlineData("-ToastActivated")]
+    [InlineData("-Embedding")]
+    public void TheSwitchesWindowsAddsOnANotificationClickAreNotRefused(string windowsSwitch)
+    {
+        Assert.Equal(LaunchOptions.None, LaunchOptions.Parse([windowsSwitch]));
+    }
+
     [Fact]
     public void AnUnknownSwitchIsRefusedRatherThanIgnored()
     {

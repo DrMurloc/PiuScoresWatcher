@@ -87,7 +87,7 @@ public sealed class CapturePipeline(
         }
 
         // Whatever the reason, a play the site did not record is kept, so a failure never loses one silently (D38).
-        var savedTo = failed.Save(frame, outcome.Describe(), reading);
+        var savedTo = failed.Save(frame, KeptFor.NotRecorded, outcome.Describe(), reading);
         notifier.Notify(outcome is PostOutcome.Unauthorized
             ? new WatcherNotice.TokenRejected()
             : new WatcherNotice.NotRecorded(play, outcome, savedTo));
@@ -98,7 +98,7 @@ public sealed class CapturePipeline(
     {
         if (PlayKey.Of(reading) is { } key)
             deduplicator.Remember(key);
-        var path = failed.Save(frame, reason, reading);
+        var path = failed.Save(frame, KeptFor.Unreadable, reason, reading);
         notifier.Notify(new WatcherNotice.Unreadable(reason, path));
         return new FrameOutcome.Kept(reason, path);
     }

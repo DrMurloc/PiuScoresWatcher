@@ -7,4 +7,7 @@ public interface ISettingsStore
     WatcherSettings Load();
 
     void Save(WatcherSettings settings);
+
+    /// <summary>Raised after every save, with what was saved, so the watcher can follow a changed mode at once.</summary>
+    event EventHandler<WatcherSettings>? Changed;
 }
