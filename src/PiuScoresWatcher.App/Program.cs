@@ -1,4 +1,5 @@
 using System.Windows;
+using PiuScoresWatcher.App.Startup;
 using PiuScoresWatcher.Core.Exceptions;
 using PiuScoresWatcher.Core.Startup;
 using Velopack;
@@ -7,21 +8,12 @@ namespace PiuScoresWatcher.App;
 
 public static class Program
 {
-    /// <summary>One watcher per Windows session; the name is local to the session, not the machine.</summary>
-    private const string InstanceMutex = @"Local\PiuScoresWatcher";
-
     [STAThread]
     public static int Main(string[] args)
     {
         // Velopack first: on install, update and uninstall it runs its hooks and exits before any
         // window exists, which is why startup is not in App.OnStartup.
         VelopackApp.Build().Run();
-
-        // A second launch — the shortcut double-clicked while the tray icon already exists — exits
-        // quietly. Later it will ask the running instance to open its settings instead.
-        using var instance = new Mutex(initiallyOwned: true, InstanceMutex, out var first);
-        if (!first)
-            return 0;
 
         LaunchOptions options;
         try
@@ -31,15 +23,20 @@ public static class Program
         catch (InvalidLaunchOptionsException refusal)
         {
             // A dev seam misused: say so and stop, rather than run against production by accident.
-            MessageBox.Show(refusal.Message, "PIU Scores Watcher", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(refusal.Message, Copy.AppName, MessageBoxButton.OK, MessageBoxImage.Warning);
             return 2;
         }
 
-        // A replay is a command, not the tray app: one file through the pipeline, a report, an exit code.
+        // A replay is a command, not the tray app: it runs beside a running watcher (D39).
         if (options.ReplayFile is not null)
             return Replay.ReplayRunner.Run(options);
 
-        var app = new App(options);
+        // A second launch asks the running watcher to open its settings, and leaves.
+        using var instance = SingleInstance.Claim();
+        if (instance is null)
+            return 0;
+
+        var app = new App(options, instance);
         app.InitializeComponent();
         return app.Run();
     }

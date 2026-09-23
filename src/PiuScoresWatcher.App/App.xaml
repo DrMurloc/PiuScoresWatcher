@@ -1,23 +1,9 @@
 <Application x:Class="PiuScoresWatcher.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf"
              ShutdownMode="OnExplicitShutdown"
              ThemeMode="System">
-    <!-- The tray icon is the app; windows come and go. Closing the settings window must not exit,
-         hence OnExplicitShutdown: only Quit does. Menu labels are placeholder copy. -->
-    <Application.Resources>
-        <tb:TaskbarIcon x:Key="TrayIcon"
-                        ToolTipText="PIU Scores Watcher"
-                        IconSource="pack://application:,,,/Assets/app.ico"
-                        TrayLeftMouseUp="OnTrayLeftClick">
-            <tb:TaskbarIcon.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Open settings" Click="OnOpenSettings" />
-                    <Separator />
-                    <MenuItem Header="Quit" Click="OnQuit" />
-                </ContextMenu>
-            </tb:TaskbarIcon.ContextMenu>
-        </tb:TaskbarIcon>
-    </Application.Resources>
+    <!-- The tray icon is the app; windows come and go. Closing a window must not exit, hence
+         OnExplicitShutdown: only Quit does. The tray icon and its menu are built in App.xaml.cs,
+         because their status line changes as the watcher works. -->
 </Application>
