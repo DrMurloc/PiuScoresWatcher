@@ -21,6 +21,9 @@
   <data name="1 screen couldn't be read" xml:space="preserve">
     <value>1 pantalla no se pudo leer</value>
   </data>
+  <data name="A chime when a play is recorded, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it." xml:space="preserve">
+    <value>Una campanita cuando se registra una jugada, un tono grave cuando no se puede leer una pantalla y un tic cuando PIU Scores no la acepta.</value>
+  </data>
   <data name="A play PIU Scores didn't take" xml:space="preserve">
     <value>Una jugada que PIU Scores no aceptó</value>
   </data>
@@ -323,6 +326,9 @@
   </data>
   <data name="Sounds while capturing" xml:space="preserve">
     <value>Sonidos durante la captura</value>
+  </data>
+  <data name="Sounds while playing" xml:space="preserve">
+    <value>Sonidos mientras juega</value>
   </data>
   <data name="Start" xml:space="preserve">
     <value>Iniciar</value>

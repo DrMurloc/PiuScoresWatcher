@@ -116,6 +116,13 @@ public static class Copy
 
     public static string NotifyBulkFinished => L("When a bulk capture finishes");
 
+    // ---- Settings: a play's sound (D63, D64) ----
+    public static string SoundsWhilePlaying => L("Sounds while playing");
+
+    /// <summary>Under the switch: what each of the three sounds means for a play.</summary>
+    public static string SoundsWhilePlayingDetail =>
+        L("A chime when a play is recorded, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it.");
+
     // ---- Settings: the language (D58, D59) ----
     public static string SectionLanguage => Upper(L("Language"));
 

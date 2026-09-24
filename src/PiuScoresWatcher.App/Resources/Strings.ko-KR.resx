@@ -21,6 +21,9 @@
   <data name="1 screen couldn't be read" xml:space="preserve">
     <value>화면 1개를 읽지 못했습니다</value>
   </data>
+  <data name="A chime when a play is recorded, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it." xml:space="preserve">
+    <value>플레이가 기록되면 차임, 화면을 읽지 못하면 낮은 음, PIU Scores가 받지 않으면 틱이 울립니다.</value>
+  </data>
   <data name="A play PIU Scores didn't take" xml:space="preserve">
     <value>PIU Scores가 받지 않은 플레이</value>
   </data>
@@ -323,6 +326,9 @@
   </data>
   <data name="Sounds while capturing" xml:space="preserve">
     <value>캡처 중 소리</value>
+  </data>
+  <data name="Sounds while playing" xml:space="preserve">
+    <value>플레이 중 소리</value>
   </data>
   <data name="Start" xml:space="preserve">
     <value>시작</value>

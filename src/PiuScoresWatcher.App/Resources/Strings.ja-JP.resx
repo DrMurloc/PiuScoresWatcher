@@ -21,6 +21,9 @@
   <data name="1 screen couldn't be read" xml:space="preserve">
     <value>1件の画面を読み取れませんでした</value>
   </data>
+  <data name="A chime when a play is recorded, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it." xml:space="preserve">
+    <value>プレイが記録されるとチャイム、画面を読み取れないと低い音、PIU Scoresが受け付けないとカチッと鳴ります。</value>
+  </data>
   <data name="A play PIU Scores didn't take" xml:space="preserve">
     <value>PIU Scoresが受け付けなかったプレイ</value>
   </data>
@@ -323,6 +326,9 @@
   </data>
   <data name="Sounds while capturing" xml:space="preserve">
     <value>キャプチャ中の音</value>
+  </data>
+  <data name="Sounds while playing" xml:space="preserve">
+    <value>プレイ中の音</value>
   </data>
   <data name="Start" xml:space="preserve">
     <value>開始</value>

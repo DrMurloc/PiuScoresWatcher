@@ -77,7 +77,7 @@
         <Border Style="{StaticResource Card}" Margin="0,0,0,12">
             <StackPanel>
                 <DockPanel Margin="0,0,0,10">
-                    <Button Style="{StaticResource PlaySound}" Tag="{x:Static sounds:CaptureSound.Sent}" Click="OnPreview"
+                    <Button Style="{StaticResource PlaySound}" Tag="{x:Static sounds:CaptureSound.Chime}" Click="OnPreview"
                             AutomationProperties.LabeledBy="{Binding ElementName=ChimeName}" />
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock x:Name="ChimeName" Text="{x:Static app:Copy.SoundChime}" FontWeight="SemiBold" />
@@ -85,7 +85,7 @@
                     </StackPanel>
                 </DockPanel>
                 <DockPanel Margin="0,0,0,10">
-                    <Button Style="{StaticResource PlaySound}" Tag="{x:Static sounds:CaptureSound.Already}" Click="OnPreview"
+                    <Button Style="{StaticResource PlaySound}" Tag="{x:Static sounds:CaptureSound.Tick}" Click="OnPreview"
                             AutomationProperties.LabeledBy="{Binding ElementName=TickName}" />
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock x:Name="TickName" Text="{x:Static app:Copy.SoundTick}" FontWeight="SemiBold" />
@@ -93,7 +93,7 @@
                     </StackPanel>
                 </DockPanel>
                 <DockPanel>
-                    <Button Style="{StaticResource PlaySound}" Tag="{x:Static sounds:CaptureSound.NotSent}" Click="OnPreview"
+                    <Button Style="{StaticResource PlaySound}" Tag="{x:Static sounds:CaptureSound.LowTone}" Click="OnPreview"
                             AutomationProperties.LabeledBy="{Binding ElementName=LowName}" />
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock x:Name="LowName" Text="{x:Static app:Copy.SoundLow}" FontWeight="SemiBold" />

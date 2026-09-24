@@ -68,6 +68,7 @@ public partial class SettingsWindow : Window
         ModeSteam.IsChecked = current.Mode == CaptureMode.SteamScreenshots;
         ModeBoth.IsChecked = current.Mode == CaptureMode.Both;
         StartWithWindowsBox.IsChecked = current.StartWithWindows;
+        PlaySoundsBox.IsChecked = current.PlaySounds;
         BulkSoundsBox.IsChecked = current.BulkCaptureSounds;
         var notifications = current.EffectiveNotifications;
         NotificationsBox.IsChecked = notifications.Enabled;
@@ -206,6 +207,13 @@ public partial class SettingsWindow : Window
     private void OnStartBulk(object sender, RoutedEventArgs e)
     {
         ((App)Application.Current).ShowBulkCapture();
+    }
+
+    private void OnPlaySoundsChanged(object sender, RoutedEventArgs e)
+    {
+        if (_loading)
+            return;
+        _settings.Save(_settings.Load() with { PlaySounds = PlaySoundsBox.IsChecked == true });
     }
 
     private void OnBulkSoundsChanged(object sender, RoutedEventArgs e)

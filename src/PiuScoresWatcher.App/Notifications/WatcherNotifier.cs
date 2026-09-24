@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Toolkit.Uwp.Notifications;
+using PiuScoresWatcher.App.Sounds;
 using PiuScoresWatcher.App.Status;
 using PiuScoresWatcher.Core.Api;
 using PiuScoresWatcher.Core.Capture;
@@ -21,21 +22,24 @@ public static class ToastAction
 
 /// <summary>
 ///     Where every notice goes: into the status, so the tray and the settings window show it whatever
-///     the switches say; into the log; and, when its switch is on (D35), onto the screen as a Windows
-///     notification, which never takes focus from the game. The token's notification shows once until the
-///     token works again, however many plays it costs meanwhile.
+///     the switches say; into the log; a play's sound, when its switch is on (D63); and, when its switch is
+///     on (D35), onto the screen as a Windows notification, which never takes focus from the game — and makes
+///     no sound of its own when the play already made one (D64). The token's notification shows once until
+///     the token works again, however many plays it costs meanwhile.
 /// </summary>
 public sealed class WatcherNotifier : INotifier
 {
     private readonly WatcherStatus _status;
     private readonly ISettingsStore _settings;
+    private readonly CaptureSounds _sounds;
     private readonly ILogger<WatcherNotifier> _log;
     private int _toldAboutTheToken;
 
-    public WatcherNotifier(WatcherStatus status, ISettingsStore settings, ILogger<WatcherNotifier> log)
+    public WatcherNotifier(WatcherStatus status, ISettingsStore settings, CaptureSounds sounds, ILogger<WatcherNotifier> log)
     {
         _status = status;
         _settings = settings;
+        _sounds = sounds;
         _log = log;
         _status.Changed += (_, _) =>
         {
@@ -49,6 +53,8 @@ public sealed class WatcherNotifier : INotifier
     {
         _status.Record(notice);
         Log(notice);
+        // whatever the notification switches say: Windows often holds notifications back while a game runs (D63)
+        var sounded = _sounds.Play(notice);
         if (!_settings.Load().EffectiveNotifications.Allows(notice))
             return;
         if (IsAboutTheToken(notice) && Interlocked.Exchange(ref _toldAboutTheToken, 1) == 1)
@@ -56,7 +62,11 @@ public sealed class WatcherNotifier : INotifier
 
         try
         {
-            Toast(notice)?.Show();
+            var toast = Toast(notice);
+            // one sound for a play, not the watcher's and Windows' both (D64)
+            if (sounded)
+                toast?.AddAudio(new ToastAudio { Silent = true });
+            toast?.Show();
         }
         catch (Exception failure)
         {

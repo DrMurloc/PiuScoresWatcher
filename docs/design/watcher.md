@@ -398,6 +398,7 @@ on the site with nothing else to do.
 | First run, settings, the tray menu, notifications, the review dialog | built — iteration 1 of the mocks, with the arrow icon and switchable notifications (D34–D38, D43); smoke-tested on dropped F12 screenshots, not yet with the game |
 | Start with Windows; a second launch opens the running one's settings | built (D39, D40); the second launch smoke-tested, the Run key waits for an installed copy |
 | Every player-facing string | the mocks' wording, approved, all in `App/Copy.cs` (D36) |
+| A play's sound | built: on by default with its own switch; the chime, the low tone and the tick (D63, D64); smoke-tested — a play's notification goes silent when its sound plays, and keeps Windows' sound when the switch is off |
 | Languages | built: the site's eight less Murloc, the Language section with Machine Default (D58–D62); the English unchanged over 370 compared lines; smoke-tested in every language — the windows, the notifications, a live switch |
 | Bulk capture from Warm Up's song list | built to the iteration-2 mocks (D45–D52) and smoke-tested end to end on the fixtures against a stand-in site (start window, sounds, counts, Stop, the summary, Recent); PIU Scores takes captures since it made judgments optional (its PR 358, merged 2026-09-24); one card per run waits on its sittings (PR 357), which ship before the watcher's first release |
 | Reading titles | a soft white-and-colourless mask at the 1080p size (D53): 33 of 38 fixture titles exact, 36 matched |
