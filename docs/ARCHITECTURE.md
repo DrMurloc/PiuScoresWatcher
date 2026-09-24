@@ -63,12 +63,15 @@ PiuScoresWatcher.sln
 │   │                                SongListDetector + SongListReader (Warm Up's song list, D45–D48),
 │   │                                GradeBadges + grades.json (the nine grade sprites' features),
 │   │                                the mask/segmenter/template machinery, templates.json (generated),
-│   │                                ITitleReader, TitleInk (the title as dark letters on white, D53)
+│   │                                ITitleReader, TitleInk (the title as dark letters on white, in the
+│   │                                pages it is tried in, D53, D55)
 │   ├── Scoring/                     PhoenixScoring (the formula, copied from PIU Scores), PlayChecksum
 │   ├── Api/                         ObservedPlay, CaptureSource, PostOutcome/IdentityCheck, IPlaysClient,
 │   │                                ITokenStore, PiuScoresClient (the wire shape, over the App's HttpClient;
 │   │                                the chart list and the player's bests, page by page), SiteResult
-│   ├── Catalog/                     SongCatalog (a read title → the chart list's spelling, D49), ISongCatalogs
+│   ├── Catalog/                     SongCatalog (a read title → the chart list's spelling, D49, and on the
+│   │                                Arcade Station the chart its note count fits, D56), ISongCatalogs, Titles
+│   │                                (the title attempts until one names a chart)
 │   ├── Sounds/                      Tones (the chime, the tick and the low tone, synthesized to WAV, D50)
 │   └── Capture/                     CapturePipeline (one frame → one outcome), Deduplicator + PlayKey,
 │                                    BulkCaptureRun (a bulk capture: the wait, the match, the bests, D48–D52),

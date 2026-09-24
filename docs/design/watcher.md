@@ -55,7 +55,8 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
 - **D9. The token is pasted from `/Account` in v1.** A "link this device" flow (the app opens the browser,
   the player clicks Approve) is a site change for later.
 - **D10. Two checksums, one authority.** The reader's output must recompute to the score on screen before it
-  leaves the machine; the server recomputes again and answers `400 judgments-do-not-reconcile` otherwise. The
+  leaves the machine, within the point the game's own arithmetic can land off the formula (D57); the server
+  recomputes again, with the same point, and answers `400 judgments-do-not-reconcile` otherwise. The
   three scoring rules are **copied** from PIU Scores with the site file cited, pinned by the owner's verified
   screens — never a shared package, never a reference to the site's code.
 - **D11. Dedupe by content and time.** A result screen stays up as long as the player leaves it; the same
@@ -236,6 +237,40 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   titles read exactly and 26 of 38 matched the chart list before; 33 and 36 after. Cynical and one Aragami still
   read as nothing and go to review.
 
+**The second loop evening** (owner, 2026-09-23, "definitely seeing some scores missing"): six of a dozen plays
+never reached the site, and two stepballs were read at the wrong level.
+
+- **D54 (owner's go). A window result that never reconciles is kept.** The game window used to call such a
+  screen "not yet" for as long as it stood there, so a misread number — the Arcade Station's first 5, read as a
+  6 — vanished without a word unless the player also pressed F12. Now it is kept for review, with the same
+  notification an unreadable screenshot gets, once its numbers have stood still for three seconds and still
+  disagree, or when the screen goes away (or the next play arrives) before they ever agreed. A score still
+  counting up is never kept: its judgments are final a beat before the score, so a frame of the same play that
+  reconciles later clears it. A play a screenshot already kept is not kept twice.
+- **D55 (owner's go, "the 8 6 review/fix"). The title is tried up to four ways, and the chart list decides.**
+  Windows OCR returned nothing for VANISH, D and 8 6 on clean pages. The page now carries a margin of paper
+  (`TitleInk.Pages`), and the reader tries, in order, the page at the 1080p size, at twice that, with wide gaps
+  between letters closed up (8 6 is two lone characters to Windows until it is one word), and closed up with
+  the strokes thinned (Warm Up's song list sets 8 6 in heavy outlined type) — stopping at the first reading
+  that names a chart. The chart list also accepts a reading with a piece missing or extra when it fits one song
+  alone: "• Alice In Wonderworld" is *K.O.A : Alice In Wonderworld*, "O/ox (Percent X)" is *%X (Percent X)*.
+  Over the 50 fixture titles through `--replay`: 43 read exactly at the first attempt (33 before), 49 match the
+  chart list at some attempt. **D** — a one-letter title — is the one no attempt reads; it goes to review.
+- **D56. On the Arcade Station the note count decides the chart.** The stepball read 12 as 18 (8 6) and 18 as
+  13 (%X) — once from a screenshot, once from the window — and the level is outside the checksum, so a misread
+  could have filed a score on a chart the player never played. A full play's judgments add up to the chart's
+  note count, which PIU Scores knows for 1,969 of the Arcade Station's 2,460 charts: the chart must have that
+  many notes; when the level read has not, the song's chart that has is the one posted; when the title matches
+  no chart at the level read, the charts with that many notes are searched instead; and a play no chart of its
+  song adds up to is kept for review (`ChartDisagrees`), never posted. A broken play is not checked — it may not
+  add up. Warm Up's charts carry no note count on PIU Scores yet (0 of 2,992), so a Warm Up level is taken as
+  read; its level digits have not been misread. A play is also recognised as the same play from both sources
+  whatever level each read, so one play is never posted twice.
+- **D57. The checksum allows a point.** VECTOR's 528/44/13/2/29 with a combo of 122 makes 901,012.99 by the
+  formula, and the game prints 901,013. PIU Scores already allows the point (its formula matched 2,268 of 2,277
+  real judgment-carrying records exactly); the watcher refused the play. A misread count moves the score by
+  far more than a point, so the checksum still catches every one.
+
 ## 3. The pipeline
 
 `IScreenSource` (one adapter per mode) → `ResultScreenDetector` (pixel anchors; which station) →
@@ -251,9 +286,11 @@ aggregate; the WorldMax summary, the title screen, the song wheel and a loading 
 they taught. Other resolutions come from the alpha testers, and every screen the reader cannot read becomes a
 fixture before the fix.
 
-The title alone is OCR'd: Core's `TitleInk` turns the title's region into dark letters on white at its 1080p
-size (D53), and the App's `WindowsOcrTitleReader` hands that to Windows. The name is matched against the chart
-list when it is loaded (D49); PIU Scores resolves what is posted and answers 404 for a song it does not know.
+The title alone is OCR'd: Core's `TitleInk` turns the title's region into dark letters on white with paper
+around them (D53), in up to four pages the App's `WindowsOcrTitleReader` hands to Windows one at a time until a
+reading names a chart (D55). The name is matched against the chart list when it is loaded (D49) — on the Arcade
+Station at the level the chart's note count says was played (D56); PIU Scores resolves what is posted and answers
+404 for a song it does not know.
 
 ## 4. The API
 
@@ -342,14 +379,12 @@ beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14)
 
 ## 9. Open questions
 
-- **The Arcade Station's judgment font has one `5`.** The first test loop's VANISH result (2026-09-23) read its
-  max combo of 0500 as 600; the checksum refused it, so nothing wrong was posted, and its F12 screenshot is a
-  fixture now that teaches the 5. One sample reads its own screen; more Arcade results with F12 make it
-  sturdier. Every other digit is covered (the score and stepball fonts come complete from the game's sprites).
-- **A result that never reconciles in the game window is never kept.** The same VANISH screen, seen through the
-  game window, stayed "not yet" until it left — no notification, nothing to review; only the F12 screenshot
-  reached the review window. Proposed, not built: keep a window result whose numbers have stood still, and still
-  disagree, for a few seconds, the way an F12 screenshot is kept.
+- **The Arcade Station's fonts are thin on samples.** The first 5 came from VANISH (2026-09-23) and the second
+  evening added four more Arcade results, but held out of training the stepball still misreads (18 as 12, 17 as
+  18, 19 as 12) and so, once, does the score. The checksum catches the numbers; D56 catches the level wherever
+  PIU Scores knows the chart's note count. More Arcade results with F12 keep making both sturdier.
+- **One-letter titles.** No attempt reads **D** (D55). A Warm Up note count on PIU Scores would let the chart be
+  found by its notes the way the Arcade Station's are (D56); until then such a play goes to review.
 - **Steam Deck.** RISE runs on Deck; the watcher is Windows-only and F12 screenshots on a Deck stay on the
   Deck. Park until a Deck player asks; Avalonia is the route (D7).
 - **The name.** "PIU Scores Watcher" is a placeholder; the owner names it before v0.1.0 (the icon is settled,
