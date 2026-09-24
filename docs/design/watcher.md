@@ -310,6 +310,20 @@ never reached the site, and two stepballs were read at the wrong level.
   words — capture, screenshot, the game window, the tray, the token, review, the three sounds, Machine Default —
   are LOCALIZATION.md's table. The translations are Claude's, as the site's are.
 
+**Sounds while playing** (owner, 2026-09-24: "By default, we should play the sound used in the bulk-capture flow
+for 'your score was submitted' when a score is captured during normal play. Make that toggleable off. Also include
+the invalid vs failed noises").
+
+- **D63 (owner, 2026-09-24). A play makes a sound too, on by default**, with one switch in settings (Watching,
+  "Sounds while playing") apart from bulk capture's own (D50). The sound plays whatever the notification switches
+  say: Windows' do-not-disturb rules often hold notifications back while a game runs full screen, so the sound is
+  the feedback that reaches a player mid-session.
+- **D64. Bulk capture's three sounds, one meaning each.** The chime: the play is on PIU Scores. The low tone: the
+  screen couldn't be read — in time to press F12 again while it is still up. The tick: it was read, and PIU Scores
+  didn't take it (refused, unreachable, the token). A play's notification goes silent when its sound plays, so a
+  play makes one sound, not two, and a screen seen twice makes none the second time. A bulk capture keeps its own
+  meanings (D50).
+
 ## 3. The pipeline
 
 `IScreenSource` (one adapter per mode) → `ResultScreenDetector` (pixel anchors; which station) →

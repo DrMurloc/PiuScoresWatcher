@@ -60,6 +60,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] Quit RISE → the watcher sleeps (no capture, no CPU); start RISE → it wakes.
 - [ ] Install fresh → the first-run window; a bad token says so; a good one says who it is.
 - [ ] Notifications all off → no notification for a recorded play, and the settings window still lists it; one kind off → only that kind goes quiet.
+- [ ] A recorded play → the chime, and its notification makes no sound of its own; F12 before the score finishes counting → the low tone; a play with the token disconnected → the tick; Sounds while playing off → silence.
 - [ ] No banner at all → Windows' Do Not Disturb is on; the notifications are still in the notification center.
 - [ ] A notification's Review → the review window on that screen; Open settings → the settings window.
 - [ ] Review window → Show the file opens Explorer on it; Delete moves to the next; Delete all empties the list and the amber row goes.
