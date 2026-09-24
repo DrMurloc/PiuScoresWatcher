@@ -88,7 +88,8 @@ PiuScoresWatcher.sln
 │   │                                empty neutral Strings.resx
 │   ├── Localization/                WatcherLanguage (the chosen language, or Windows', put to work: Copy's
 │   │                                lookups and formats, WPF's own words, each window's xml:lang, D59)
-│   ├── Views/                       FirstRunWindow, SettingsWindow, ReviewWindow, BulkCaptureWindow (D51)
+│   ├── Views/                       FirstRunWindow (how it works, then the three steps, D65), SettingsWindow,
+│   │                                ReviewWindow, BulkCaptureWindow (D51)
 │   ├── Status/                      WatcherStatus (connection, pause, a run's count, recent plays and runs —
 │   │                                what the tray and settings show)
 │   ├── Startup/                     StartupRegistration (the Run key, installed copies only), SingleInstance

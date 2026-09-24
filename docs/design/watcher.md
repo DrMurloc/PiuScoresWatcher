@@ -324,6 +324,15 @@ the invalid vs failed noises").
   play makes one sound, not two, and a screen seen twice makes none the second time. A bulk capture keeps its own
   meanings (D50).
 
+**How it works** (owner, 2026-09-24: "before I see [the token] I'd want a breakdown on 'here's how this tool
+works' … how it's designed for simplicity"; mock https://claude.ai/artifact/NbD2wswGfMR5LqGRoY3tW7, approved with
+"build it out").
+
+- **D65 (owner, 2026-09-24). First run opens on "How it works"**: what the watcher does — it sees the result
+  screen, checks the numbers, records the play — and how it stays out of the way, before any token is asked for.
+  "Set it up" turns the page to the three steps (D39). The mock's words are the copy. The page shows whenever first
+  run does, and nowhere else.
+
 ## 3. The pipeline
 
 `IScreenSource` (one adapter per mode) → `ResultScreenDetector` (pixel anchors; which station) →

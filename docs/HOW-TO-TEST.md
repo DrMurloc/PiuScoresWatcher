@@ -58,7 +58,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] A misread (cover part of the judgments with another window) → refused locally, saved under `failed\`, surfaced, not posted.
 - [ ] Wrong token → the settings window says so; nothing posts.
 - [ ] Quit RISE → the watcher sleeps (no capture, no CPU); start RISE → it wakes.
-- [ ] Install fresh → the first-run window; a bad token says so; a good one says who it is.
+- [ ] Install fresh → the first-run window opens on How it works; Set it up → the three steps; a bad token says so; a good one says who it is.
 - [ ] Notifications all off → no notification for a recorded play, and the settings window still lists it; one kind off → only that kind goes quiet.
 - [ ] A recorded play → the chime, and its notification makes no sound of its own; F12 before the score finishes counting → the low tone; a play with the token disconnected → the tick; Sounds while playing off → silence.
 - [ ] No banner at all → Windows' Do Not Disturb is on; the notifications are still in the notification center.
