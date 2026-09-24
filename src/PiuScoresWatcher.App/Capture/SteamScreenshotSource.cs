@@ -37,10 +37,15 @@ public static class SteamPaths
 /// <summary>
 ///     Steam-screenshot mode: every JPEG Steam writes into RISE's screenshots folder is decoded and
 ///     handed to the pipeline once it has finished being written. Costs nothing during play; the
-///     player presses F12 on the result screen.
+///     player presses F12 on the result screen. Steam makes the folder at a player's first F12 in RISE,
+///     so a folder that is not there yet is looked for until it is, and a file that will not decode is
+///     logged and passed over — neither may end F12 mode for the session.
 /// </summary>
 public sealed class SteamScreenshotSource(IReadOnlyList<string> folders, ILogger<SteamScreenshotSource> log) : IScreenSource
 {
+    /// <summary>How often a screenshots folder that does not exist yet is looked for.</summary>
+    private static readonly TimeSpan FolderPoll = TimeSpan.FromSeconds(5);
+
     public CaptureSource Kind => CaptureSource.SteamScreenshot;
 
     public IReadOnlyList<string> Folders => folders;
@@ -49,26 +54,24 @@ public sealed class SteamScreenshotSource(IReadOnlyList<string> folders, ILogger
     {
         var arrivals = Channel.CreateUnbounded<string>();
         var watchers = new List<FileSystemWatcher>();
-        foreach (var folder in folders.Where(Directory.Exists))
-        {
-            var watcher = new FileSystemWatcher(folder, "*.jpg")
-            {
-                IncludeSubdirectories = false,
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size
-            };
-            watcher.Created += (_, e) => arrivals.Writer.TryWrite(e.FullPath);
-            watcher.Changed += (_, e) => arrivals.Writer.TryWrite(e.FullPath);
-            watcher.EnableRaisingEvents = true;
-            watchers.Add(watcher);
-            log.LogInformation("Watching {Folder} for F12 screenshots", folder);
-        }
-
-        if (watchers.Count == 0)
-            log.LogWarning("No RISE screenshots folder exists yet; F12 mode has nothing to watch");
-
+        var missing = new List<string>();
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        Task? lookingForFolders = null;
         var handled = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         try
         {
+            foreach (var folder in folders)
+                if (Directory.Exists(folder))
+                    Watch(folder, arrivals.Writer, watchers);
+                else
+                    missing.Add(folder);
+
+            if (missing.Count > 0)
+            {
+                log.LogInformation("Waiting for {Folders} to exist; Steam makes it at the first F12 in RISE", string.Join(", ", missing));
+                lookingForFolders = WatchForAsync(missing, arrivals.Writer, watchers, stop.Token);
+            }
+
             await foreach (var path in arrivals.Reader.ReadAllAsync(cancellationToken))
             {
                 if (!SteamScreenshotFolders.IsScreenshot(path) || !handled.Add(path))
@@ -85,9 +88,10 @@ public sealed class SteamScreenshotSource(IReadOnlyList<string> folders, ILogger
                     var takenAt = new DateTimeOffset(File.GetLastWriteTime(path));
                     await onFrame(new CapturedFrame(image, CaptureSource.SteamScreenshot, takenAt, path));
                 }
-                catch (Exception failure) when (failure is IOException or NotSupportedException or ArgumentException)
+                catch (Exception failure) when (failure is not OperationCanceledException)
                 {
-                    log.LogWarning(failure, "{File} could not be decoded", path);
+                    // a truncated JPEG throws FileFormatException, a locked one UnauthorizedAccessException; one file never ends the mode
+                    log.LogWarning(failure, "{File} could not be read", path);
                 }
             }
         }
@@ -97,8 +101,60 @@ public sealed class SteamScreenshotSource(IReadOnlyList<string> folders, ILogger
         }
         finally
         {
+            // the folder search adds watchers too: it has stopped before they are let go
+            await stop.CancelAsync();
+            if (lookingForFolders is not null)
+                await lookingForFolders;
             foreach (var watcher in watchers)
                 watcher.Dispose();
+        }
+    }
+
+    private void Watch(string folder, ChannelWriter<string> arrivals, List<FileSystemWatcher> watchers)
+    {
+        var watcher = new FileSystemWatcher(folder, "*.jpg")
+        {
+            IncludeSubdirectories = false,
+            NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size
+        };
+        watchers.Add(watcher);
+        watcher.Created += (_, e) => arrivals.TryWrite(e.FullPath);
+        watcher.Changed += (_, e) => arrivals.TryWrite(e.FullPath);
+        watcher.EnableRaisingEvents = true;
+        log.LogInformation("Watching {Folder} for F12 screenshots", folder);
+    }
+
+    /// <summary>
+    ///     Looks for the folders that are not there yet until they are. What a folder holds when it appears is read
+    ///     too: it did not exist when watching began, so everything in it is new — the F12 that made it among them.
+    /// </summary>
+    private async Task WatchForAsync(List<string> missing, ChannelWriter<string> arrivals, List<FileSystemWatcher> watchers,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (missing.Count > 0)
+            {
+                await Task.Delay(FolderPoll, cancellationToken);
+                foreach (var folder in missing.Where(Directory.Exists).ToList())
+                {
+                    try
+                    {
+                        Watch(folder, arrivals, watchers);
+                        missing.Remove(folder);
+                        foreach (var file in Directory.EnumerateFiles(folder, "*.jpg"))
+                            arrivals.TryWrite(file);
+                    }
+                    catch (Exception failure) when (failure is IOException or UnauthorizedAccessException or ArgumentException)
+                    {
+                        log.LogWarning(failure, "{Folder} appeared but could not be watched yet", folder);
+                    }
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // stopping
         }
     }
 

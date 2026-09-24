@@ -11,9 +11,11 @@ namespace PiuScoresWatcher.App.Api;
 /// <summary>
 ///     Both RISE mixes' chart lists, loaded once PIU Scores has said who the token is and refreshed
 ///     twice a day, so a title the OCR slipped on is posted in the catalog's spelling (D49). Until a
-///     list arrives the pipeline posts what it read, exactly as before.
+///     list arrives the pipeline posts what it read, exactly as before. A token stored while the site
+///     was out of reach is asked about again until the site answers — start-up asks only once.
 /// </summary>
-public sealed class SongCatalogs(IPlaysClient site, WatcherStatus status, ILogger<SongCatalogs> log) : BackgroundService, ISongCatalogs
+public sealed class SongCatalogs(IPlaysClient site, WatcherStatus status, Connection connection, ILogger<SongCatalogs> log)
+    : BackgroundService, ISongCatalogs
 {
     private static readonly RiseMix[] Mixes = [RiseMix.Rise, RiseMix.RiseArcade];
     private readonly ConcurrentDictionary<RiseMix, SongCatalog> _loaded = new();
@@ -48,6 +50,8 @@ public sealed class SongCatalogs(IPlaysClient site, WatcherStatus status, ILogge
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                if (status.Player is null && status.HasToken && !status.TokenRejected)
+                    await connection.CheckStoredAsync(stoppingToken);
                 if (status.Player is not null && !status.TokenRejected)
                     foreach (var mix in Mixes)
                         await RefreshAsync(mix, stoppingToken);

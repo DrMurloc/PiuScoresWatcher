@@ -13,6 +13,9 @@ namespace PiuScoresWatcher.App.Capture;
 ///     every frame goes to it first and the game window is watched whatever the mode (D51); a frame that
 ///     is not the song list still reaches the result pipeline, and a result screen ends the run. What each
 ///     frame became goes to the log; the notifier has already told the player.
+///     A frame already being handled when a round ends is finished, not dropped: an F12 screenshot is read once, so
+///     a post cut off by a pause would lose its play. A source that fails is started again after a wait, and so is a
+///     round that fails — nothing short of quitting stops the watching.
 /// </summary>
 public sealed class CaptureService(
     ISettingsStore settings,
@@ -23,6 +26,11 @@ public sealed class CaptureService(
     Func<SteamScreenshotSource> steamScreenshots,
     ILogger<CaptureService> log) : BackgroundService
 {
+    /// <summary>The first wait before a failed source or round starts again; it doubles while the failures repeat.</summary>
+    private static readonly TimeSpan FirstRetry = TimeSpan.FromSeconds(5);
+
+    private static readonly TimeSpan LongestRetry = TimeSpan.FromMinutes(5);
+
     private readonly SemaphoreSlim _oneFrameAtATime = new(1, 1);
     private CancellationTokenSource? _round;
     private (CaptureMode Mode, string? Folder)? _watching;
@@ -32,6 +40,7 @@ public sealed class CaptureService(
         settings.Changed += OnSettingsChanged;
         status.PausedChanged += OnRestart;
         bulk.RunningChanged += OnRestart;
+        var retry = FirstRetry;
         try
         {
             while (!stoppingToken.IsCancellationRequested)
@@ -40,11 +49,18 @@ public sealed class CaptureService(
                 Volatile.Write(ref _round, round);
                 try
                 {
-                    await RunRoundAsync(round.Token);
+                    await RunRoundAsync(round.Token, stoppingToken);
                 }
                 catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
                 {
                     // restarted: paused, resumed, a new mode, a bulk capture starting or ending
+                    retry = FirstRetry;
+                }
+                catch (Exception failure) when (failure is not OperationCanceledException)
+                {
+                    log.LogError(failure, "Capture could not start; trying again in {Wait}", retry);
+                    await Task.Delay(retry, stoppingToken);
+                    retry = Longer(retry);
                 }
             }
         }
@@ -60,7 +76,8 @@ public sealed class CaptureService(
         }
     }
 
-    private async Task RunRoundAsync(CancellationToken cancellationToken)
+    /// <summary>One round of watching; frames are handled on <paramref name="stoppingToken" />, so ending the round never cuts one off.</summary>
+    private async Task RunRoundAsync(CancellationToken cancellationToken, CancellationToken stoppingToken)
     {
         var bulkRunning = bulk.IsRunning;
         if (status.Paused && !bulkRunning)
@@ -80,8 +97,33 @@ public sealed class CaptureService(
         log.LogInformation("Capture mode {Mode}{Bulk}: {Sources}", current.Mode, bulkRunning ? " with a bulk capture" : "",
             string.Join(", ", sources.Select(s => s.Kind)));
 
-        await Task.WhenAll(sources.Select(source => source.RunAsync(frame => HandleAsync(frame, cancellationToken), cancellationToken)));
+        await Task.WhenAll(sources.Select(source => KeepRunningAsync(source, frame => HandleAsync(frame, stoppingToken), cancellationToken)));
         await Task.Delay(Timeout.Infinite, cancellationToken);
+    }
+
+    /// <summary>One source for the round; one that fails is started again after a wait instead of ending the watching.</summary>
+    private async Task KeepRunningAsync(IScreenSource source, Func<CapturedFrame, Task> onFrame, CancellationToken cancellationToken)
+    {
+        var retry = FirstRetry;
+        while (true)
+        {
+            try
+            {
+                await source.RunAsync(onFrame, cancellationToken);
+                return;
+            }
+            catch (Exception failure) when (failure is not OperationCanceledException)
+            {
+                log.LogError(failure, "{Source} stopped; starting it again in {Wait}", source.Kind, retry);
+                await Task.Delay(retry, cancellationToken);
+                retry = Longer(retry);
+            }
+        }
+    }
+
+    private static TimeSpan Longer(TimeSpan retry)
+    {
+        return retry * 2 < LongestRetry ? retry * 2 : LongestRetry;
     }
 
     private void OnSettingsChanged(object? sender, WatcherSettings saved)

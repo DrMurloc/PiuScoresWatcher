@@ -10,7 +10,8 @@ namespace PiuScoresWatcher.App.Views;
 
 /// <summary>
 ///     Shown whenever no token is stored (D39): how it works first (D65), then, from "Set it up", the token,
-///     checked on the spot; how to watch; Start with Windows. Done saves the choices and closes into the tray.
+///     checked on the spot; how to watch; Start with Windows. Done saves the choices and closes into the tray —
+///     connecting a token that was pasted but never connected first, and staying open when it does not connect.
 /// </summary>
 public partial class FirstRunWindow : Window
 {
@@ -18,6 +19,7 @@ public partial class FirstRunWindow : Window
     private readonly ISettingsStore _settings;
     private readonly StartupRegistration _startup;
     private readonly LaunchOptions _options;
+    private bool _connected;
 
     public FirstRunWindow(Connection connection, ISettingsStore settings, StartupRegistration startup, WatcherStatus status, LaunchOptions options)
     {
@@ -49,28 +51,37 @@ public partial class FirstRunWindow : Window
 
     private async void OnConnect(object sender, RoutedEventArgs e)
     {
+        await ConnectAsync();
+    }
+
+    /// <summary>Checks the pasted token and says how that went; true when it is connected.</summary>
+    private async Task<bool> ConnectAsync()
+    {
         if (string.IsNullOrWhiteSpace(TokenBox.Password))
-            return;
+            return false;
         ConnectButton.IsEnabled = false;
+        DoneButton.IsEnabled = false;
         Say(Copy.Checking, success: null);
         var check = await _connection.ConnectAsync(TokenBox.Password, CancellationToken.None);
         ConnectButton.IsEnabled = true;
+        DoneButton.IsEnabled = true;
         switch (check)
         {
             case IdentityCheck.Connected connected:
                 ShowConnected(connected.Player);
-                break;
+                return true;
             case IdentityCheck.Unauthorized:
                 Say(Copy.TokenNotAccepted, success: false);
-                break;
+                return false;
             default:
                 Say(Copy.TokenUnchecked, success: false);
-                break;
+                return false;
         }
     }
 
     private void ShowConnected(PlayerIdentity player)
     {
+        _connected = true;
         Say(Copy.ConnectedAs, success: true);
         Feedback.Bold(ConnectionText, Copy.ConnectedAs, player.Username);
     }
@@ -82,8 +93,12 @@ public partial class FirstRunWindow : Window
         CheckIcon.Visibility = success == true ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private void OnDone(object sender, RoutedEventArgs e)
+    private async void OnDone(object sender, RoutedEventArgs e)
     {
+        // a pasted token nobody pressed Connect for would otherwise close into a watcher that records nothing
+        if (!_connected && !string.IsNullOrWhiteSpace(TokenBox.Password) && (!await ConnectAsync() || !IsVisible))
+            return; // not connected, and the line under the token says why — or the window was closed meanwhile
+
         var mode = ModeGame.IsChecked == true ? CaptureMode.Game
             : ModeSteam.IsChecked == true ? CaptureMode.SteamScreenshots
             : CaptureMode.Both;
