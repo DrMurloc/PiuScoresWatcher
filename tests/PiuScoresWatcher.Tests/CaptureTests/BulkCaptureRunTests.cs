@@ -17,10 +17,12 @@ public sealed class BulkCaptureRunTests
     private const string Aragami = "20260923193118";   // 5K S19, best 971,789, SS
     private const string Morrighan = "20260923193156"; // 5K S20, best 945,403, AA
     private const string NoBestHere = "20260923193120"; // Aragami 5K S17, no best
+    private const string VacuumCleaner = "20260923193144"; // 5K S20, best 956,984, S
     private const string AResultScreen = "20260921201328";
 
     private static readonly Guid AragamiS19 = Guid.Parse("11111111-1111-1111-1111-111111111111");
     private static readonly Guid MorrighanS20 = Guid.Parse("22222222-2222-2222-2222-222222222222");
+    private static readonly Guid VacuumCleanerS20 = Guid.Parse("33333333-3333-3333-3333-333333333333");
     private static readonly DateTimeOffset Start = new(2026, 9, 23, 19, 31, 18, TimeSpan.FromHours(-4));
 
     private readonly FakeClock _clock = FakeClock.At(Start);
@@ -31,7 +33,8 @@ public sealed class BulkCaptureRunTests
     private readonly SongCatalog _catalog = new(
     [
         new CatalogChart(AragamiS19, "Aragami", ChartType.Single, 19),
-        new CatalogChart(MorrighanS20, "Morrighan", ChartType.Single, 20)
+        new CatalogChart(MorrighanS20, "Morrighan", ChartType.Single, 20),
+        new CatalogChart(VacuumCleanerS20, "Vacuum Cleaner", ChartType.Single, 20)
     ]);
 
     public BulkCaptureRunTests()
@@ -64,13 +67,23 @@ public sealed class BulkCaptureRunTests
     }
 
     /// <summary>The same window frame until the panel has been still for the half second (D48).</summary>
-    private async Task<BulkOutcome> SettleAsync(BulkCaptureRun run, string fixture)
+    private Task<BulkOutcome> SettleAsync(BulkCaptureRun run, string fixture)
     {
-        Assert.IsType<BulkOutcome.Waiting>(await run.HandleAsync(Window(fixture), CancellationToken.None));
+        return SettleAsync(run, FixtureScreens.Load(fixture));
+    }
+
+    private async Task<BulkOutcome> SettleAsync(BulkCaptureRun run, ScreenImage image)
+    {
+        Assert.IsType<BulkOutcome.Waiting>(await run.HandleAsync(Window(image), CancellationToken.None));
         _clock.Advance(TimeSpan.FromMilliseconds(250));
-        Assert.IsType<BulkOutcome.Waiting>(await run.HandleAsync(Window(fixture), CancellationToken.None));
+        Assert.IsType<BulkOutcome.Waiting>(await run.HandleAsync(Window(image), CancellationToken.None));
         _clock.Advance(TimeSpan.FromMilliseconds(250));
-        return await run.HandleAsync(Window(fixture), CancellationToken.None);
+        return await run.HandleAsync(Window(image), CancellationToken.None);
+    }
+
+    private CapturedFrame Window(ScreenImage image)
+    {
+        return new CapturedFrame(image, CaptureSource.GameWindow, _clock.Now, null);
     }
 
     [Fact]
@@ -100,6 +113,22 @@ public sealed class BulkCaptureRunTests
         Assert.IsType<BulkOutcome.Waiting>(await run.HandleAsync(Window(Aragami), CancellationToken.None));
 
         _site.Verify(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task TheNextSongIsActedOnWhenItsPanelReadsTheSameAsTheLast()
+    {
+        // Morrighan's panel with the next song's jacket lit in the list: the same level, best and grade, another song
+        var run = Run();
+        TitleIs("Morrighan");
+        Assert.IsType<BulkOutcome.Sent>(await SettleAsync(run, Morrighan));
+
+        TitleIs("Vacuum Cleaner");
+        var next = FixtureScreens.LoadWithRegionOf(Morrighan, VacuumCleaner, FractionRect.At1080p(760, 555, 880, 665));
+        var sent = Assert.IsType<BulkOutcome.Sent>(await SettleAsync(run, next));
+
+        Assert.Equal("Vacuum Cleaner", sent.Play.SongName);
+        Assert.Equal(945403, sent.Play.Score);
     }
 
     [Fact]

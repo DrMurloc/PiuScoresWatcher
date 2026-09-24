@@ -38,6 +38,25 @@ internal static class FixtureScreens
         return new ScreenImage(bgra.Width, bgra.Height, bgra.Bytes);
     }
 
+    /// <summary>A fixture with one region's pixels taken from another fixture, in the same place.</summary>
+    public static ScreenImage LoadWithRegionOf(string name, string other, FractionRect region)
+    {
+        var image = Load(name);
+        var donor = Load(other);
+        var rect = region.On(image);
+        var width = image.Width;
+        var pasted = new byte[width * image.Height * 4];
+        for (var y = 0; y < image.Height; y++)
+        for (var x = 0; x < width; x++)
+        {
+            var from = rect.X0 <= x && x < rect.X1 && rect.Y0 <= y && y < rect.Y1 ? donor : image;
+            var at = (y * width + x) * 4;
+            (pasted[at], pasted[at + 1], pasted[at + 2], pasted[at + 3]) = (from.Blue(x, y), from.Green(x, y), from.Red(x, y), 255);
+        }
+
+        return new ScreenImage(width, image.Height, pasted);
+    }
+
     /// <summary>A fixture with one region's pixels pasted over another's — a misread made to order.</summary>
     public static ScreenImage LoadWithCopy(string name, FractionRect from, FractionRect to)
     {

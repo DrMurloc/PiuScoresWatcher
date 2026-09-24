@@ -17,6 +17,12 @@ internal static class SongListLayout
     public static readonly FractionRect Badge = FractionRect.At1080p(470, 640, 600, 750);
     public static readonly FractionRect Title = FractionRect.At1080p(80, 388, 632, 440);
 
+    /// <summary>
+    ///     The lit song's jacket in the list on the right, which keeps the lit song in its fourth row on every one of the
+    ///     owner's screens. The panel's title sits over the song's video; the jacket holds still.
+    /// </summary>
+    public static readonly FractionRect LitJacket = FractionRect.At1080p(792, 572, 858, 648);
+
     /// <summary>A level box's yellow area: the lit one is the selected chart.</summary>
     public static FractionRect Box(int i)
     {
@@ -47,7 +53,11 @@ public enum SongListStatus
     GradeDisagrees
 }
 
-/// <summary>What the song-list reader made of one frame. The title is read by an adapter from <see cref="TitleRegion" />.</summary>
+/// <summary>
+///     What the song-list reader made of one frame. The title is read by an adapter from <see cref="TitleRegion" />;
+///     <see cref="Jacket" /> is a print of the lit song's jacket, which tells two songs apart when their panels read the
+///     same.
+/// </summary>
 [ExcludeFromCodeCoverage]
 public sealed record SongListReading(
     SongListStatus Status,
@@ -56,7 +66,8 @@ public sealed record SongListReading(
     int? Level,
     int? Score,
     string? Grade,
-    PixelRect TitleRegion);
+    PixelRect TitleRegion,
+    ulong Jacket);
 
 /// <summary>
 ///     Is this frame Warm Up's song list, and which chart is lit? The yellow banner, exactly one lit tab
@@ -107,26 +118,29 @@ public sealed class SongListReader
         if (_detector.Detect(image) is not { } lit)
             return null;
         var title = SongListLayout.Title.On(image);
+        var jacket = Colors.LuminancePrint(image, SongListLayout.LitJacket.On(image));
         var level = NumberFieldReader.Read(image, SongListLayout.BoxDigits(lit.LitBox).On(image), MaskKind.Light, TemplateFamilies.ListLevel, _templates);
         var score = NumberFieldReader.Read(image, SongListLayout.Score.On(image), MaskKind.Light, TemplateFamilies.ListValue, _templates);
 
         if (score.IsEmpty)
-            return new SongListReading(SongListStatus.NoBest, null, lit.ChartType, level.Value, null, null, title);
+            return new SongListReading(SongListStatus.NoBest, null, lit.ChartType, level.Value, null, null, title, jacket);
         if (!level.IsClean || level.Value is not (>= 1 and <= 29))
-            return new SongListReading(SongListStatus.Unreadable, $"level read as '{level.Text}'", lit.ChartType, null, score.Value, null, title);
+            return new SongListReading(SongListStatus.Unreadable, $"level read as '{level.Text}'", lit.ChartType, null, score.Value, null, title,
+                jacket);
         if (!score.IsClean || score.Value is not (>= 0 and <= 1_000_000))
-            return new SongListReading(SongListStatus.Unreadable, $"best score read as '{score.Text}'", lit.ChartType, level.Value, null, null, title);
+            return new SongListReading(SongListStatus.Unreadable, $"best score read as '{score.Text}'", lit.ChartType, level.Value, null, null,
+                title, jacket);
 
         var grade = _grades.Classify(image, SongListLayout.Badge.On(image));
         if (!grade.IsConfident)
             return new SongListReading(SongListStatus.Unreadable,
                 $"the grade badge matched no grade clearly ({grade.Grade} at {grade.Similarity:0.00}, ahead by {grade.Margin:0.00})",
-                lit.ChartType, level.Value, score.Value, null, title);
+                lit.ChartType, level.Value, score.Value, null, title, jacket);
 
         var earned = Grades.Of(RiseMix.Rise, score.Value.Value);
         return earned == grade.Grade
-            ? new SongListReading(SongListStatus.Best, null, lit.ChartType, level.Value, score.Value, grade.Grade, title)
+            ? new SongListReading(SongListStatus.Best, null, lit.ChartType, level.Value, score.Value, grade.Grade, title, jacket)
             : new SongListReading(SongListStatus.GradeDisagrees, $"the badge shows {grade.Grade}, {score.Value} earns {earned}",
-                lit.ChartType, level.Value, score.Value, grade.Grade, title);
+                lit.ChartType, level.Value, score.Value, grade.Grade, title, jacket);
     }
 }

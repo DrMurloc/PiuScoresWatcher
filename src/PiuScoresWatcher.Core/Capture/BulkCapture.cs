@@ -92,7 +92,7 @@ public sealed class BulkCaptureRun
         ListLastSeen = _clock.Now;
 
         // one action per arrival: the chart that was acted on stays quiet until the panel shows something else
-        var fingerprint = new Fingerprint(reading.Status, reading.ChartType, reading.Level, reading.Score, reading.Grade);
+        var fingerprint = new Fingerprint(reading.Status, reading.ChartType, reading.Level, reading.Score, reading.Grade, reading.Jacket);
         if (fingerprint == _acted)
             return new BulkOutcome.Waiting();
         _acted = null;
@@ -158,6 +158,9 @@ public sealed class BulkCaptureRun
         return new BulkOutcome.Unreadable(because, reason, savedTo);
     }
 
-    /// <summary>What the panel showed; a change of any part is a new arrival.</summary>
-    private sealed record Fingerprint(SongListStatus Status, ChartType ChartType, int? Level, int? Score, string? Grade);
+    /// <summary>
+    ///     What the panel showed, and whose jacket is lit in the list; a change of any part is a new arrival. The jacket
+    ///     is there because two songs in a row can show the same level, score and grade — every 1,000,000 is an SSS.
+    /// </summary>
+    private sealed record Fingerprint(SongListStatus Status, ChartType ChartType, int? Level, int? Score, string? Grade, ulong Jacket);
 }

@@ -86,6 +86,20 @@ public sealed class SongListReaderTests
     }
 
     [Fact]
+    public void TheLitSongsJacketTellsSongsApartAndHoldsWhileTheLevelChanges()
+    {
+        // Aragami's S19 and, two seconds later, its S17; the other five are five other songs
+        Assert.Equal(Reader.Read(FixtureScreens.Load("20260923193118"))!.Jacket, Reader.Read(FixtureScreens.Load("20260923193120"))!.Jacket);
+
+        var songs = FixtureScreens.OfKind("songlist").Concat(FixtureScreens.OfKind("songlist-empty"))
+            .Where(name => name != "20260923193120")
+            .Select(name => Reader.Read(FixtureScreens.Load(name))!.Jacket)
+            .ToList();
+        Assert.Equal(6, songs.Count);
+        Assert.Equal(songs.Count, songs.Distinct().Count());
+    }
+
+    [Fact]
     public void TheFixturesCoverEveryCase()
     {
         Assert.NotEmpty(FixtureScreens.OfKind("songlist"));

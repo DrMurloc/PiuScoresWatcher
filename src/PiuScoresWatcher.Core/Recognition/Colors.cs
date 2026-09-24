@@ -128,4 +128,37 @@ internal static class Colors
 
         return bright == 0 ? 0 : saturated / (double)bright;
     }
+
+    /// <summary>
+    ///     A region's picture in 64 bits: eight by eight cells, one bit each for brighter than the region's average. The
+    ///     same picture prints the same bits frame after frame; on the owner's song lists two jackets differ in 18 or more.
+    /// </summary>
+    public static ulong LuminancePrint(ScreenImage image, PixelRect rect)
+    {
+        const int cells = 8;
+        Span<double> means = stackalloc double[cells * cells];
+        for (var cy = 0; cy < cells; cy++)
+        for (var cx = 0; cx < cells; cx++)
+        {
+            var (x0, x1) = (rect.X0 + rect.Width * cx / cells, rect.X0 + rect.Width * (cx + 1) / cells);
+            var (y0, y1) = (rect.Y0 + rect.Height * cy / cells, rect.Y0 + rect.Height * (cy + 1) / cells);
+            var sum = 0.0;
+            for (var y = y0; y < y1; y++)
+            for (var x = x0; x < x1; x++)
+                sum += Luminance(image.Red(x, y), image.Green(x, y), image.Blue(x, y));
+            var count = (x1 - x0) * (y1 - y0);
+            means[cy * cells + cx] = count == 0 ? 0 : sum / count;
+        }
+
+        var average = 0.0;
+        foreach (var mean in means)
+            average += mean;
+        average /= means.Length;
+
+        ulong print = 0;
+        for (var i = 0; i < means.Length; i++)
+            if (means[i] > average)
+                print |= 1UL << i;
+        return print;
+    }
 }
