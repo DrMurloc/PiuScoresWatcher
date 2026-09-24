@@ -305,7 +305,7 @@ on the site with nothing else to do.
 | First run, settings, the tray menu, notifications, the review dialog | built — iteration 1 of the mocks, with the arrow icon and switchable notifications (D34–D38, D43); smoke-tested on dropped F12 screenshots, not yet with the game |
 | Start with Windows; a second launch opens the running one's settings | built (D39, D40); the second launch smoke-tested, the Run key waits for an installed copy |
 | Every player-facing string | the mocks' placeholder copy, all in `App/Copy.cs` until the owner rewrites it (D36) |
-| Bulk capture from Warm Up's song list | built to the iteration-2 mocks (D45–D52) and smoke-tested end to end on the fixtures against a stand-in site (start window, sounds, counts, Stop, the summary, Recent); posting to PIU Scores waits on the site making judgments optional, and one card per run on the site's sittings — both ship before the watcher's first release |
+| Bulk capture from Warm Up's song list | built to the iteration-2 mocks (D45–D52) and smoke-tested end to end on the fixtures against a stand-in site (start window, sounds, counts, Stop, the summary, Recent); PIU Scores takes captures since it made judgments optional (its PR 358, merged 2026-09-24); one card per run waits on its sittings (PR 357), which ship before the watcher's first release |
 | Reading titles | a soft white-and-colourless mask at the 1080p size (D53): 33 of 38 fixture titles exact, 36 matched |
 
 **The one loop.** The UI is in. Install the build made on the owner's PC, paste a token, and play one
