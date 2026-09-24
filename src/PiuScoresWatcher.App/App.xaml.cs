@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PiuScoresWatcher.App.Api;
 using PiuScoresWatcher.App.Capture;
+using PiuScoresWatcher.App.Localization;
 using PiuScoresWatcher.App.Notifications;
 using PiuScoresWatcher.App.Ocr;
 using PiuScoresWatcher.App.Security;
@@ -43,10 +44,14 @@ public partial class App : Application
     private readonly SingleInstance _instance;
     private IHost? _host;
     private TaskbarIcon? _tray;
+    private ContextMenu? _menu;
     private MenuItem? _statusItem;
     private MenuItem? _pauseItem;
     private MenuItem? _startBulkItem;
     private MenuItem? _stopBulkItem;
+    private MenuItem? _openItem;
+    private MenuItem? _siteItem;
+    private MenuItem? _quitItem;
     private FirstRunWindow? _firstRun;
     private SettingsWindow? _settings;
     private ReviewWindow? _review;
@@ -67,6 +72,8 @@ public partial class App : Application
         base.OnStartup(e);
         AppPaths.EnsureCreated();
         _host = BuildHost();
+        // the language first: the services that start next can raise a notification straight away (D59)
+        WatcherLanguage.Apply(Services.GetRequiredService<ISettingsStore>().Load().Language);
         _host.Start();
 
         var log = Services.GetRequiredService<ILogger<App>>();
@@ -184,32 +191,32 @@ public partial class App : Application
         _statusItem = new MenuItem { IsEnabled = false };
         _pauseItem = new MenuItem();
         _pauseItem.Click += (_, _) => Status.SetPaused(!Status.Paused);
-        _startBulkItem = new MenuItem { Header = Copy.TrayStartBulk };
+        _startBulkItem = new MenuItem();
         _startBulkItem.Click += (_, _) => ShowBulkCapture();
-        _stopBulkItem = new MenuItem { Header = Copy.TrayStopBulk };
+        _stopBulkItem = new MenuItem();
         _stopBulkItem.Click += (_, _) => Services.GetRequiredService<BulkCaptureService>().Stop("stopped from the tray");
-        var open = new MenuItem { Header = Copy.TrayOpenSettings };
-        open.Click += (_, _) => ShowSettings();
-        var site = new MenuItem { Header = Copy.TrayOpenSite };
-        site.Click += (_, _) => OpenSite();
-        var quit = new MenuItem { Header = Copy.Quit };
-        quit.Click += (_, _) => Shutdown();
+        _openItem = new MenuItem();
+        _openItem.Click += (_, _) => ShowSettings();
+        _siteItem = new MenuItem();
+        _siteItem.Click += (_, _) => OpenSite();
+        _quitItem = new MenuItem();
+        _quitItem.Click += (_, _) => Shutdown();
 
-        var menu = new ContextMenu();
-        menu.Items.Add(_statusItem);
-        menu.Items.Add(new Separator());
-        menu.Items.Add(_stopBulkItem);
-        menu.Items.Add(open);
-        menu.Items.Add(_pauseItem);
-        menu.Items.Add(_startBulkItem);
-        menu.Items.Add(site);
-        menu.Items.Add(new Separator());
-        menu.Items.Add(quit);
+        _menu = new ContextMenu();
+        _menu.Items.Add(_statusItem);
+        _menu.Items.Add(new Separator());
+        _menu.Items.Add(_stopBulkItem);
+        _menu.Items.Add(_openItem);
+        _menu.Items.Add(_pauseItem);
+        _menu.Items.Add(_startBulkItem);
+        _menu.Items.Add(_siteItem);
+        _menu.Items.Add(new Separator());
+        _menu.Items.Add(_quitItem);
 
         var tray = new TaskbarIcon
         {
             IconSource = new BitmapImage(new Uri("pack://application:,,,/Assets/app.ico")),
-            ContextMenu = menu,
+            ContextMenu = _menu,
             NoLeftClickDelay = true
         };
         tray.TrayLeftMouseUp += (_, _) => ShowSettings();
@@ -220,13 +227,21 @@ public partial class App : Application
         return tray;
     }
 
+    /// <summary>The menu's words and the tooltip, in the current language — so a language change relabels them too.</summary>
     private void RefreshTray()
     {
-        if (_tray is null || _statusItem is null || _pauseItem is null || _startBulkItem is null || _stopBulkItem is null)
+        if (_tray is null || _menu is null || _statusItem is null || _pauseItem is null || _startBulkItem is null || _stopBulkItem is null
+            || _openItem is null || _siteItem is null || _quitItem is null)
             return;
         var headline = Status.Headline;
         var bulk = Status.Bulk is not null;
+        _menu.Language = WatcherLanguage.Xml;
         _statusItem.Header = headline;
+        _startBulkItem.Header = Copy.TrayStartBulk;
+        _stopBulkItem.Header = Copy.TrayStopBulk;
+        _openItem.Header = Copy.TrayOpenSettings;
+        _siteItem.Header = Copy.TrayOpenSite;
+        _quitItem.Header = Copy.Quit;
         _pauseItem.Header = Status.Paused ? Copy.TrayResume : Copy.TrayPause;
         _pauseItem.Visibility = bulk ? Visibility.Collapsed : Visibility.Visible;
         _startBulkItem.Visibility = bulk ? Visibility.Collapsed : Visibility.Visible;
@@ -242,8 +257,41 @@ public partial class App : Application
 
     internal void ShowSettings()
     {
-        _settings ??= Open<SettingsWindow>(() => _settings = null);
+        _settings ??= OpenSettings();
         Bring(_settings);
+    }
+
+    /// <summary>
+    ///     The Language picker's choice (D59): the settings window redrawn where it stood and as far down as it was
+    ///     scrolled, the tray relabelled. Nothing restarts; another open window follows when it next opens.
+    /// </summary>
+    internal void ChangeLanguage(string? chosen)
+    {
+        WatcherLanguage.Apply(chosen);
+        RefreshTray();
+        if (_settings is not { } before)
+            return;
+
+        var (left, top, offset) = (before.Left, before.Top, before.ScrollOffset);
+        before.Close();
+        _settings = OpenSettings();
+        _settings.WindowStartupLocation = WindowStartupLocation.Manual;
+        _settings.Left = left;
+        _settings.Top = top;
+        _settings.ScrollTo(offset);
+        Bring(_settings);
+    }
+
+    private SettingsWindow OpenSettings()
+    {
+        SettingsWindow? window = null;
+        // only this window's closing forgets it: a redrawn one replaces it before the old one's Closed is done
+        window = Open<SettingsWindow>(() =>
+        {
+            if (ReferenceEquals(_settings, window))
+                _settings = null;
+        });
+        return window;
     }
 
     /// <summary>The start of a bulk capture; while one runs, settings and the tray offer Stop instead.</summary>
@@ -291,6 +339,7 @@ public partial class App : Application
         var window = Services.GetRequiredService<T>();
         // a dev run names its site, so its windows are never mistaken for the installed copy's (D44)
         window.Title = Copy.AppNameFor(_options.Scope);
+        window.Language = WatcherLanguage.Xml;
         window.Closed += (_, _) => whenClosed();
         return window;
     }

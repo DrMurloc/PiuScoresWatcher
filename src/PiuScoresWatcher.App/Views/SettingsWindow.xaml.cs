@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using Microsoft.Win32;
@@ -20,6 +21,9 @@ namespace PiuScoresWatcher.App.Views;
 
 /// <summary>One row of Recent, as the list binds it: a play, or a bulk capture run with only its name and count.</summary>
 public sealed record RecentRow(string Song, string Chart, string Score, string Grade, bool IsGold, string Mark, bool Recorded, string Age, bool IsRun = false);
+
+/// <summary>One entry of the Language picker: Machine Default (no code) or a language by its own name (D59).</summary>
+public sealed record LanguageChoice(string? Code, string Name);
 
 /// <summary>
 ///     The settings window (D37): what the watcher is doing, the account, how it watches, bulk capture
@@ -74,6 +78,9 @@ public partial class SettingsWindow : Window
         NotifyUpdatedBox.IsChecked = notifications.Updated;
         NotifyBulkFinishedBox.IsChecked = notifications.BulkCaptureFinished;
         NotificationKinds.IsEnabled = notifications.Enabled;
+        List<LanguageChoice> languages = [new(null, Copy.MachineDefault), .. Languages.All.Select(code => new LanguageChoice(code, Copy.LanguageName(code)))];
+        LanguageBox.ItemsSource = languages;
+        LanguageBox.SelectedItem = languages.First(choice => choice.Code == Languages.Normalize(current.Language));
         _loading = false;
 
         RefreshFolder();
@@ -91,6 +98,15 @@ public partial class SettingsWindow : Window
 
         if (_status.HasToken && _status.Player is null)
             _ = _connection.CheckStoredAsync(CancellationToken.None);
+    }
+
+    /// <summary>How far down the window is scrolled, so a language change can redraw it at the same place.</summary>
+    public double ScrollOffset => Scroller.VerticalOffset;
+
+    /// <summary>Opens scrolled to <paramref name="offset" />, once its content has been laid out.</summary>
+    public void ScrollTo(double offset)
+    {
+        Loaded += (_, _) => Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => Scroller.ScrollToVerticalOffset(offset));
     }
 
     private void OnStatusChanged(object? sender, EventArgs e)
@@ -272,6 +288,15 @@ public partial class SettingsWindow : Window
                 NotifyUnreadableBox.IsChecked == true, NotifyTokenRejectedBox.IsChecked == true, NotifyUpdatedBox.IsChecked == true,
                 NotifyBulkFinishedBox.IsChecked == true)
         });
+    }
+
+    private void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || LanguageBox.SelectedItem is not LanguageChoice choice)
+            return;
+        _settings.Save(_settings.Load() with { Language = choice.Code });
+        // after this handler: the window whose picker raised it is replaced by one in the new language
+        Dispatcher.BeginInvoke(() => ((App)Application.Current).ChangeLanguage(choice.Code));
     }
 
     private void OnReview(object sender, RoutedEventArgs e)

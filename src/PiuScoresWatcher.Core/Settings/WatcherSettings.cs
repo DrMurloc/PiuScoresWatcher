@@ -12,13 +12,15 @@ namespace PiuScoresWatcher.Core.Settings;
 /// <param name="Notifications">Which notifications show; null (a settings file from before they existed) means all of them.</param>
 /// <param name="LastSeenVersion">The watcher version the last launch ran, so the first launch after an update can say so (D42).</param>
 /// <param name="BulkCaptureSounds">Whether a bulk capture plays its chime, tick and low tone; on unless switched off (D50).</param>
+/// <param name="Language">The language the player picked (<see cref="Languages" />); null is Machine Default, which follows Windows (D59).</param>
 public sealed record WatcherSettings(
     CaptureMode Mode,
     bool StartWithWindows,
     string? SteamScreenshotsFolder,
     NotificationSettings? Notifications = null,
     string? LastSeenVersion = null,
-    bool BulkCaptureSounds = true)
+    bool BulkCaptureSounds = true,
+    string? Language = null)
 {
     public static WatcherSettings Default => new(CaptureMode.Both, StartWithWindows: true, SteamScreenshotsFolder: null);
 

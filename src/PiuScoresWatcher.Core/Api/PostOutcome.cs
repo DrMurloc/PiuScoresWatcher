@@ -16,6 +16,9 @@ public abstract record PostOutcome
     /// <summary>A 400 with a problem type — <c>judgments-do-not-reconcile</c>, <c>played-at-invalid</c>, …</summary>
     public sealed record Refused(string ProblemType, string? Detail) : PostOutcome
     {
+        /// <summary>The problem type of a play whose judgments do not add up to its score (D10).</summary>
+        public const string JudgmentsDoNotReconcile = "judgments-do-not-reconcile";
+
         public override string Describe() => $"refused: {ProblemType}{(Detail is null ? "" : $" — {Detail}")}";
     }
 

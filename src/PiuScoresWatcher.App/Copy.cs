@@ -1,20 +1,56 @@
 using System.Globalization;
+using System.Resources;
 using PiuScoresWatcher.Core.Api;
 using PiuScoresWatcher.Core.Capture;
 using PiuScoresWatcher.Core.Domain;
 using PiuScoresWatcher.Core.Scoring;
+using PiuScoresWatcher.Core.Settings;
 using PiuScoresWatcher.Core.Startup;
 
 namespace PiuScoresWatcher.App;
 
 /// <summary>
-///     Every string a player reads, in one place (D36). The owner writes this copy; what is here is the
-///     mocks' placeholder text until he does. XAML binds with <c>{x:Static app:Copy.Name}</c>, code formats
-///     through the methods below, and nothing player-facing is spelled anywhere else.
+///     Every string a player reads, in one place (D36), in English — the owner's copy; the mocks' wording is
+///     approved. XAML binds with <c>{x:Static app:Copy.Name}</c>, code formats through the methods below, and
+///     nothing player-facing is spelled anywhere else. Each English line is also the key its translations are
+///     looked up by, in <c>Resources/Strings.&lt;code&gt;.resx</c> (D60): <c>L</c> for a line, <c>Plural</c> for a
+///     count, <c>Verbatim</c> for what the game prints as-is.
 /// </summary>
 public static class Copy
 {
     public const string AppName = "PIU Scores Watcher";
+
+    private static readonly ResourceManager Translations = new("PiuScoresWatcher.App.Resources.Strings", typeof(Copy).Assembly);
+    private static readonly CultureInfo EnglishCulture = CultureInfo.GetCultureInfo(Languages.English);
+    private static readonly AsyncLocal<CultureInfo?> Scoped = new();
+    private static CultureInfo _culture = EnglishCulture;
+
+    /// <summary>
+    ///     The language every line is looked up in and every number and date is written in (D59, D61): the one
+    ///     picked in settings, or Windows'. Never the thread's culture, which a capture loop keeps from before a change.
+    /// </summary>
+    public static CultureInfo Culture => Scoped.Value ?? Volatile.Read(ref _culture);
+
+    /// <summary>Speaks <paramref name="culture" /> from now on; <c>Localization.WatcherLanguage</c> is the one caller.</summary>
+    public static void Use(CultureInfo culture)
+    {
+        Volatile.Write(ref _culture, culture);
+    }
+
+    /// <summary>A line as the log writes it: in English, whatever the player reads (D61).</summary>
+    public static string English(Func<string> line)
+    {
+        var before = Scoped.Value;
+        Scoped.Value = EnglishCulture;
+        try
+        {
+            return line();
+        }
+        finally
+        {
+            Scoped.Value = before;
+        }
+    }
 
     /// <summary>The name on a window and in the tray tooltip; a dev run against another site adds the site (D44).</summary>
     public static string AppNameFor(SiteScope scope) => scope.IsProduction ? AppName : $"{AppName} · {scope.Label}";
@@ -23,180 +59,204 @@ public static class Copy
     public static string AppNameFor(SiteScope scope, string window) => $"{AppNameFor(scope)} · {window}";
 
     // ---- First run ----
-    public const string FirstRunHeadline = "Set up in three steps";
-    public const string FirstRunLede = "Two minutes, once. After this it just runs.";
-    public const string TokenLabel = "Your PIU Scores token";
-    public const string Connect = "Connect";
-    public const string Checking = "Checking…";
+    public static string FirstRunHeadline => L("Set up in three steps");
+    public static string FirstRunLede => L("Two minutes, once. After this it just runs.");
+    public static string TokenLabel => L("Your PIU Scores token");
+    public static string Connect => L("Connect");
+    public static string Checking => L("Checking…");
 
     /// <summary>{0} is the player's name, which is set in bold.</summary>
-    public const string ConnectedAs = "Connected as {0}";
+    public static string ConnectedAs => L("Connected as {0}");
 
-    public const string ConnectedUnchecked = "Token saved — PIU Scores hasn't answered yet";
+    public static string ConnectedUnchecked => L("Token saved — PIU Scores hasn't answered yet");
 
     /// <summary>{0} is <see cref="TokenPageLink" />, set as the link to the token page.</summary>
-    public const string TokenHelp = "Create one on {0}. It is stored encrypted on this PC and only ever sent to PIU Scores.";
-    public const string TokenNotAccepted = "That token wasn't accepted. Check it on the site and paste it again.";
-    public const string TokenUnchecked = "Couldn't reach PIU Scores to check the token. Try again in a moment.";
-    public const string ModeQuestion = "How should it watch?";
-    public const string ModeGame = "The game window";
-    public const string ModeGameDetail = "Looks at RISE once a second while it is running. Nothing else on your screen.";
-    public const string ModeSteam = "My Steam screenshots";
-    public const string ModeSteamDetail = "Press F12 on the result screen; the screenshot is read. Costs nothing during play.";
-    public const string Recommended = "(recommended)";
-    public const string ModeBothDetail = "A screen seen twice is still one play.";
-    public const string StartWithWindows = "Start with Windows";
-    public const string StartWithWindowsDetail = "Sits in the tray, wakes when RISE starts, sleeps when it closes. Off, it only runs when you open it.";
-    public const string PrivacyLink = "What it looks at and sends";
-    public const string NotRecordedShort = "not recorded";
-    public const string Done = "Done";
+    public static string TokenHelp => L("Create one on {0}. It is stored encrypted on this PC and only ever sent to PIU Scores.");
+
+    public static string TokenNotAccepted => L("That token wasn't accepted. Check it on the site and paste it again.");
+    public static string TokenUnchecked => L("Couldn't reach PIU Scores to check the token. Try again in a moment.");
+    public static string ModeQuestion => L("How should it watch?");
+    public static string ModeGame => L("The game window");
+    public static string ModeGameDetail => L("Looks at RISE once a second while it is running. Nothing else on your screen.");
+    public static string ModeSteam => L("My Steam screenshots");
+    public static string ModeSteamDetail => L("Press F12 on the result screen; the screenshot is read. Costs nothing during play.");
+    public static string Recommended => L("(recommended)");
+    public static string ModeBothDetail => L("A screen seen twice is still one play.");
+    public static string StartWithWindows => L("Start with Windows");
+    public static string StartWithWindowsDetail => L("Sits in the tray, wakes when RISE starts, sleeps when it closes. Off, it only runs when you open it.");
+    public static string PrivacyLink => L("What it looks at and sends");
+    public static string NotRecordedShort => L("not recorded");
+    public static string Done => L("Done");
 
     // ---- Settings ----
-    public const string SectionAccount = "ACCOUNT";
-    public const string SectionWatching = "WATCHING";
-    public const string SectionStartup = "STARTUP";
-    public const string SectionNotifications = "NOTIFICATIONS";
-    public const string SectionRecent = "RECENT";
-    public const string Disconnect = "Disconnect";
-    public const string ModeSteamShort = "Steam screenshots";
-    public const string ModeBothShort = "Both";
-    public const string Change = "Change";
-    public const string StartWithWindowsShort = "In the tray at sign-in; wakes when RISE starts.";
-    public const string ShowNotifications = "Show notifications";
-    public const string NotifyRecorded = "Every recorded play";
-    public const string NotifyNotRecorded = "A play PIU Scores didn't take";
-    public const string NotifyUnreadable = "A screen that couldn't be read";
-    public const string NotifyTokenRejected = "When the token stops working";
-    public const string NotifyUpdated = "When the watcher updates";
-    public const string NoPlaysYet = "No plays yet since the watcher started.";
+    public static string SectionAccount => Upper(L("Account"));
+    public static string SectionWatching => Upper(L("Watching"));
+    public static string SectionStartup => Upper(L("Startup"));
+    public static string SectionNotifications => Upper(L("Notifications"));
+    public static string SectionRecent => Upper(L("Recent"));
+    public static string Disconnect => L("Disconnect");
+    public static string ModeSteamShort => L("Steam screenshots");
+    public static string ModeBothShort => L("Both");
+    public static string Change => L("Change");
+    public static string StartWithWindowsShort => L("In the tray at sign-in; wakes when RISE starts.");
+    public static string ShowNotifications => L("Show notifications");
+    public static string NotifyRecorded => L("Every recorded play");
+    public static string NotifyNotRecorded => L("A play PIU Scores didn't take");
+    public static string NotifyUnreadable => L("A screen that couldn't be read");
+    public static string NotifyTokenRejected => L("When the token stops working");
+    public static string NotifyUpdated => L("When the watcher updates");
+    public static string NoPlaysYet => L("No plays yet since the watcher started.");
     public const string NoMark = "—";
-    public const string Broken = "broken";
-    public const string Review = "Review";
-    public const string OpenLogs = "Open logs folder";
-    public const string Quit = "Quit";
-    public const string Pause = "Pause";
-    public const string Resume = "Resume";
+    public static string Broken => L("broken");
+    public static string Review => L("Review");
+    public static string OpenLogs => L("Open logs folder");
+    public static string Quit => L("Quit");
+    public static string Pause => L("Pause");
+    public static string Resume => L("Resume");
 
-    public const string NotifyBulkFinished = "When a bulk capture finishes";
+    public static string NotifyBulkFinished => L("When a bulk capture finishes");
+
+    // ---- Settings: the language (D58, D59) ----
+    public static string SectionLanguage => Upper(L("Language"));
+
+    /// <summary>The picker's first entry and everyone's start: follow Windows (D59).</summary>
+    public static string MachineDefault => L("Machine Default");
+
+    /// <summary>A language as the picker lists it, in its own words — never translated (D58).</summary>
+    public static string LanguageName(string code) => code switch
+    {
+        Languages.English => Verbatim("English"),
+        Languages.SpanishMexico => Verbatim("Español (México)"),
+        Languages.SpanishSpain => Verbatim("Español (España)"),
+        Languages.Portuguese => Verbatim("Português"),
+        Languages.Korean => Verbatim("한국어"),
+        Languages.Japanese => Verbatim("日本語"),
+        Languages.French => Verbatim("Français"),
+        Languages.Italian => Verbatim("Italiano"),
+        _ => code
+    };
 
     // ---- Tray ----
-    public const string TrayOpenSettings = "Open settings";
-    public const string TrayPause = "Pause watching";
-    public const string TrayResume = "Resume watching";
-    public const string TrayOpenSite = "Open PIU Scores";
-    public const string TrayStartBulk = "Start bulk capture…";
-    public const string TrayStopBulk = "Stop bulk capture";
+    public static string TrayOpenSettings => L("Open settings");
+    public static string TrayPause => L("Pause watching");
+    public static string TrayResume => L("Resume watching");
+    public static string TrayOpenSite => L("Open PIU Scores");
+    public static string TrayStartBulk => L("Start bulk capture…");
+    public static string TrayStopBulk => L("Stop bulk capture");
 
     // ---- Bulk capture: the start window (D51) ----
-    public const string BulkWindowName = "Bulk capture";
-    public const string BulkHeadline = "Grab your Warm Up bests";
-    public const string BulkLede = "Each best on Warm Up's song list becomes a play on PIU Scores: the song, the chart and the score, no judgments.";
-    public const string BulkStep1 = "Open Warm Up and go to the song list.";
+    public static string BulkWindowName => L("Bulk capture");
+    public static string BulkHeadline => L("Grab your Warm Up bests");
+    public static string BulkLede => L("Each best on Warm Up's song list becomes a play on PIU Scores: the song, the chart and the score, no judgments.");
+    public static string BulkStep1 => L("Open Warm Up and go to the song list.");
 
     /// <summary>Each {KEY} is drawn as a key cap: A, D, TAB, W, S.</summary>
-    public const string BulkStep2 = "Move through every chart: {A} {D} change the level, {TAB} switches 5K SINGLE and 6K DOUBLE, {W} {S} change the song.";
+    public static string BulkStep2 => L("Move through every chart: {A} {D} change the level, {TAB} switches 5K SINGLE and 6K DOUBLE, {W} {S} change the song.");
 
-    public const string BulkStep3 = "Wait for the sound before moving on.";
-    public const string SoundChime = "Chime";
-    public const string SoundChimeMeaning = "Sent to PIU Scores.";
-    public const string SoundTick = "Tick";
-    public const string SoundTickMeaning = "PIU Scores already has this best, or a higher one.";
-    public const string SoundLow = "Low tone";
-    public const string SoundLowMeaning = "Couldn't read it. It's kept for review; move on.";
-    public const string BulkChecking = "Checking your bests on PIU Scores…";
-    public const string BulkNotConnected = "Connect to PIU Scores in settings first.";
-    public const string BulkCouldNotLoad = "Couldn't load your bests from PIU Scores. Try again in a moment.";
-    public const string PlaySounds = "Play sounds";
-    public const string BulkStopsItself = "It stops by itself when a song starts or RISE closes.";
-    public const string Cancel = "Cancel";
-    public const string Start = "Start";
+    public static string BulkStep3 => L("Wait for the sound before moving on.");
+    public static string SoundChime => L("Chime");
+    public static string SoundChimeMeaning => L("Sent to PIU Scores.");
+    public static string SoundTick => L("Tick");
+    public static string SoundTickMeaning => L("PIU Scores already has this best, or a higher one.");
+    public static string SoundLow => L("Low tone");
+    public static string SoundLowMeaning => L("Couldn't read it. It's kept for review; move on.");
+    public static string BulkChecking => L("Checking your bests on PIU Scores…");
+    public static string BulkNotConnected => L("Connect to PIU Scores in settings first.");
+    public static string BulkCouldNotLoad => L("Couldn't load your bests from PIU Scores. Try again in a moment.");
+    public static string PlaySounds => L("Play sounds");
+    public static string BulkStopsItself => L("It stops by itself when a song starts or RISE closes.");
+    public static string Cancel => L("Cancel");
+    public static string Start => L("Start");
 
     // ---- Bulk capture: settings, Recent, the summary ----
-    public const string SectionBulk = "BULK CAPTURE";
-    public const string BulkSettingsLine = "Grab your Warm Up bests from the song list.";
-    public const string StartEllipsis = "Start…";
-    public const string SoundsWhileCapturing = "Sounds while capturing";
-    public const string Stop = "Stop";
-    public const string BulkRunName = "Bulk capture";
-    public const string BulkFinishedTitle = "Bulk capture finished";
-    public const string ReviewListTitle = "This best couldn't be read";
+    public static string SectionBulk => Upper(L("Bulk capture"));
+    public static string BulkSettingsLine => L("Grab your Warm Up bests from the song list.");
+    public static string StartEllipsis => L("Start…");
+    public static string SoundsWhileCapturing => L("Sounds while capturing");
+    public static string Stop => L("Stop");
+    public static string BulkRunName => L("Bulk capture");
+    public static string BulkFinishedTitle => L("Bulk capture finished");
+    public static string ReviewListTitle => L("This best couldn't be read");
 
     // ---- Status: the tray's first line and the settings window's header ----
-    public const string StatusWatching = "Watching — RISE is running";
-    public const string StatusWaiting = "Waiting for RISE";
-    public const string StatusPaused = "Paused";
-    public const string StatusNotConnected = "Not connected — plays are kept, not posted";
+    public static string StatusWatching => L("Watching — RISE is running");
+    public static string StatusWaiting => L("Waiting for RISE");
+    public static string StatusPaused => L("Paused");
+    public static string StatusNotConnected => L("Not connected — plays are kept, not posted");
 
     // ---- Notifications ----
-    public const string RecordedTitle = "Recorded";
-    public const string UnreadableTitle = "Couldn't read that result screen";
-    public const string UnreadableBody = "Saved it. Nothing was recorded.";
-    public const string NotRecordedTitle = "PIU Scores didn't accept this play";
-    public const string TokenRejectedTitle = "Your token stopped working";
-    public const string TokenRejectedBody = "Plays aren't being recorded. Reconnect in settings.";
-    public const string NotConnectedTitle = "The watcher isn't connected";
-    public const string NotConnectedBody = "Plays are kept, not posted. Connect in settings.";
-    public const string Ignore = "Ignore";
-    public const string OpenSettings = "Open settings";
-    public const string WhatChanged = "What changed";
+    public static string RecordedTitle => L("Recorded");
+    public static string UnreadableTitle => L("Couldn't read that result screen");
+    public static string UnreadableBody => L("Saved it. Nothing was recorded.");
+    public static string NotRecordedTitle => L("PIU Scores didn't accept this play");
+    public static string TokenRejectedTitle => L("Your token stopped working");
+    public static string TokenRejectedBody => L("Plays aren't being recorded. Reconnect in settings.");
+    public static string NotConnectedTitle => L("The watcher isn't connected");
+    public static string NotConnectedBody => L("Plays are kept, not posted. Connect in settings.");
+    public static string Ignore => L("Ignore");
+    public static string OpenSettings => L("Open settings");
+    public static string WhatChanged => L("What changed");
 
     // ---- Review ----
-    public const string ReviewUnreadableTitle = "This screen couldn't be read";
-    public const string ReviewNotRecordedTitle = "This play wasn't recorded";
-    public const string ReviewStaysHere = "It stays on this PC. Nothing is sent anywhere unless you choose to.";
-    public const string ReviewNothing = "Nothing to review.";
-    public const string ShowFile = "Show the file";
-    public const string Delete = "Delete";
-    public const string Privacy = "Privacy";
+    public static string ReviewUnreadableTitle => L("This screen couldn't be read");
+    public static string ReviewNotRecordedTitle => L("This play wasn't recorded");
+    public static string ReviewStaysHere => L("It stays on this PC. Nothing is sent anywhere unless you choose to.");
+    public static string ReviewNothing => L("Nothing to review.");
+    public static string ShowFile => L("Show the file");
+    public static string Delete => L("Delete");
+    public static string Privacy => L("Privacy");
 
     // ---- Sentences with numbers in them ----
-    public static string TokenPageLink(Uri site) => $"{site.Host} → Account → API tokens";
+
+    /// <summary>The way to the token page; "API tokens" stays English in every language, as the site shows it.</summary>
+    public static string TokenPageLink(Uri site) => L("{0} → Account → API tokens", site.Host);
 
     /// <summary>The tray's first line during a run.</summary>
-    public static string StatusBulk(BulkTally tally) => $"Bulk capture · {tally.Sent} sent, {tally.Already} already there";
+    public static string StatusBulk(BulkTally tally) => L("Bulk capture · {0} sent, {1} already there", tally.Sent, tally.Already);
 
     /// <summary>The settings window's status card during a run.</summary>
-    public static string BulkOn(BulkTally tally) => $"Bulk capture on · {tally.Sent} sent";
+    public static string BulkOn(BulkTally tally) => L("Bulk capture on · {0} sent", tally.Sent);
 
-    public static string BulkDetail(BulkTally tally) => $"{tally.Already} already there · {tally.NotSent} couldn't be read";
+    public static string BulkDetail(BulkTally tally) => L("{0} already there · {1} couldn't be read", tally.Already, tally.NotSent);
 
-    public static string BulkStoredBests(int count) => $"PIU Scores has {count} of your Warm Up bests. Only higher ones are sent.";
+    public static string BulkStoredBests(int count) => L("PIU Scores has {0} of your Warm Up bests. Only higher ones are sent.", count);
 
     /// <summary>A run's line in Recent, after the bold <see cref="BulkRunName" />.</summary>
-    public static string BulkRunDetail(BulkTally tally) => $" · Warm Up · {tally.Sent} sent, {tally.Already} already there";
+    public static string BulkRunDetail(BulkTally tally) => " · " + L("Warm Up · {0} sent, {1} already there", tally.Sent, tally.Already);
 
     public static string BulkSummary(BulkTally tally) =>
-        $"{tally.Sent} new bests sent · {tally.Already} already on PIU Scores · {tally.NotSent} couldn't be read";
+        L("{0} new bests sent · {1} already on PIU Scores · {2} couldn't be read", tally.Sent, tally.Already, tally.NotSent);
 
     public static string StatusDetail(DateTimeOffset? lastRecorded, int playsToday, DateTimeOffset now)
     {
-        var last = lastRecorded is { } at ? $"Last recorded {Ago(at, now)}" : "Nothing recorded yet";
-        return $"{last} · {playsToday} {(playsToday == 1 ? "play" : "plays")} today";
+        var last = lastRecorded is { } at ? L("Last recorded {0}", Ago(at, now)) : L("Nothing recorded yet");
+        var plays = Plural(playsToday, "{0} play today", "{0} plays today");
+        return $"{last} · {plays}";
     }
 
     public static string Ago(DateTimeOffset at, DateTimeOffset now)
     {
         var span = now - at;
         if (span < TimeSpan.FromMinutes(1))
-            return "just now";
+            return L("just now");
         if (span < TimeSpan.FromHours(1))
-            return $"{(int)span.TotalMinutes} min ago";
+            return L("{0} min ago", (int)span.TotalMinutes);
         return span < TimeSpan.FromDays(1)
-            ? $"{(int)span.TotalHours} h ago"
-            : at.LocalDateTime.ToString("MMM d", CultureInfo.CurrentCulture);
+            ? L("{0} h ago", (int)span.TotalHours)
+            : MonthDay(at);
     }
 
     public static string FolderLine(bool chosen, bool exists) =>
-        chosen ? "Steam screenshots folder · chosen" : exists ? "Steam screenshots folder · found" : "Steam screenshots folder · not found yet";
+        chosen ? L("Steam screenshots folder · chosen") : exists ? L("Steam screenshots folder · found") : L("Steam screenshots folder · not found yet");
 
     /// <summary>The amber row under Recent: what is waiting in the review window.</summary>
     public static string ToReview(int unreadable, int notRecorded)
     {
         var parts = new List<string>();
         if (unreadable > 0)
-            parts.Add(unreadable == 1 ? "1 screen couldn't be read" : $"{unreadable} screens couldn't be read");
+            parts.Add(Plural(unreadable, "1 screen couldn't be read", "{0} screens couldn't be read"));
         if (notRecorded > 0)
-            parts.Add(notRecorded == 1 ? "1 play wasn't recorded" : $"{notRecorded} plays weren't recorded");
+            parts.Add(Plural(notRecorded, "1 play wasn't recorded", "{0} plays weren't recorded"));
         return string.Join(" · ", parts);
     }
 
@@ -205,48 +265,48 @@ public static class Copy
     {
         var span = now - at;
         if (span < TimeSpan.FromMinutes(1))
-            return "now";
+            return L("now");
         if (span < TimeSpan.FromHours(1))
-            return $"{(int)span.TotalMinutes} min";
+            return L("{0} min", (int)span.TotalMinutes);
         return span < TimeSpan.FromDays(1)
-            ? $"{(int)span.TotalHours} h"
-            : at.LocalDateTime.ToString("MMM d", CultureInfo.CurrentCulture);
+            ? L("{0} h", (int)span.TotalHours)
+            : MonthDay(at);
     }
 
     public static string VersionLine(string version, bool? upToDate) => upToDate switch
     {
-        true => $"Version {version} · up to date",
-        false => $"Version {version} · an update applies at the next start",
-        null => $"Version {version}"
+        true => L("Version {0} · up to date", version),
+        false => L("Version {0} · an update applies at the next start", version),
+        null => L("Version {0}", version)
     };
 
-    public static string UpdatedTitle(string version) => $"Updated to {version}";
+    public static string UpdatedTitle(string version) => L("Updated to {0}", version);
 
-    public static string Score(int score) => score.ToString("N0", CultureInfo.CurrentCulture);
+    public static string Score(int score) => score.ToString("N0", Culture);
 
-    /// <summary>The chart as the game names it: <c>5K S18</c>, <c>6K HD23</c>, <c>Arcade 5K S20</c>.</summary>
+    /// <summary>The chart as the game names it: <c>5K S18</c>, <c>6K HD23</c>, <c>Arcade 5K S20</c> — never translated.</summary>
     public static string ChartLabel(RiseMix mix, ChartType type, int level) => (mix, type) switch
     {
-        (RiseMix.Rise, ChartType.Single) => $"5K S{level}",
-        (RiseMix.Rise, ChartType.HalfDouble) => $"6K HD{level}",
-        (RiseMix.RiseArcade, ChartType.Single) => $"Arcade 5K S{level}",
-        (RiseMix.RiseArcade, ChartType.Double) => $"Arcade 10K D{level}",
+        (RiseMix.Rise, ChartType.Single) => Verbatim($"5K S{level}"),
+        (RiseMix.Rise, ChartType.HalfDouble) => Verbatim($"6K HD{level}"),
+        (RiseMix.RiseArcade, ChartType.Single) => Verbatim($"Arcade 5K S{level}"),
+        (RiseMix.RiseArcade, ChartType.Double) => Verbatim($"Arcade 10K D{level}"),
         _ => $"{type} {level}"
     };
 
     /// <summary>The award as the station names it: RISE mode's marks, the Arcade Station's plates.</summary>
     public static string AwardName(RiseMix mix, Award award) => (mix, award) switch
     {
-        (RiseMix.Rise, Award.UltimateGame) => "Full Combo",
-        (RiseMix.Rise, Award.SuperbGame) => "No Miss",
-        (_, Award.PerfectGame) => "Perfect Game",
-        (_, Award.UltimateGame) => "Ultimate Game",
-        (_, Award.ExtremeGame) => "Extreme Game",
-        (_, Award.SuperbGame) => "Superb Game",
-        (_, Award.MarvelousGame) => "Marvelous Game",
-        (_, Award.TalentedGame) => "Talented Game",
-        (_, Award.FairGame) => "Fair Game",
-        _ => "Rough Game"
+        (RiseMix.Rise, Award.UltimateGame) => L("Full Combo"),
+        (RiseMix.Rise, Award.SuperbGame) => L("No Miss"),
+        (_, Award.PerfectGame) => L("Perfect Game"),
+        (_, Award.UltimateGame) => L("Ultimate Game"),
+        (_, Award.ExtremeGame) => L("Extreme Game"),
+        (_, Award.SuperbGame) => L("Superb Game"),
+        (_, Award.MarvelousGame) => L("Marvelous Game"),
+        (_, Award.TalentedGame) => L("Talented Game"),
+        (_, Award.FairGame) => L("Fair Game"),
+        _ => L("Rough Game")
     };
 
     /// <summary>One play in a line: song · chart · score · grade · award, and "broken" for a grey grade.</summary>
@@ -262,13 +322,14 @@ public static class Copy
 
     public static string NotRecordedBody(PostOutcome outcome) => outcome switch
     {
-        PostOutcome.Refused { ProblemType: "judgments-do-not-reconcile" } => "The judgments don't add up to the score — probably a misread. Not recorded.",
-        PostOutcome.Refused => "PIU Scores refused it. Not recorded.",
-        PostOutcome.SongUnknown => "PIU Scores doesn't know that song on this mix — probably a misread title. Not recorded.",
-        PostOutcome.RateLimited => "PIU Scores asked the watcher to slow down. Not recorded.",
-        PostOutcome.Unauthorized => "The token wasn't accepted. Not recorded.",
-        PostOutcome.NotConnected => "The watcher isn't connected to PIU Scores. Not recorded.",
-        _ => "Couldn't reach PIU Scores. Not recorded."
+        PostOutcome.Refused { ProblemType: PostOutcome.Refused.JudgmentsDoNotReconcile } =>
+            L("The judgments don't add up to the score — probably a misread. Not recorded."),
+        PostOutcome.Refused => L("PIU Scores refused it. Not recorded."),
+        PostOutcome.SongUnknown => L("PIU Scores doesn't know that song on this mix — probably a misread title. Not recorded."),
+        PostOutcome.RateLimited => L("PIU Scores asked the watcher to slow down. Not recorded."),
+        PostOutcome.Unauthorized => L("The token wasn't accepted. Not recorded."),
+        PostOutcome.NotConnected => L("The watcher isn't connected to PIU Scores. Not recorded."),
+        _ => L("Couldn't reach PIU Scores. Not recorded.")
     };
 
     public static string ReviewTitle(KeptBecause because) =>
@@ -277,40 +338,85 @@ public static class Copy
     /// <summary>The review window's one sentence on what went wrong.</summary>
     public static string ReviewReason(KeptBecause because) => because switch
     {
-        KeptBecause.NumbersUnreadable => "Some of the numbers couldn't be read, so nothing was recorded.",
-        KeptBecause.NumbersNotShown => "The screenshot was taken before the numbers finished counting, so nothing was recorded.",
-        KeptBecause.NumbersDisagree => "The judgment counts didn't add up to the score, so nothing was recorded.",
-        KeptBecause.TitleUnreadable => "The song title couldn't be read, so nothing was recorded.",
-        KeptBecause.ListUnreadable => "Some of the numbers couldn't be read, so nothing was sent.",
-        KeptBecause.GradeDisagrees => "The grade didn't match the score, so nothing was sent.",
-        KeptBecause.TitleUnmatched => "The song title didn't match any song on PIU Scores, so nothing was sent.",
-        KeptBecause.ChartDisagrees => "The chart it read has a different number of notes than the judgments add up to, so nothing was recorded.",
-        KeptBecause.Refused => "PIU Scores refused the play, so it wasn't recorded.",
-        KeptBecause.SongUnknown => "PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread.",
-        KeptBecause.TokenRejected => "The token wasn't accepted, so it wasn't recorded.",
-        KeptBecause.NotConnected => "The watcher wasn't connected to PIU Scores, so it wasn't recorded.",
-        KeptBecause.RateLimited => "PIU Scores asked the watcher to slow down, so it wasn't recorded.",
-        _ => "PIU Scores couldn't be reached, so it wasn't recorded."
+        KeptBecause.NumbersUnreadable => L("Some of the numbers couldn't be read, so nothing was recorded."),
+        KeptBecause.NumbersNotShown => L("The screenshot was taken before the numbers finished counting, so nothing was recorded."),
+        KeptBecause.NumbersDisagree => L("The judgment counts didn't add up to the score, so nothing was recorded."),
+        KeptBecause.TitleUnreadable => L("The song title couldn't be read, so nothing was recorded."),
+        KeptBecause.ListUnreadable => L("Some of the numbers couldn't be read, so nothing was sent."),
+        KeptBecause.GradeDisagrees => L("The grade didn't match the score, so nothing was sent."),
+        KeptBecause.TitleUnmatched => L("The song title didn't match any song on PIU Scores, so nothing was sent."),
+        KeptBecause.ChartDisagrees => L("The chart it read has a different number of notes than the judgments add up to, so nothing was recorded."),
+        KeptBecause.Refused => L("PIU Scores refused the play, so it wasn't recorded."),
+        KeptBecause.SongUnknown => L("PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread."),
+        KeptBecause.TokenRejected => L("The token wasn't accepted, so it wasn't recorded."),
+        KeptBecause.NotConnected => L("The watcher wasn't connected to PIU Scores, so it wasn't recorded."),
+        KeptBecause.RateLimited => L("PIU Scores asked the watcher to slow down, so it wasn't recorded."),
+        _ => L("PIU Scores couldn't be reached, so it wasn't recorded.")
     };
 
     /// <summary>Under the review window's picture: <c>Result screen · 1920×1080 · today 5:57 PM · game window</c>, or <c>Song list · …</c>.</summary>
     public static string ReviewSeen(KeptBecause because, CaptureSource source, int width, int height, DateTimeOffset seenAt, DateTimeOffset now)
     {
         var local = seenAt.LocalDateTime;
-        var time = local.ToString("t", CultureInfo.CurrentCulture);
-        var day = local.Date == now.LocalDateTime.Date ? $"today {time}"
-            : local.Date == now.LocalDateTime.Date.AddDays(-1) ? $"yesterday {time}"
-            : $"{local.ToString("MMM d", CultureInfo.CurrentCulture)} {time}";
-        var screen = because.IsSongList() ? "Song list" : "Result screen";
+        var time = local.ToString("t", Culture);
+        var date = MonthDay(seenAt);
+        var day = local.Date == now.LocalDateTime.Date ? L("today {0}", time)
+            : local.Date == now.LocalDateTime.Date.AddDays(-1) ? L("yesterday {0}", time)
+            : $"{date} {time}";
+        var screen = because.IsSongList() ? L("Song list") : L("Result screen");
         return $"{screen} · {width}×{height} · {day} · {SourceName(source)}";
     }
 
     public static string SourceName(CaptureSource source) => source switch
     {
-        CaptureSource.GameWindow => "game window",
-        CaptureSource.SteamScreenshot => "Steam screenshot",
-        _ => "replay"
+        CaptureSource.GameWindow => L("game window"),
+        CaptureSource.SteamScreenshot => L("Steam screenshot"),
+        _ => L("replay")
     };
 
-    public static string DeleteAll(int count) => $"Delete all {count} unread screens";
+    public static string DeleteAll(int count) => L("Delete all {0} unread screens", count);
+
+    // ---- The lookups ----
+
+    /// <summary>The line in the current language: its translation, or the English when there is none (English itself has none).</summary>
+    private static string L(string english)
+    {
+        return Translations.GetString(english, Culture) ?? english;
+    }
+
+    /// <summary>A line with holes, filled in the current language's formats.</summary>
+    private static string L(string english, params object?[] values)
+    {
+        return string.Format(Culture, L(english), values);
+    }
+
+    /// <summary>A count: <paramref name="one" /> or <paramref name="other" /> by the language's rule, the count in <c>{0}</c> (D61).</summary>
+    private static string Plural(int count, string one, string other)
+    {
+        return L(IsOne(count) ? one : other, count);
+    }
+
+    /// <summary>French and Portuguese say 0 in the one form; English, Spanish and Italian only 1; Korean and Japanese have both keys and no difference.</summary>
+    private static bool IsOne(int count)
+    {
+        return Culture.Name is Languages.French or Languages.Portuguese ? count is 0 or 1 : count == 1;
+    }
+
+    /// <summary>A section label, upper-cased in the language rather than kept as a second key (D60).</summary>
+    private static string Upper(string text)
+    {
+        return text.ToUpper(Culture);
+    }
+
+    /// <summary>Words the game prints as-is (D60): never a key, never translated.</summary>
+    private static string Verbatim(string text)
+    {
+        return text;
+    }
+
+    /// <summary>A day as a short month and day, <c>Sep 24</c>, in the language's own pattern.</summary>
+    private static string MonthDay(DateTimeOffset at)
+    {
+        return at.LocalDateTime.ToString(L("MMM d"), Culture);
+    }
 }

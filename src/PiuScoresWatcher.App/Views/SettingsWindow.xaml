@@ -9,8 +9,9 @@
         WindowStartupLocation="CenterScreen">
     <!-- Iteration 1: the mocks' settings window (watcher.md D37), plus the notification switches of
          D35; iteration 2 adds bulk capture (D51): the status card during a run, its section, its
-         summary's switch, and a run's one line in Recent. Every string is Copy's (D36). -->
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+         summary's switch, and a run's one line in Recent; the Language section closes it (D59). Every
+         string is Copy's (D36). -->
+    <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="20,10,20,16">
             <Border Style="{StaticResource Card}">
                 <DockPanel>
@@ -160,6 +161,12 @@
                                   Checked="OnNotificationsChanged" Unchecked="OnNotificationsChanged" />
                     </StackPanel>
                 </StackPanel>
+            </Border>
+
+            <TextBlock x:Name="LanguageLabel" Text="{x:Static app:Copy.SectionLanguage}" Style="{StaticResource SectionLabel}" />
+            <Border Style="{StaticResource Card}">
+                <ComboBox x:Name="LanguageBox" HorizontalAlignment="Left" MinWidth="240" DisplayMemberPath="Name"
+                          AutomationProperties.LabeledBy="{Binding ElementName=LanguageLabel}" SelectionChanged="OnLanguageChanged" />
             </Border>
 
             <DockPanel Margin="0,16,0,0">

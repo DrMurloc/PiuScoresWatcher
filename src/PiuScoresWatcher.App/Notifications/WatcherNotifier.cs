@@ -133,15 +133,16 @@ public sealed class WatcherNotifier : INotifier
             .AddButton(new ToastButton().SetContent(Copy.OpenSettings).AddArgument(ToastAction.Key, ToastAction.Settings));
     }
 
+    /// <summary>The log line for a notice, in English whatever language the player reads (D61).</summary>
     private void Log(WatcherNotice notice)
     {
         switch (notice)
         {
             case WatcherNotice.Recorded r:
-                _log.LogInformation("Recorded: {Play} on {Mix}", Copy.PlayLine(r.Play), r.Outcome.Mix);
+                _log.LogInformation("Recorded: {Play} on {Mix}", Copy.English(() => Copy.PlayLine(r.Play)), r.Outcome.Mix);
                 break;
             case WatcherNotice.NotRecorded n:
-                _log.LogWarning("Not recorded: {Play} — {Why}; kept at {Path}", Copy.PlayLine(n.Play), n.Outcome.Describe(), n.SavedTo);
+                _log.LogWarning("Not recorded: {Play} — {Why}; kept at {Path}", Copy.English(() => Copy.PlayLine(n.Play)), n.Outcome.Describe(), n.SavedTo);
                 break;
             case WatcherNotice.TokenRejected:
                 _log.LogWarning("The stored PIU Scores token was refused at start-up; plays are kept, not posted, until it is replaced");
@@ -153,7 +154,7 @@ public sealed class WatcherNotifier : INotifier
                 _log.LogInformation("Updated to {Version}", updated.Version);
                 break;
             case WatcherNotice.BulkCaptureFinished finished:
-                _log.LogInformation("Bulk capture finished: {Summary}", Copy.BulkSummary(finished.Tally));
+                _log.LogInformation("Bulk capture finished: {Summary}", Copy.English(() => Copy.BulkSummary(finished.Tally)));
                 break;
         }
     }
