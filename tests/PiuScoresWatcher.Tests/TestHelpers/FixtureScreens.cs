@@ -4,12 +4,16 @@ using SkiaSharp;
 
 namespace PiuScoresWatcher.Tests.TestHelpers;
 
-/// <summary>What one fixture screen is expected to read as; <c>Kind</c> is result, empty, aggregate or none.</summary>
+/// <summary>
+///     What one fixture screen is expected to read as. <c>Kind</c> is result, unsettled, empty, aggregate or
+///     none for the result screens; songlist, songlist-empty or arcadelist for the song lists (D45).
+/// </summary>
 internal sealed record ExpectedScreen(
     string Kind, string? Layout, string? Mix, string? Title, string? ChartType, int? Level,
-    int? Perfects, int? Greats, int? Goods, int? Bads, int? Misses, int? MaxCombo, int? Score, string? Accuracy, bool? Broken);
+    int? Perfects, int? Greats, int? Goods, int? Bads, int? Misses, int? MaxCombo, int? Score, string? Accuracy, bool? Broken,
+    string? Grade = null);
 
-/// <summary>The owner's result screens under Fixtures/screens, player card blacked out, with their expected readings.</summary>
+/// <summary>The owner's RISE screens under Fixtures/screens, player card blacked out, with their expected readings.</summary>
 internal static class FixtureScreens
 {
     private static readonly JsonSerializerOptions Options = new() { PropertyNameCaseInsensitive = true };

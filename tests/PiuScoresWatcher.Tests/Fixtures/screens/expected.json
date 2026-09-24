@@ -330,7 +330,11 @@
     "kind": "none"
   },
   "20260922072011": {
-    "kind": "none"
+    "kind": "songlist-empty",
+    "mix": "rise",
+    "title": "Fantasia Sonata Destiny",
+    "chartType": "Single",
+    "level": 20
   },
   "20260922183006": {
     "kind": "result",
@@ -553,5 +557,86 @@
     "accuracy": "97.95",
     "broken": false,
     "note": "taken two seconds after the numbers landed at 1280x720: the judgments are final, the score was still counting up (971,789 of 976,610)"
+  },
+  "20260923193118": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "Aragami",
+    "chartType": "Single",
+    "level": 19,
+    "score": 971789,
+    "maxCombo": 392,
+    "grade": "SS"
+  },
+  "20260923193120": {
+    "kind": "songlist-empty",
+    "mix": "rise",
+    "title": "Aragami",
+    "chartType": "Single",
+    "level": 17
+  },
+  "20260923193123": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "Destr0yer",
+    "chartType": "Single",
+    "level": 22,
+    "score": 971998,
+    "maxCombo": 507,
+    "grade": "SS"
+  },
+  "20260923193126": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "L (PIU Edit)",
+    "chartType": "Single",
+    "level": 21,
+    "score": 956496,
+    "maxCombo": 290,
+    "grade": "S"
+  },
+  "20260923193144": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "Vacuum Cleaner",
+    "chartType": "Single",
+    "level": 20,
+    "score": 956984,
+    "maxCombo": 241,
+    "grade": "S"
+  },
+  "20260923193156": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "Morrighan",
+    "chartType": "Single",
+    "level": 20,
+    "score": 945403,
+    "maxCombo": 170,
+    "grade": "AA"
+  },
+  "20260923193215": {
+    "kind": "arcadelist",
+    "note": "the Arcade Station's song list: not read in v1 (D45)"
+  },
+  "20260923193219": {
+    "kind": "arcadelist",
+    "note": "the Arcade Station's song list: not read in v1 (D45)"
+  },
+  "20260923193249": {
+    "kind": "arcadelist",
+    "note": "the Arcade Station's song list: not read in v1 (D45)"
+  },
+  "20260923193303": {
+    "kind": "arcadelist",
+    "note": "the Arcade Station's song list: not read in v1 (D45)"
+  },
+  "20260923194347": {
+    "kind": "arcadelist",
+    "note": "the Arcade Station's song list: not read in v1 (D45)"
+  },
+  "20260923194349": {
+    "kind": "arcadelist",
+    "note": "the Arcade Station's song list: not read in v1 (D45)"
   }
 }

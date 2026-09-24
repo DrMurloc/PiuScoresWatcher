@@ -50,5 +50,8 @@ for name, exp in sorted(P.EXPECTED.items()):
         expected[name] = {"kind": "none"}
 with open(os.path.join(DEST, "expected.json"), "w") as f:
     json.dump(expected, f, indent=2)
+# the song lists (songlist.py) add their own entries, and relabel the song wheel frame above
+import songlist
+songlist.write_fixtures()
 sizes = sum(os.path.getsize(os.path.join(DEST, f)) for f in os.listdir(DEST))
 print(len(expected), "fixtures,", round(sizes / 1e6, 1), "MB")

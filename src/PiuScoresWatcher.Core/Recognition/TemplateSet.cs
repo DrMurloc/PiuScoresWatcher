@@ -19,6 +19,12 @@ internal static class TemplateFamilies
 
     /// <summary>Arcade Station: the level on the stepball (the game's BigNumber sprites).</summary>
     public const string ArcadeLevel = "arlevel";
+
+    /// <summary>Warm Up's song list: the digits in the level boxes, lit or not.</summary>
+    public const string ListLevel = "wllevel";
+
+    /// <summary>Warm Up's song list: the best score and the max combo beside it.</summary>
+    public const string ListValue = "wlvalue";
 }
 
 internal sealed record Template(char Char, ulong[] Bits, double Aspect);

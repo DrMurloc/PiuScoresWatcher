@@ -18,6 +18,15 @@ internal readonly record struct ColorClass(double HueLo, double HueHi, double Mi
     /// <summary>MISS's label.</summary>
     public static readonly ColorClass Red = new(345, 15, 0.5, 0.5);
 
+    /// <summary>The Warm Up song list's banner.</summary>
+    public static readonly ColorClass BannerYellow = new(35, 60, 0.6, 0.7);
+
+    /// <summary>The lit tab's border and caption on the Warm Up song list: 5K SINGLE or 6K DOUBLE.</summary>
+    public static readonly ColorClass TabOrange = new(15, 40, 0.6, 0.6);
+
+    /// <summary>The lit level box on the Warm Up song list.</summary>
+    public static readonly ColorClass BoxYellow = new(40, 60, 0.6, 0.7);
+
     public bool Matches(double hue, double sat, double val)
     {
         if (sat < MinSat || val < MinVal)

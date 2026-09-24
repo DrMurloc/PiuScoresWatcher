@@ -89,6 +89,10 @@ for name, exp in P.EXPECTED.items():
             for item, ch in zip(gl, s):
                 if item[0] == ".": continue
                 combined.add(fam, ch, item[3], item[4])
+# the Warm Up song list's two families (songlist.py) and its grade features
+import songlist
+songlist.train(combined)
+songlist.write_grades()
 for fam, chars in combined.t.items():
     for ch, items in chars.items():
         seen = {}
