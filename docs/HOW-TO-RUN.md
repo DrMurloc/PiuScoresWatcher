@@ -79,7 +79,7 @@ Reproduces what the release workflow does, into `Releases/` (ignored by git):
 
 ```sh
 dotnet publish src/PiuScoresWatcher.App/PiuScoresWatcher.App.csproj -c Release -r win-x64 --self-contained false -o publish
-dotnet vpk pack --packId PiuScoresWatcher --packVersion 0.1.0 --packDir publish --mainExe PiuScoresWatcher.exe --packTitle "PIU Scores Watcher" --packAuthors DrMurloc --icon src/PiuScoresWatcher.App/Assets/app.ico --framework net10.0-x64-desktop --outputDir Releases
+dotnet vpk pack --packId PiuScoresWatcher --packVersion 0.1.0 --packDir publish --mainExe PiuScoresWatcher.exe --runtime win-x64 --packTitle "PIU Scores Watcher" --packAuthors DrMurloc --icon src/PiuScoresWatcher.App/Assets/app.ico --framework net10.0-x64-desktop --outputDir Releases
 ```
 
 `Releases\PiuScoresWatcher-win-Setup.exe` installs to the user's profile (no admin prompt), adds a Start menu shortcut and, because it is framework-dependent, installs the .NET 10 Desktop Runtime first when the machine lacks it. A local package is unsigned; SmartScreen says so on first run (**More info → Run anyway**).
