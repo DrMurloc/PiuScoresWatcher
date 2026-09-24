@@ -73,6 +73,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] Flip quickly between two charts → neither is captured with the other's score.
 - [ ] Start a song → the run ends; one summary notification; one line in Recent.
 - [ ] Run it again over the same charts → ticks only, nothing sent.
+- [ ] The sounds are clear over the song list's music at your usual volume.
 - [ ] Sounds switched off → a silent run; the summary still arrives.
 - [ ] Uninstall → the tray icon, the Start menu entry and the sign-in entry are gone; reinstall → still connected, settings kept.
 
