@@ -19,6 +19,9 @@ public static class Copy
     /// <summary>The name on a window and in the tray tooltip; a dev run against another site adds the site (D44).</summary>
     public static string AppNameFor(SiteScope scope) => scope.IsProduction ? AppName : $"{AppName} · {scope.Label}";
 
+    /// <summary>A window with a name of its own: <c>PIU Scores Watcher · Bulk capture</c>.</summary>
+    public static string AppNameFor(SiteScope scope, string window) => $"{AppNameFor(scope)} · {window}";
+
     // ---- First run ----
     public const string FirstRunHeadline = "Set up in three steps";
     public const string FirstRunLede = "Two minutes, once. After this it just runs.";
@@ -74,11 +77,49 @@ public static class Copy
     public const string Pause = "Pause";
     public const string Resume = "Resume";
 
+    public const string NotifyBulkFinished = "When a bulk capture finishes";
+
     // ---- Tray ----
     public const string TrayOpenSettings = "Open settings";
     public const string TrayPause = "Pause watching";
     public const string TrayResume = "Resume watching";
     public const string TrayOpenSite = "Open PIU Scores";
+    public const string TrayStartBulk = "Start bulk capture…";
+    public const string TrayStopBulk = "Stop bulk capture";
+
+    // ---- Bulk capture: the start window (D51) ----
+    public const string BulkWindowName = "Bulk capture";
+    public const string BulkHeadline = "Grab your Warm Up bests";
+    public const string BulkLede = "Each best on Warm Up's song list becomes a play on PIU Scores: the song, the chart and the score, no judgments.";
+    public const string BulkStep1 = "Open Warm Up and go to the song list.";
+
+    /// <summary>Each {KEY} is drawn as a key cap: A, D, TAB, W, S.</summary>
+    public const string BulkStep2 = "Move through every chart: {A} {D} change the level, {TAB} switches 5K SINGLE and 6K DOUBLE, {W} {S} change the song.";
+
+    public const string BulkStep3 = "Wait for the sound before moving on.";
+    public const string SoundChime = "Chime";
+    public const string SoundChimeMeaning = "Sent to PIU Scores.";
+    public const string SoundTick = "Tick";
+    public const string SoundTickMeaning = "PIU Scores already has this best, or a higher one.";
+    public const string SoundLow = "Low tone";
+    public const string SoundLowMeaning = "Couldn't read it. It's kept for review; move on.";
+    public const string BulkChecking = "Checking your bests on PIU Scores…";
+    public const string BulkNotConnected = "Connect to PIU Scores in settings first.";
+    public const string BulkCouldNotLoad = "Couldn't load your bests from PIU Scores. Try again in a moment.";
+    public const string PlaySounds = "Play sounds";
+    public const string BulkStopsItself = "It stops by itself when a song starts or RISE closes.";
+    public const string Cancel = "Cancel";
+    public const string Start = "Start";
+
+    // ---- Bulk capture: settings, Recent, the summary ----
+    public const string SectionBulk = "BULK CAPTURE";
+    public const string BulkSettingsLine = "Grab your Warm Up bests from the song list.";
+    public const string StartEllipsis = "Start…";
+    public const string SoundsWhileCapturing = "Sounds while capturing";
+    public const string Stop = "Stop";
+    public const string BulkRunName = "Bulk capture";
+    public const string BulkFinishedTitle = "Bulk capture finished";
+    public const string ReviewListTitle = "This best couldn't be read";
 
     // ---- Status: the tray's first line and the settings window's header ----
     public const string StatusWatching = "Watching — RISE is running";
@@ -110,6 +151,22 @@ public static class Copy
 
     // ---- Sentences with numbers in them ----
     public static string TokenPageLink(Uri site) => $"{site.Host} → Account → API tokens";
+
+    /// <summary>The tray's first line during a run.</summary>
+    public static string StatusBulk(BulkTally tally) => $"Bulk capture · {tally.Sent} sent, {tally.Already} already there";
+
+    /// <summary>The settings window's status card during a run.</summary>
+    public static string BulkOn(BulkTally tally) => $"Bulk capture on · {tally.Sent} sent";
+
+    public static string BulkDetail(BulkTally tally) => $"{tally.Already} already there · {tally.NotSent} couldn't be read";
+
+    public static string BulkStoredBests(int count) => $"PIU Scores has {count} of your Warm Up bests. Only higher ones are sent.";
+
+    /// <summary>A run's line in Recent, after the bold <see cref="BulkRunName" />.</summary>
+    public static string BulkRunDetail(BulkTally tally) => $" · Warm Up · {tally.Sent} sent, {tally.Already} already there";
+
+    public static string BulkSummary(BulkTally tally) =>
+        $"{tally.Sent} new bests sent · {tally.Already} already on PIU Scores · {tally.NotSent} couldn't be read";
 
     public static string StatusDetail(DateTimeOffset? lastRecorded, int playsToday, DateTimeOffset now)
     {
@@ -214,7 +271,8 @@ public static class Copy
         _ => "Couldn't reach PIU Scores. Not recorded."
     };
 
-    public static string ReviewTitle(KeptBecause because) => because.WasRead() ? ReviewNotRecordedTitle : ReviewUnreadableTitle;
+    public static string ReviewTitle(KeptBecause because) =>
+        because.WasRead() ? ReviewNotRecordedTitle : because.IsSongList() ? ReviewListTitle : ReviewUnreadableTitle;
 
     /// <summary>The review window's one sentence on what went wrong.</summary>
     public static string ReviewReason(KeptBecause because) => because switch
@@ -223,6 +281,9 @@ public static class Copy
         KeptBecause.NumbersNotShown => "The screenshot was taken before the numbers finished counting, so nothing was recorded.",
         KeptBecause.NumbersDisagree => "The judgment counts didn't add up to the score, so nothing was recorded.",
         KeptBecause.TitleUnreadable => "The song title couldn't be read, so nothing was recorded.",
+        KeptBecause.ListUnreadable => "Some of the numbers couldn't be read, so nothing was sent.",
+        KeptBecause.GradeDisagrees => "The grade didn't match the score, so nothing was sent.",
+        KeptBecause.TitleUnmatched => "The song title didn't match any song on PIU Scores, so nothing was sent.",
         KeptBecause.Refused => "PIU Scores refused the play, so it wasn't recorded.",
         KeptBecause.SongUnknown => "PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread.",
         KeptBecause.TokenRejected => "The token wasn't accepted, so it wasn't recorded.",
@@ -231,15 +292,16 @@ public static class Copy
         _ => "PIU Scores couldn't be reached, so it wasn't recorded."
     };
 
-    /// <summary>Under the review window's picture: <c>Result screen · 1920×1080 · today 5:57 PM · game window</c>.</summary>
-    public static string ReviewSeen(CaptureSource source, int width, int height, DateTimeOffset seenAt, DateTimeOffset now)
+    /// <summary>Under the review window's picture: <c>Result screen · 1920×1080 · today 5:57 PM · game window</c>, or <c>Song list · …</c>.</summary>
+    public static string ReviewSeen(KeptBecause because, CaptureSource source, int width, int height, DateTimeOffset seenAt, DateTimeOffset now)
     {
         var local = seenAt.LocalDateTime;
         var time = local.ToString("t", CultureInfo.CurrentCulture);
         var day = local.Date == now.LocalDateTime.Date ? $"today {time}"
             : local.Date == now.LocalDateTime.Date.AddDays(-1) ? $"yesterday {time}"
             : $"{local.ToString("MMM d", CultureInfo.CurrentCulture)} {time}";
-        return $"Result screen · {width}×{height} · {day} · {SourceName(source)}";
+        var screen = because.IsSongList() ? "Song list" : "Result screen";
+        return $"{screen} · {width}×{height} · {day} · {SourceName(source)}";
     }
 
     public static string SourceName(CaptureSource source) => source switch

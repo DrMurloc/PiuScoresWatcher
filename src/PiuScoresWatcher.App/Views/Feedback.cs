@@ -1,11 +1,15 @@
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 
 namespace PiuScoresWatcher.App.Views;
 
-/// <summary>The small text effects the windows share: a coloured status line, and a Copy template with its value set in bold.</summary>
-internal static class Feedback
+/// <summary>
+///     The small text effects the windows share: a coloured status line, a Copy template with its value
+///     set in bold or as a link, and a sentence with key caps in it.
+/// </summary>
+internal static partial class Feedback
 {
     /// <summary>Shows <paramref name="text" /> in green for success, red for failure, grey while waiting.</summary>
     public static void Say(TextBlock line, string text, bool? success)
@@ -34,6 +38,24 @@ internal static class Feedback
         Fill(line, template, link);
     }
 
+    /// <summary>Fills <paramref name="line" /> with <paramref name="template" />, each <c>{KEY}</c> in it drawn as a key cap in <paramref name="keyCap" />.</summary>
+    public static void Keys(TextBlock line, string template, Style keyCap)
+    {
+        line.Inlines.Clear();
+        var from = 0;
+        foreach (Match key in KeyToken().Matches(template))
+        {
+            if (key.Index > from)
+                line.Inlines.Add(new Run(template[from..key.Index]));
+            var cap = new Border { Style = keyCap, Child = new TextBlock { Text = key.Groups[1].Value, FontSize = 11, FontWeight = FontWeights.SemiBold } };
+            line.Inlines.Add(new InlineUIContainer(cap) { BaselineAlignment = BaselineAlignment.Center });
+            from = key.Index + key.Length;
+        }
+
+        if (from < template.Length)
+            line.Inlines.Add(new Run(template[from..]));
+    }
+
     private static void Fill(TextBlock line, string template, Inline value)
     {
         line.Inlines.Clear();
@@ -50,4 +72,7 @@ internal static class Feedback
         if (at + 3 < template.Length)
             line.Inlines.Add(new Run(template[(at + 3)..]));
     }
+
+    [GeneratedRegex(@"\{([^{}]+)\}")]
+    private static partial Regex KeyToken();
 }

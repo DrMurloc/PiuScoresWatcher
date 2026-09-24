@@ -17,13 +17,29 @@ public sealed class WindowCaptureSource(RiseProcessWatch game, IClock clock, ILo
 {
     public static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
 
+    /// <summary>During a bulk capture: five looks a second, and every frame handed on, still or not (D48).</summary>
+    public static readonly TimeSpan FastInterval = TimeSpan.FromMilliseconds(200);
+
+    private volatile bool _fast;
+
     public CaptureSource Kind => CaptureSource.GameWindow;
+
+    /// <summary>
+    ///     On while a bulk capture runs. The half-second wait needs to see the panel stay the same, so an
+    ///     unchanged frame is handed on rather than skipped.
+    /// </summary>
+    public bool Fast
+    {
+        get => _fast;
+        set => _fast = value;
+    }
 
     public async Task RunAsync(Func<CapturedFrame, Task> onFrame, CancellationToken cancellationToken)
     {
         ulong lastSignature = 0;
         while (!cancellationToken.IsCancellationRequested)
         {
+            var fast = _fast;
             var window = game.MainWindow;
             if (window != 0 && Gdi.IsWindow(window) && !Gdi.IsIconic(window))
             {
@@ -31,7 +47,7 @@ public sealed class WindowCaptureSource(RiseProcessWatch game, IClock clock, ILo
                 if (image is not null)
                 {
                     var signature = Signature(image);
-                    if (signature != lastSignature)
+                    if (fast || signature != lastSignature)
                     {
                         lastSignature = signature;
                         await onFrame(new CapturedFrame(image, CaptureSource.GameWindow, clock.Now, null));
@@ -45,7 +61,7 @@ public sealed class WindowCaptureSource(RiseProcessWatch game, IClock clock, ILo
 
             try
             {
-                await Task.Delay(Interval, cancellationToken);
+                await Task.Delay(fast ? FastInterval : Interval, cancellationToken);
             }
             catch (OperationCanceledException)
             {

@@ -16,6 +16,7 @@ public static class ToastAction
     public const string Settings = "settings";
     public const string Review = "review";
     public const string Release = "release";
+    public const string Site = "site";
 }
 
 /// <summary>
@@ -89,12 +90,24 @@ public sealed class WatcherNotifier : INotifier
                 .AddText(Copy.UnreadableBody)
                 .AddButton(ReviewButton(unreadable.SavedTo))
                 .AddButton(new ToastButton().SetContent(Copy.Ignore).SetDismissActivation()),
+            WatcherNotice.BulkCaptureFinished finished => Finished(finished.Tally),
             WatcherNotice.Updated updated => Opening(ToastAction.Release).AddArgument(ToastAction.Version, updated.Version)
                 .AddText(Copy.UpdatedTitle(updated.Version))
                 .AddButton(new ToastButton().SetContent(Copy.WhatChanged)
                     .AddArgument(ToastAction.Key, ToastAction.Release).AddArgument(ToastAction.Version, updated.Version)),
             _ => null
         };
+    }
+
+    /// <summary>The run's one summary (D50): Review only when something is waiting there.</summary>
+    private static ToastContentBuilder Finished(BulkTally tally)
+    {
+        var toast = Opening(ToastAction.Settings)
+            .AddText(Copy.BulkFinishedTitle)
+            .AddText(Copy.BulkSummary(tally));
+        if (tally.NotSent > 0)
+            toast.AddButton(new ToastButton().SetContent(Copy.Review).AddArgument(ToastAction.Key, ToastAction.Review));
+        return toast.AddButton(new ToastButton().SetContent(Copy.TrayOpenSite).AddArgument(ToastAction.Key, ToastAction.Site));
     }
 
     private static ToastContentBuilder Opening(string action)
@@ -138,6 +151,9 @@ public sealed class WatcherNotifier : INotifier
                 break;
             case WatcherNotice.Updated updated:
                 _log.LogInformation("Updated to {Version}", updated.Version);
+                break;
+            case WatcherNotice.BulkCaptureFinished finished:
+                _log.LogInformation("Bulk capture finished: {Summary}", Copy.BulkSummary(finished.Tally));
                 break;
         }
     }

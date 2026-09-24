@@ -58,7 +58,7 @@ public partial class ReviewWindow : Window
         {
             var (width, height) = PixelSize(screen.ImagePath);
             Shot.Source = Thumbnail(screen.ImagePath);
-            SeenText.Text = Copy.ReviewSeen(screen.Source, width, height, screen.SeenAt, _clock.Now);
+            SeenText.Text = Copy.ReviewSeen(screen.Because, screen.Source, width, height, screen.SeenAt, _clock.Now);
         }
         catch (Exception failure) when (failure is IOException or NotSupportedException or UnauthorizedAccessException)
         {

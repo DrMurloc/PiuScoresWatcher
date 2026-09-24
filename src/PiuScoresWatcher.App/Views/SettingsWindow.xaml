@@ -8,7 +8,8 @@
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen">
     <!-- Iteration 1: the mocks' settings window (watcher.md D37), plus the notification switches of
-         D35. Every string is Copy's (D36). -->
+         D35; iteration 2 adds bulk capture (D51): the status card during a run, its section, its
+         summary's switch, and a run's one line in Recent. Every string is Copy's (D36). -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="20,10,20,16">
             <Border Style="{StaticResource Card}">
@@ -64,6 +65,19 @@
                 </StackPanel>
             </Border>
 
+            <TextBlock Text="{x:Static app:Copy.SectionBulk}" Style="{StaticResource SectionLabel}" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,10">
+                        <Button x:Name="StartBulkButton" DockPanel.Dock="Right" Margin="12,0,0,0" Padding="14,4" VerticalAlignment="Center"
+                                Content="{x:Static app:Copy.StartEllipsis}" Click="OnStartBulk" />
+                        <TextBlock Text="{x:Static app:Copy.BulkSettingsLine}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                    </DockPanel>
+                    <CheckBox x:Name="BulkSoundsBox" Style="{StaticResource Switch}" Content="{x:Static app:Copy.SoundsWhileCapturing}"
+                              Checked="OnBulkSoundsChanged" Unchecked="OnBulkSoundsChanged" />
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="{x:Static app:Copy.SectionStartup}" Style="{StaticResource SectionLabel}" />
             <Border Style="{StaticResource Card}">
                 <CheckBox x:Name="StartWithWindowsBox" Style="{StaticResource Switch}" Checked="OnStartupChanged" Unchecked="OnStartupChanged">
@@ -89,7 +103,7 @@
                                                    Text="{Binding Mark}" Style="{StaticResource Secondary}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                                         <TextBlock x:Name="Grade" DockPanel.Dock="Right" Width="40" Margin="10,0,0,0" TextAlignment="Center" VerticalAlignment="Center"
                                                    Text="{Binding Grade}" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                        <TextBlock DockPanel.Dock="Right" Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding Score}"
+                                        <TextBlock x:Name="Score" DockPanel.Dock="Right" Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding Score}"
                                                    Typography.NumeralAlignment="Tabular" />
                                         <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
                                             <Run Text="{Binding Song, Mode=OneWay}" FontWeight="SemiBold" /><Run Text="{Binding Chart, Mode=OneWay}" />
@@ -102,6 +116,12 @@
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding Recorded}" Value="False">
                                         <Setter TargetName="Mark" Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                                    </DataTrigger>
+                                    <!-- a bulk capture run is one line with its count, and no score of its own -->
+                                    <DataTrigger Binding="{Binding IsRun}" Value="True">
+                                        <Setter TargetName="Score" Property="Visibility" Value="Collapsed" />
+                                        <Setter TargetName="Grade" Property="Visibility" Value="Collapsed" />
+                                        <Setter TargetName="Mark" Property="Visibility" Value="Collapsed" />
                                     </DataTrigger>
                                 </DataTemplate.Triggers>
                             </DataTemplate>
@@ -135,6 +155,8 @@
                         <CheckBox x:Name="NotifyTokenRejectedBox" Margin="0,2" Content="{x:Static app:Copy.NotifyTokenRejected}"
                                   Checked="OnNotificationsChanged" Unchecked="OnNotificationsChanged" />
                         <CheckBox x:Name="NotifyUpdatedBox" Margin="0,2" Content="{x:Static app:Copy.NotifyUpdated}"
+                                  Checked="OnNotificationsChanged" Unchecked="OnNotificationsChanged" />
+                        <CheckBox x:Name="NotifyBulkFinishedBox" Margin="0,2" Content="{x:Static app:Copy.NotifyBulkFinished}"
                                   Checked="OnNotificationsChanged" Unchecked="OnNotificationsChanged" />
                     </StackPanel>
                 </StackPanel>

@@ -98,6 +98,9 @@ public abstract record WatcherNotice
     /// <summary>The first launch after an update.</summary>
     public sealed record Updated(string Version) : WatcherNotice;
 
+    /// <summary>A bulk capture run ended: what it sent, what was already there, what it could not send (D50).</summary>
+    public sealed record BulkCaptureFinished(BulkTally Tally) : WatcherNotice;
+
     /// <summary>A result screen that could not be read, kept at <paramref name="SavedTo" />.</summary>
     public sealed record Unreadable(string Reason, string SavedTo) : WatcherNotice;
 }

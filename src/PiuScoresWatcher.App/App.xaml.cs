@@ -14,6 +14,7 @@ using PiuScoresWatcher.App.Capture;
 using PiuScoresWatcher.App.Notifications;
 using PiuScoresWatcher.App.Ocr;
 using PiuScoresWatcher.App.Security;
+using PiuScoresWatcher.App.Sounds;
 using PiuScoresWatcher.App.Startup;
 using PiuScoresWatcher.App.Status;
 using PiuScoresWatcher.App.Storage;
@@ -34,7 +35,7 @@ namespace PiuScoresWatcher.App;
 /// <summary>
 ///     The process: a generic host carrying the services and the background work, a tray icon whose
 ///     menu leads with what the watcher is doing, and the windows on demand — first run while no token
-///     is stored (D39), settings, and the review window.
+///     is stored (D39), settings, the review window, and the start of a bulk capture (D51).
 /// </summary>
 public partial class App : Application
 {
@@ -44,9 +45,12 @@ public partial class App : Application
     private TaskbarIcon? _tray;
     private MenuItem? _statusItem;
     private MenuItem? _pauseItem;
+    private MenuItem? _startBulkItem;
+    private MenuItem? _stopBulkItem;
     private FirstRunWindow? _firstRun;
     private SettingsWindow? _settings;
     private ReviewWindow? _review;
+    private BulkCaptureWindow? _bulkCapture;
 
     internal App(LaunchOptions options, SingleInstance instance)
     {
@@ -145,11 +149,14 @@ public partial class App : Application
                 services.GetRequiredService<ISettingsStore>().Load().SteamScreenshotsFolder);
             return new SteamScreenshotSource(folders, services.GetRequiredService<ILogger<SteamScreenshotSource>>());
         });
+        builder.Services.AddSingleton<CaptureSounds>();
+        builder.Services.AddSingleton<BulkCaptureService>();
         builder.Services.AddHostedService<CaptureService>();
         builder.Services.AddHostedService<UpdateService>();
         builder.Services.AddTransient<FirstRunWindow>();
         builder.Services.AddTransient<SettingsWindow>();
         builder.Services.AddTransient<ReviewWindow>();
+        builder.Services.AddTransient<BulkCaptureWindow>();
         return builder.Build();
     }
 
@@ -167,12 +174,20 @@ public partial class App : Application
         settings.Save(current with { LastSeenVersion = AppVersion.Short });
     }
 
-    /// <summary>The tray icon and its menu: what the watcher is doing, then what the player can do about it.</summary>
+    /// <summary>
+    ///     The tray icon and its menu: what the watcher is doing, then what the player can do about it.
+    ///     During a bulk capture the menu leads with its count, Stop takes Start's place at the top, and
+    ///     Pause steps aside (D51).
+    /// </summary>
     private TaskbarIcon CreateTray()
     {
         _statusItem = new MenuItem { IsEnabled = false };
         _pauseItem = new MenuItem();
         _pauseItem.Click += (_, _) => Status.SetPaused(!Status.Paused);
+        _startBulkItem = new MenuItem { Header = Copy.TrayStartBulk };
+        _startBulkItem.Click += (_, _) => ShowBulkCapture();
+        _stopBulkItem = new MenuItem { Header = Copy.TrayStopBulk };
+        _stopBulkItem.Click += (_, _) => Services.GetRequiredService<BulkCaptureService>().Stop("stopped from the tray");
         var open = new MenuItem { Header = Copy.TrayOpenSettings };
         open.Click += (_, _) => ShowSettings();
         var site = new MenuItem { Header = Copy.TrayOpenSite };
@@ -183,8 +198,10 @@ public partial class App : Application
         var menu = new ContextMenu();
         menu.Items.Add(_statusItem);
         menu.Items.Add(new Separator());
+        menu.Items.Add(_stopBulkItem);
         menu.Items.Add(open);
         menu.Items.Add(_pauseItem);
+        menu.Items.Add(_startBulkItem);
         menu.Items.Add(site);
         menu.Items.Add(new Separator());
         menu.Items.Add(quit);
@@ -205,11 +222,15 @@ public partial class App : Application
 
     private void RefreshTray()
     {
-        if (_tray is null || _statusItem is null || _pauseItem is null)
+        if (_tray is null || _statusItem is null || _pauseItem is null || _startBulkItem is null || _stopBulkItem is null)
             return;
         var headline = Status.Headline;
+        var bulk = Status.Bulk is not null;
         _statusItem.Header = headline;
         _pauseItem.Header = Status.Paused ? Copy.TrayResume : Copy.TrayPause;
+        _pauseItem.Visibility = bulk ? Visibility.Collapsed : Visibility.Visible;
+        _startBulkItem.Visibility = bulk ? Visibility.Collapsed : Visibility.Visible;
+        _stopBulkItem.Visibility = bulk ? Visibility.Visible : Visibility.Collapsed;
         _tray.ToolTipText = $"{Copy.AppNameFor(_options.Scope)} — {headline}";
     }
 
@@ -223,6 +244,18 @@ public partial class App : Application
     {
         _settings ??= Open<SettingsWindow>(() => _settings = null);
         Bring(_settings);
+    }
+
+    /// <summary>The start of a bulk capture; while one runs, settings and the tray offer Stop instead.</summary>
+    internal void ShowBulkCapture()
+    {
+        if (_bulkCapture is null)
+        {
+            _bulkCapture = Open<BulkCaptureWindow>(() => _bulkCapture = null);
+            _bulkCapture.Title = Copy.AppNameFor(_options.Scope, Copy.BulkWindowName);
+        }
+
+        Bring(_bulkCapture);
     }
 
     /// <summary>The review window, on the frame a notification was about when there is one.</summary>
@@ -243,6 +276,9 @@ public partial class App : Application
                 break;
             case ToastAction.Release:
                 Links.Open(Links.Release(arguments.TryGetValue(ToastAction.Version, out string? version) ? version : AppVersion.Short));
+                break;
+            case ToastAction.Site:
+                OpenSite();
                 break;
             default:
                 ShowSettings();

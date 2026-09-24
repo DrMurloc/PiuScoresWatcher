@@ -4,14 +4,19 @@ using PiuScoresWatcher.Core.Time;
 
 namespace PiuScoresWatcher.App.Status;
 
-/// <summary>One line of the settings window's Recent list.</summary>
-public sealed record RecentPlay(ObservedPlay Play, bool Recorded, DateTimeOffset At);
+/// <summary>One line of the settings window's Recent list: a play, or a whole bulk capture run (D50).</summary>
+public abstract record RecentEntry(DateTimeOffset At);
+
+public sealed record RecentPlay(ObservedPlay Play, bool Recorded, DateTimeOffset At) : RecentEntry(At);
+
+public sealed record RecentRun(BulkTally Tally, DateTimeOffset At) : RecentEntry(At);
 
 /// <summary>
 ///     What the watcher is doing, for the tray's status line and the settings window: who the token
-///     is, whether RISE is running, whether watching is paused, the plays since it started. The
-///     notifier, the capture loop and the windows write it; <see cref="Changed" /> fires on any thread.
-///     Nothing here is persisted — pause and the recent list start fresh with each launch (D42).
+///     is, whether RISE is running, whether watching is paused, a bulk capture's count while one runs,
+///     the plays since it started. The notifier, the capture loop and the windows write it;
+///     <see cref="Changed" /> fires on any thread. Nothing here is persisted — pause and the recent
+///     list start fresh with each launch (D42).
 /// </summary>
 public sealed class WatcherStatus
 {
@@ -20,7 +25,8 @@ public sealed class WatcherStatus
     private readonly IClock _clock;
     private readonly IGameSession _game;
     private readonly object _gate = new();
-    private readonly List<RecentPlay> _recent = [];
+    private readonly List<RecentEntry> _recent = [];
+    private BulkTally? _bulk;
     private bool _hasToken;
     private PlayerIdentity? _player;
     private bool _tokenRejected;
@@ -54,6 +60,9 @@ public sealed class WatcherStatus
 
     public bool GameRunning => _game.IsRunning;
 
+    /// <summary>A bulk capture's count while one runs; null when none does.</summary>
+    public BulkTally? Bulk { get { lock (_gate) return _bulk; } }
+
     /// <summary>True when the update check found nothing newer, false when an update waits for the next start, null before the check.</summary>
     public bool? UpToDate { get { lock (_gate) return _upToDate; } }
 
@@ -68,11 +77,12 @@ public sealed class WatcherStatus
         }
     }
 
-    public IReadOnlyList<RecentPlay> Recent { get { lock (_gate) return _recent.ToList(); } }
+    public IReadOnlyList<RecentEntry> Recent { get { lock (_gate) return _recent.ToList(); } }
 
     /// <summary>The one line the tray menu leads with.</summary>
     public string Headline =>
-        !HasToken || TokenRejected ? Copy.StatusNotConnected
+        Bulk is { } bulk ? Copy.StatusBulk(bulk)
+        : !HasToken || TokenRejected ? Copy.StatusNotConnected
         : Paused ? Copy.StatusPaused
         : GameRunning ? Copy.StatusWatching
         : Copy.StatusWaiting;
@@ -129,6 +139,26 @@ public sealed class WatcherStatus
         Raise();
     }
 
+    /// <summary>A bulk capture run started, or counted another chart.</summary>
+    public void BulkProgress(BulkTally tally)
+    {
+        lock (_gate)
+            _bulk = tally;
+        Raise();
+    }
+
+    /// <summary>The run ended; Recent gets one line for it (D50).</summary>
+    public void BulkFinished(BulkTally tally)
+    {
+        lock (_gate)
+        {
+            _bulk = null;
+            Add(new RecentRun(tally, _clock.Now));
+        }
+
+        Raise();
+    }
+
     /// <summary>Folds a notice into the status; the notifier calls it for every notice, shown or not.</summary>
     public void Record(WatcherNotice notice)
     {
@@ -158,9 +188,9 @@ public sealed class WatcherStatus
         Raise();
     }
 
-    private void Add(RecentPlay play)
+    private void Add(RecentEntry entry)
     {
-        _recent.Insert(0, play);
+        _recent.Insert(0, entry);
         if (_recent.Count > RecentLimit)
             _recent.RemoveAt(_recent.Count - 1);
     }

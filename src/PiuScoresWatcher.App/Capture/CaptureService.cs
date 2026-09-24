@@ -8,14 +8,17 @@ namespace PiuScoresWatcher.App.Capture;
 
 /// <summary>
 ///     Runs the sources the settings ask for and feeds every frame through the pipeline, one at a
-///     time. Pausing, or changing the mode or the screenshots folder, ends the current round and starts
-///     the next with what is asked for now. What each frame became goes to the log; the notifier has
-///     already told the player.
+///     time. Pausing, changing the mode or the screenshots folder, or a bulk capture starting or ending
+///     ends the current round and starts the next with what is asked for now. While a bulk capture runs,
+///     every frame goes to it first and the game window is watched whatever the mode (D51); a frame that
+///     is not the song list still reaches the result pipeline, and a result screen ends the run. What each
+///     frame became goes to the log; the notifier has already told the player.
 /// </summary>
 public sealed class CaptureService(
     ISettingsStore settings,
     WatcherStatus status,
     CapturePipeline pipeline,
+    BulkCaptureService bulk,
     WindowCaptureSource window,
     Func<SteamScreenshotSource> steamScreenshots,
     ILogger<CaptureService> log) : BackgroundService
@@ -27,7 +30,8 @@ public sealed class CaptureService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         settings.Changed += OnSettingsChanged;
-        status.PausedChanged += OnPausedChanged;
+        status.PausedChanged += OnRestart;
+        bulk.RunningChanged += OnRestart;
         try
         {
             while (!stoppingToken.IsCancellationRequested)
@@ -40,7 +44,7 @@ public sealed class CaptureService(
                 }
                 catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
                 {
-                    // restarted: paused, resumed, or a new mode
+                    // restarted: paused, resumed, a new mode, a bulk capture starting or ending
                 }
             }
         }
@@ -51,13 +55,15 @@ public sealed class CaptureService(
         finally
         {
             settings.Changed -= OnSettingsChanged;
-            status.PausedChanged -= OnPausedChanged;
+            status.PausedChanged -= OnRestart;
+            bulk.RunningChanged -= OnRestart;
         }
     }
 
     private async Task RunRoundAsync(CancellationToken cancellationToken)
     {
-        if (status.Paused)
+        var bulkRunning = bulk.IsRunning;
+        if (status.Paused && !bulkRunning)
         {
             log.LogInformation("Paused; watching nothing until resumed");
             await Task.Delay(Timeout.Infinite, cancellationToken);
@@ -67,11 +73,12 @@ public sealed class CaptureService(
         var current = settings.Load();
         _watching = (current.Mode, current.SteamScreenshotsFolder);
         var sources = new List<IScreenSource>();
-        if (current.Mode is CaptureMode.Game or CaptureMode.Both)
+        if (current.Mode is CaptureMode.Game or CaptureMode.Both || bulkRunning)
             sources.Add(window);
         if (current.Mode is CaptureMode.SteamScreenshots or CaptureMode.Both)
             sources.Add(steamScreenshots());
-        log.LogInformation("Capture mode {Mode}: {Sources}", current.Mode, string.Join(", ", sources.Select(s => s.Kind)));
+        log.LogInformation("Capture mode {Mode}{Bulk}: {Sources}", current.Mode, bulkRunning ? " with a bulk capture" : "",
+            string.Join(", ", sources.Select(s => s.Kind)));
 
         await Task.WhenAll(sources.Select(source => source.RunAsync(frame => HandleAsync(frame, cancellationToken), cancellationToken)));
         await Task.Delay(Timeout.Infinite, cancellationToken);
@@ -79,12 +86,12 @@ public sealed class CaptureService(
 
     private void OnSettingsChanged(object? sender, WatcherSettings saved)
     {
-        // a notification switch or the remembered version is no reason to restart the sources
+        // a notification switch, the sounds or the remembered version is no reason to restart the sources
         if (_watching != (saved.Mode, saved.SteamScreenshotsFolder))
             EndRound();
     }
 
-    private void OnPausedChanged(object? sender, EventArgs e)
+    private void OnRestart(object? sender, EventArgs e)
     {
         EndRound();
     }
@@ -106,7 +113,13 @@ public sealed class CaptureService(
         await _oneFrameAtATime.WaitAsync(cancellationToken);
         try
         {
+            var bulkOutcome = await bulk.HandleAsync(frame, cancellationToken);
+            if (bulkOutcome is not null and not BulkOutcome.NotTheList)
+                return; // Warm Up's song list: nothing for the result pipeline
+
             var outcome = await pipeline.HandleAsync(frame, cancellationToken);
+            if (bulkOutcome is BulkOutcome.NotTheList && outcome is not FrameOutcome.NotAResult)
+                bulk.Stop("a result screen appeared");
             switch (outcome)
             {
                 case FrameOutcome.Posted posted:

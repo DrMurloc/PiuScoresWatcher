@@ -18,13 +18,13 @@ using PiuScoresWatcher.Core.Time;
 
 namespace PiuScoresWatcher.App.Views;
 
-/// <summary>One row of Recent, as the list binds it.</summary>
-public sealed record RecentRow(string Song, string Chart, string Score, string Grade, bool IsGold, string Mark, bool Recorded, string Age);
+/// <summary>One row of Recent, as the list binds it: a play, or a bulk capture run with only its name and count.</summary>
+public sealed record RecentRow(string Song, string Chart, string Score, string Grade, bool IsGold, string Mark, bool Recorded, string Age, bool IsRun = false);
 
 /// <summary>
-///     The settings window (D37): what the watcher is doing, the account, how it watches, start-up, the
-///     notification switches (D35), the plays since it started, and anything kept for review. Every
-///     change saves the moment it is made; there is no Save button.
+///     The settings window (D37): what the watcher is doing, the account, how it watches, bulk capture
+///     (D51), start-up, the plays since it started, anything kept for review, and the notification
+///     switches (D35). Every change saves the moment it is made; there is no Save button.
 /// </summary>
 public partial class SettingsWindow : Window
 {
@@ -33,6 +33,7 @@ public partial class SettingsWindow : Window
 
     private readonly ISettingsStore _settings;
     private readonly WatcherStatus _status;
+    private readonly BulkCaptureService _bulk;
     private readonly Connection _connection;
     private readonly StartupRegistration _startup;
     private readonly FailedScreenStore _failed;
@@ -41,11 +42,12 @@ public partial class SettingsWindow : Window
     private readonly DispatcherTimer _ages;
     private readonly bool _loading;
 
-    public SettingsWindow(ISettingsStore settings, WatcherStatus status, Connection connection, StartupRegistration startup,
-        FailedScreenStore failed, IClock clock, LaunchOptions options)
+    public SettingsWindow(ISettingsStore settings, WatcherStatus status, BulkCaptureService bulk, Connection connection,
+        StartupRegistration startup, FailedScreenStore failed, IClock clock, LaunchOptions options)
     {
         _settings = settings;
         _status = status;
+        _bulk = bulk;
         _connection = connection;
         _startup = startup;
         _failed = failed;
@@ -62,6 +64,7 @@ public partial class SettingsWindow : Window
         ModeSteam.IsChecked = current.Mode == CaptureMode.SteamScreenshots;
         ModeBoth.IsChecked = current.Mode == CaptureMode.Both;
         StartWithWindowsBox.IsChecked = current.StartWithWindows;
+        BulkSoundsBox.IsChecked = current.BulkCaptureSounds;
         var notifications = current.EffectiveNotifications;
         NotificationsBox.IsChecked = notifications.Enabled;
         NotifyRecordedBox.IsChecked = notifications.Recorded;
@@ -69,6 +72,7 @@ public partial class SettingsWindow : Window
         NotifyUnreadableBox.IsChecked = notifications.Unreadable;
         NotifyTokenRejectedBox.IsChecked = notifications.TokenRejected;
         NotifyUpdatedBox.IsChecked = notifications.Updated;
+        NotifyBulkFinishedBox.IsChecked = notifications.BulkCaptureFinished;
         NotificationKinds.IsEnabled = notifications.Enabled;
         _loading = false;
 
@@ -97,10 +101,23 @@ public partial class SettingsWindow : Window
     private void Refresh()
     {
         var now = _clock.Now;
-        StatusHeadline.Text = _status.Headline;
-        StatusDetail.Text = Copy.StatusDetail(_status.LastRecorded, _status.PlaysToday, now);
-        StatusDot.SetResourceReference(Shape.FillProperty, StatusDotBrush());
-        PauseButton.Content = _status.Paused ? Copy.Resume : Copy.Pause;
+        if (_status.Bulk is { } run)
+        {
+            // a run on: the card counts it, and its button stops it
+            StatusHeadline.Text = Copy.BulkOn(run);
+            StatusDetail.Text = Copy.BulkDetail(run);
+            StatusDot.SetResourceReference(Shape.FillProperty, "AccentFillColorDefaultBrush");
+            PauseButton.Content = Copy.Stop;
+        }
+        else
+        {
+            StatusHeadline.Text = _status.Headline;
+            StatusDetail.Text = Copy.StatusDetail(_status.LastRecorded, _status.PlaysToday, now);
+            StatusDot.SetResourceReference(Shape.FillProperty, StatusDotBrush());
+            PauseButton.Content = _status.Paused ? Copy.Resume : Copy.Pause;
+        }
+
+        StartBulkButton.IsEnabled = _status.Bulk is null;
 
         var connected = _status.HasToken && !_status.TokenRejected;
         ConnectedPanel.Visibility = connected ? Visibility.Visible : Visibility.Collapsed;
@@ -131,8 +148,12 @@ public partial class SettingsWindow : Window
         return _status.GameRunning ? "SystemFillColorSuccessBrush" : "TextFillColorTertiaryBrush";
     }
 
-    private static RecentRow Row(RecentPlay recent, DateTimeOffset now)
+    private static RecentRow Row(RecentEntry entry, DateTimeOffset now)
     {
+        if (entry is RecentRun run)
+            return new RecentRow(Copy.BulkRunName, Copy.BulkRunDetail(run.Tally), "", "", false, "", true, Copy.AgoShort(run.At, now), IsRun: true);
+
+        var recent = (RecentPlay)entry;
         var play = recent.Play;
         var mark = !recent.Recorded ? Copy.NotRecordedShort
             : Awards.Of(play.Mix, play.Judgments, play.IsBroken) is { } award ? Copy.AwardName(play.Mix, award)
@@ -157,7 +178,22 @@ public partial class SettingsWindow : Window
 
     private void OnPause(object sender, RoutedEventArgs e)
     {
-        _status.SetPaused(!_status.Paused);
+        if (_status.Bulk is not null)
+            _bulk.Stop("stopped from settings");
+        else
+            _status.SetPaused(!_status.Paused);
+    }
+
+    private void OnStartBulk(object sender, RoutedEventArgs e)
+    {
+        ((App)Application.Current).ShowBulkCapture();
+    }
+
+    private void OnBulkSoundsChanged(object sender, RoutedEventArgs e)
+    {
+        if (_loading)
+            return;
+        _settings.Save(_settings.Load() with { BulkCaptureSounds = BulkSoundsBox.IsChecked == true });
     }
 
     private async void OnConnect(object sender, RoutedEventArgs e)
@@ -233,7 +269,8 @@ public partial class SettingsWindow : Window
         _settings.Save(_settings.Load() with
         {
             Notifications = new NotificationSettings(enabled, NotifyRecordedBox.IsChecked == true, NotifyNotRecordedBox.IsChecked == true,
-                NotifyUnreadableBox.IsChecked == true, NotifyTokenRejectedBox.IsChecked == true, NotifyUpdatedBox.IsChecked == true)
+                NotifyUnreadableBox.IsChecked == true, NotifyTokenRejectedBox.IsChecked == true, NotifyUpdatedBox.IsChecked == true,
+                NotifyBulkFinishedBox.IsChecked == true)
         });
     }
 

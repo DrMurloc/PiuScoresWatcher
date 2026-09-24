@@ -81,4 +81,26 @@ public sealed class NotificationSettingsTests
         Assert.False(back.EffectiveNotifications.Recorded);
         Assert.True(back.EffectiveNotifications.Unreadable);
     }
+
+    [Fact]
+    public void AFileFromBeforeBulkCaptureKeepsItsSoundsAndItsSummaryOn()
+    {
+        var settings = JsonSerializer.Deserialize<WatcherSettings>(
+            """{"Mode":"Both","StartWithWindows":true,"SteamScreenshotsFolder":null,"Notifications":{"Enabled":true,"Recorded":false,"NotRecorded":true,"Unreadable":true,"TokenRejected":true,"Updated":true}}""",
+            Options)!;
+
+        Assert.True(settings.BulkCaptureSounds);
+        Assert.True(settings.EffectiveNotifications.BulkCaptureFinished);
+        Assert.False(settings.EffectiveNotifications.Recorded);
+    }
+
+    [Fact]
+    public void TheBulkCaptureSummaryHasItsOwnSwitch()
+    {
+        var summary = new WatcherNotice.BulkCaptureFinished(new BulkTally(3, 1, 0, 0));
+
+        Assert.True(NotificationSettings.Default.Allows(summary));
+        Assert.False((NotificationSettings.Default with { BulkCaptureFinished = false }).Allows(summary));
+        Assert.False((NotificationSettings.Default with { Enabled = false }).Allows(summary));
+    }
 }
