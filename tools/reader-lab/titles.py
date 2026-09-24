@@ -1,7 +1,7 @@
 """How well the watcher reads song titles: every labeled screen with a title goes through the built
 watcher's --replay (Windows OCR included, nothing posted) and the title it read is scored against the
-label — exactly, and the way the chart list would still match it (SongCatalog: folded letters, a few
-edits allowed). Run after changing TitleInk or anything the title passes through; Windows only.
+label — the first attempt exactly, and any attempt the way the chart list would still match it
+(SongCatalog: folded letters, a few edits allowed, a piece missing or extra). Run after changing TitleInk or anything the title passes through; Windows only.
 
     python titles.py [path to PiuScoresWatcher.exe]
 
@@ -38,6 +38,17 @@ def distance(a, b):
     return previous[-1]
 
 
+def fits(read, title):
+    """SongCatalog's rules against the right title only: the same key, a near miss, or a piece missing or extra."""
+    a, b = key(read), key(title)
+    if not a:
+        return False
+    if a == b or distance(a, b) <= max(1, len(a) // 8):
+        return True
+    shorter, longer = (a, b) if len(a) <= len(b) else (b, a)
+    return len(shorter) >= 4 and len(shorter) >= 0.6 * len(longer) and shorter in longer
+
+
 def main():
     exe = sys.argv[1] if len(sys.argv) > 1 else next((b for b in BUILDS if os.path.exists(b)), None)
     if exe is None:
@@ -52,16 +63,18 @@ def main():
             continue
         run = subprocess.run([exe, "--replay", path, "--dry-run", "--base-url", "http://127.0.0.1:5998/"],
                              capture_output=True, text=True, encoding="utf-8", env=env, timeout=120)
-        read = (json.loads(run.stdout).get("title") or "") if run.stdout.strip() else ""
+        report = json.loads(run.stdout) if run.stdout.strip() else {}
+        attempts = report.get("titleAttempts") or ([report["title"]] if report.get("title") else [])
+        read = attempts[0] if attempts else ""
         total += 1
         is_exact = read == title
-        is_matched = is_exact or (key(read) != "" and distance(key(read), key(title)) <= max(1, len(key(read)) // 8))
+        is_matched = any(fits(attempt, title) for attempt in attempts)
         exact += is_exact
         matched += is_matched
         if not is_exact:
             verdict = "catalog still matches" if is_matched else "MISSED"
-            print(f"{stem} {label['kind']:15} {title!r:28} read {read!r:28} {verdict}")
-    print(f"\n{exact} of {total} titles read exactly; {matched} of {total} the chart list would match")
+            print(f"{stem} {label['kind']:15} {title!r:28} read {' / '.join(attempts)!r:40} {verdict}")
+    print(f"\n{exact} of {total} titles read exactly at the first attempt; {matched} of {total} match the chart list at some attempt")
 
 
 if __name__ == "__main__":

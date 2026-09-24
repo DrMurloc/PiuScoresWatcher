@@ -4,16 +4,20 @@ using PiuScoresWatcher.Core.Time;
 
 namespace PiuScoresWatcher.Core.Capture;
 
-/// <summary>The numbers that identify a play — never the title, which OCR may spell differently from one frame to the next.</summary>
+/// <summary>
+///     The numbers that identify a play — never the title, which OCR may spell differently from one frame to
+///     the next, nor the level, which the Arcade Station's stepball has been misread from one source and read
+///     right from the other (D56). Five judgments, a combo and a score do not repeat by chance.
+/// </summary>
 [ExcludeFromCodeCoverage]
-public sealed record PlayKey(RiseMix Mix, ChartType ChartType, int Level, Judgments Judgments, int MaxCombo, int Score, bool IsBroken)
+public sealed record PlayKey(RiseMix Mix, ChartType ChartType, Judgments Judgments, int MaxCombo, int Score, bool IsBroken)
 {
     /// <summary>Only a complete reading has a key.</summary>
     public static PlayKey? Of(ResultScreenReading reading)
     {
-        return reading.ChartType is { } type && reading.Level is { } level && reading.Judgments is { } judgments
+        return reading.ChartType is { } type && reading.Level is not null && reading.Judgments is { } judgments
                && reading.MaxCombo is { } combo && reading.Score is { } score
-            ? new PlayKey(reading.Mix, type, level, judgments, combo, score, reading.IsBroken)
+            ? new PlayKey(reading.Mix, type, judgments, combo, score, reading.IsBroken)
             : null;
     }
 }

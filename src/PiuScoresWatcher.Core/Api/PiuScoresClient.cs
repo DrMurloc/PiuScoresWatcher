@@ -82,7 +82,7 @@ public sealed class PiuScoresClient(HttpClient http, ITokenStore tokens) : IPlay
         {
             foreach (var chart in page.Data ?? [])
                 if (chart.SongName is { Length: > 0 } song && Enum.TryParse<ChartType>(chart.Type, true, out var type))
-                    charts.Add(new CatalogChart(chart.Id, song, type, chart.Level));
+                    charts.Add(new CatalogChart(chart.Id, song, type, chart.Level, chart.NoteCount));
             return page.Next;
         }, cancellationToken);
         return failure is null ? new SiteResult<IReadOnlyList<CatalogChart>>.Ok(charts) : failure.As<IReadOnlyList<CatalogChart>>();
@@ -226,7 +226,7 @@ public sealed class PiuScoresClient(HttpClient http, ITokenStore tokens) : IPlay
 
     private sealed record PlayerJson(Guid UserId, string? Username, string? GameTag);
 
-    private sealed record ChartJson(Guid Id, string? SongName, string? Type, int Level);
+    private sealed record ChartJson(Guid Id, string? SongName, string? Type, int Level, int? NoteCount);
 
     private sealed record ChartPageJson(ChartJson[]? Data, string? Next);
 

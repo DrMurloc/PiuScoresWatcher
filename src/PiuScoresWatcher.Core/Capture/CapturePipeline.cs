@@ -33,9 +33,14 @@ public abstract record FrameOutcome
 ///     player. Frames from the window are cheap to retry, so one that has not settled is simply
 ///     "not yet"; a screenshot file is final, so one that does not reconcile is kept for review, and
 ///     so is any play the site does not record.
+///     A window result that never reconciles is not left there (D54): once its numbers have stood still
+///     for <see cref="StandStill" /> and still disagree, or the screen goes away before they ever agree, it
+///     is kept for review the way a screenshot is — the Arcade Station's first 5 was misread that way and
+///     only its F12 copy ever reached the player.
 ///     The title is read only for a play not seen before — the window shows the same screen once a
-///     second, and OCR is the expensive step — and posted in the catalog's own spelling whenever the
-///     mix's chart list is loaded and names the song (D49).
+///     second, and OCR is the expensive step — attempt by attempt until one names a chart (D55), and
+///     posted in the catalog's own spelling whenever the mix's chart list is loaded and names the song
+///     (D49), at the level the chart's note count says was played (D56).
 /// </summary>
 public sealed class CapturePipeline(
     ResultScreenDetector detector,
@@ -47,41 +52,77 @@ public sealed class CapturePipeline(
     INotifier notifier,
     ISongCatalogs catalogs)
 {
+    /// <summary>How long a window result's numbers stand still, still disagreeing, before it is kept (D54).</summary>
+    public static readonly TimeSpan StandStill = TimeSpan.FromSeconds(3);
+
+    /// <summary>The window result whose numbers have not agreed yet, and since when they have read as they do.</summary>
+    private Unsettled? _unsettled;
+
     public async Task<FrameOutcome> HandleAsync(CapturedFrame frame, CancellationToken cancellationToken)
     {
+        var fromWindow = frame.Source == CaptureSource.GameWindow;
         var layout = detector.Detect(frame.Image);
         if (layout is null)
+        {
+            if (fromWindow)
+                KeepUnsettled(); // the screen went away and its numbers never agreed
             return new FrameOutcome.NotAResult();
+        }
 
         var reading = reader.Read(frame.Image, layout.Value);
         switch (reading.Status)
         {
             case ReadingStatus.NotAPlay:
+                if (fromWindow)
+                    KeepUnsettled();
                 return new FrameOutcome.NotAPlay();
             case ReadingStatus.NumbersNotShown:
-                return frame.Source == CaptureSource.SteamScreenshot
-                    ? Keep(frame, KeptBecause.NumbersNotShown, reading.Reason ?? "the numbers had not landed", reading)
-                    : new FrameOutcome.NotYet(reading.Reason ?? "the numbers have not landed");
+                return fromWindow
+                    ? new FrameOutcome.NotYet(reading.Reason ?? "the numbers have not landed")
+                    : Keep(frame, KeptBecause.NumbersNotShown, reading.Reason ?? "the numbers had not landed", reading);
             case ReadingStatus.Unreadable:
                 return Keep(frame, KeptBecause.NumbersUnreadable, reading.Reason ?? "unreadable", reading);
         }
 
         var verdict = PlayChecksum.Verify(reading);
         if (!verdict.Reconciles)
-            return frame.Source == CaptureSource.SteamScreenshot
-                ? Keep(frame, KeptBecause.NumbersDisagree, verdict.Problem ?? "the numbers do not agree", reading)
-                : new FrameOutcome.NotYet(verdict.Problem ?? "the numbers do not agree yet");
+        {
+            // kept already — from the window, or from a screenshot of the same screen — is kept once
+            if (PlayKey.Of(reading) is { } handled && !deduplicator.IsNew(handled))
+                return new FrameOutcome.Duplicate();
+            return fromWindow
+                ? Unsettle(frame, reading, verdict.Problem ?? "the numbers do not agree")
+                : Keep(frame, KeptBecause.NumbersDisagree, verdict.Problem ?? "the numbers do not agree", reading);
+        }
+
+        if (fromWindow && _unsettled is { } unsettled)
+        {
+            // the same play settling (its score was still counting) is no longer unsettled; another play means it never did
+            if (SamePlay(unsettled.Reading, reading))
+                _unsettled = null;
+            else
+                KeepUnsettled();
+        }
 
         var key = PlayKey.Of(reading)!;
         if (!deduplicator.IsNew(key))
             return new FrameOutcome.Duplicate();
 
-        var title = await titles.ReadAsync(frame.Image, reading.TitleRegion, cancellationToken);
-        if (string.IsNullOrWhiteSpace(title))
+        var type = reading.ChartType!.Value;
+        var level = reading.Level!.Value;
+        // a broken play may not add up to the chart's notes, so only a clear one is checked against them
+        int? notes = reading.IsBroken ? null : reading.Judgments!.Value.Notes;
+        var choice = await titles.ChooseAsync(frame.Image, reading.TitleRegion, catalogs.For(reading.Mix), type, level, notes, cancellationToken);
+        if (choice.Read is null)
             return Keep(frame, KeptBecause.TitleUnreadable, "the song title could not be read", reading);
+        if (choice.Match is CatalogMatch.Contradicted contradicted)
+            return Keep(frame, KeptBecause.ChartDisagrees,
+                $"{contradicted.Chart.SongName} {type} {level} has {contradicted.Chart.NoteCount} notes; the judgments add up to {contradicted.Notes}",
+                reading);
 
-        var catalogName = catalogs.For(reading.Mix)?.Match(title, reading.ChartType!.Value, reading.Level!.Value)?.SongName;
-        var play = ObservedPlay.From(reading, catalogName ?? title, frame.SeenAt);
+        var play = ObservedPlay.From(reading, choice.Read, frame.SeenAt);
+        if (choice.Match is CatalogMatch.Found found)
+            play = play with { SongName = found.Chart.SongName, Level = found.Chart.Level };
         var outcome = await site.PostAsync(play, frame.Source.Token(), cancellationToken);
         deduplicator.Remember(key);
         if (outcome is PostOutcome.Recorded recorded)
@@ -96,6 +137,40 @@ public sealed class CapturePipeline(
         return new FrameOutcome.Posted(play, outcome);
     }
 
+    /// <summary>A window result whose numbers disagree: not yet, until they have stood still long enough to be kept.</summary>
+    private FrameOutcome Unsettle(CapturedFrame frame, ResultScreenReading reading, string problem)
+    {
+        if (_unsettled is { } unsettled && PlayKey.Of(unsettled.Reading) == PlayKey.Of(reading))
+        {
+            if (frame.SeenAt - unsettled.Since < StandStill)
+                return new FrameOutcome.NotYet(problem);
+            _unsettled = null;
+            return Keep(frame, KeptBecause.NumbersDisagree, problem, reading);
+        }
+
+        // a new play, or the same one still counting up: the clock starts again
+        if (_unsettled is { } other && !SamePlay(other.Reading, reading))
+            KeepUnsettled();
+        _unsettled = new Unsettled(reading, frame, problem, frame.SeenAt);
+        return new FrameOutcome.NotYet(problem);
+    }
+
+    /// <summary>The unsettled window result, kept for review — unless another source already handled the play.</summary>
+    private void KeepUnsettled()
+    {
+        if (_unsettled is not { } unsettled)
+            return;
+        _unsettled = null;
+        if (PlayKey.Of(unsettled.Reading) is { } key && deduplicator.IsNew(key))
+            Keep(unsettled.Frame, KeptBecause.NumbersDisagree, unsettled.Problem, unsettled.Reading);
+    }
+
+    /// <summary>One play whatever its score has counted up to: the same station, chart type, judgments and combo.</summary>
+    private static bool SamePlay(ResultScreenReading a, ResultScreenReading b)
+    {
+        return a.Mix == b.Mix && a.ChartType == b.ChartType && a.Judgments == b.Judgments && a.MaxCombo == b.MaxCombo;
+    }
+
     private FrameOutcome Keep(CapturedFrame frame, KeptBecause because, string reason, ResultScreenReading reading)
     {
         if (PlayKey.Of(reading) is { } key)
@@ -104,4 +179,6 @@ public sealed class CapturePipeline(
         notifier.Notify(new WatcherNotice.Unreadable(reason, path));
         return new FrameOutcome.Kept(reason, path);
     }
+
+    private sealed record Unsettled(ResultScreenReading Reading, CapturedFrame Frame, string Problem, DateTimeOffset Since);
 }

@@ -64,9 +64,10 @@ internal static partial class ReplayRunner
 
         var reading = new ResultScreenReader().Read(image, layout.Value);
         var verdict = reading.Status == ReadingStatus.Complete ? PlayChecksum.Verify(reading) : null;
-        var title = reading.Status is ReadingStatus.Complete or ReadingStatus.Unreadable
-            ? await new WindowsOcrTitleReader(NullLogger<WindowsOcrTitleReader>.Instance).ReadAsync(image, reading.TitleRegion, CancellationToken.None)
-            : null;
+        var titles = reading.Status is ReadingStatus.Complete or ReadingStatus.Unreadable
+            ? await ReadTitlesAsync(image, reading.TitleRegion)
+            : [];
+        var title = titles.FirstOrDefault();
 
         // With a token in hand the replay says who it is and, unless told --dry-run, posts a play that reconciles.
         var tokens = new EnvironmentOrStoredToken(new DpapiTokenStore(NullLogger<DpapiTokenStore>.Instance));
@@ -105,6 +106,7 @@ internal static partial class ReplayRunner
             reading.ChartType,
             reading.Level,
             title,
+            titleAttempts = titles,
             judgments = reading.Judgments is { } j
                 ? new { j.Perfects, j.Greats, j.Goods, j.Bads, j.Misses, j.Notes }
                 : null,
@@ -133,8 +135,8 @@ internal static partial class ReplayRunner
         if (reading is null)
             return (new { file, image.Width, image.Height, result = "neither a result screen nor Warm Up's song list" }, 3);
 
-        var title = await new WindowsOcrTitleReader(NullLogger<WindowsOcrTitleReader>.Instance)
-            .ReadAsync(image, reading.TitleRegion, CancellationToken.None);
+        var titles = await ReadTitlesAsync(image, reading.TitleRegion);
+        var title = titles.FirstOrDefault();
         var report = new
         {
             file,
@@ -146,11 +148,21 @@ internal static partial class ReplayRunner
             reading.ChartType,
             reading.Level,
             title,
+            titleAttempts = titles,
             reading.Score,
             reading.Grade,
             note = "a song list is reported, never posted: only a bulk capture checks a best against yours"
         };
         return (report, reading.Status == SongListStatus.Best && title is not null ? 0 : 1);
+    }
+
+    /// <summary>Every attempt's reading of the title, in order (D55); the first is what a play without a chart list posts.</summary>
+    private static async Task<List<string>> ReadTitlesAsync(ScreenImage image, PixelRect region)
+    {
+        var reads = new List<string>();
+        await foreach (var read in new WindowsOcrTitleReader(NullLogger<WindowsOcrTitleReader>.Instance).ReadAsync(image, region, CancellationToken.None))
+            reads.Add(read);
+        return reads;
     }
 
     private sealed record ConnectionReport(string Status, string? Username, string? GameTag, string Site);

@@ -10,7 +10,7 @@ public sealed class DeduplicatorTests
 
     private static PlayKey Key(int score = 945403)
     {
-        return new PlayKey(RiseMix.Rise, ChartType.Single, 20, Judgments.From(911, 59, 13, 3, 14), 170, score, false);
+        return new PlayKey(RiseMix.Rise, ChartType.Single, Judgments.From(911, 59, 13, 3, 14), 170, score, false);
     }
 
     [Fact]

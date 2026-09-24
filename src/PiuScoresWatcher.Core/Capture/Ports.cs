@@ -42,6 +42,10 @@ public enum KeptBecause
     ListUnreadable,
     GradeDisagrees,
     TitleUnmatched,
+
+    /// <summary>The title names a chart whose note count is not what the judgments add up to (D56).</summary>
+    ChartDisagrees,
+
     Refused,
     SongUnknown,
     TokenRejected,

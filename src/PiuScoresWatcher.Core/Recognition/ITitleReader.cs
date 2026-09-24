@@ -7,6 +7,10 @@ namespace PiuScoresWatcher.Core.Recognition;
 /// </summary>
 public interface ITitleReader
 {
-    /// <summary>The title as read, or null when nothing legible is there.</summary>
-    Task<string?> ReadAsync(ScreenImage image, PixelRect region, CancellationToken cancellationToken);
+    /// <summary>
+    ///     What each attempt at the title reads (<see cref="TitleInk.Pages" />), in order, skipping an attempt
+    ///     that reads nothing or repeats one before; empty when nothing legible is there. The caller stops as
+    ///     soon as a reading names a chart, so the later attempts cost nothing when the first one lands (D55).
+    /// </summary>
+    IAsyncEnumerable<string> ReadAsync(ScreenImage image, PixelRect region, CancellationToken cancellationToken);
 }

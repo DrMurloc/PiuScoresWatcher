@@ -60,6 +60,38 @@ public sealed class TitleInkTests
     }
 
     [Fact]
+    public void ThePagesAreTheTitleAtItsSizeThenDoubleThenWithItsGapsClosedThenThinnedEachWithPaperAround()
+    {
+        // D55: without the margin Windows OCR read nothing of VANISH, Cynical or Aragami
+        var image = Paint(1920, 1080, (250, 200, 40), [(new PixelRect(110, 20, 130, 60), (255, 255, 255)), (new PixelRect(170, 20, 190, 60), (255, 255, 255))]);
+        var region = new PixelRect(100, 10, 200, 70);
+
+        var pages = TitleInk.Pages(image, region).ToList();
+
+        Assert.Equal(4, pages.Count);
+        Assert.Equal((100 + 2 * TitleInk.Margin, 60 + 2 * TitleInk.Margin), (pages[0].Width, pages[0].Height));
+        Assert.Equal((200 + 4 * TitleInk.Margin, 120 + 4 * TitleInk.Margin), (pages[1].Width, pages[1].Height));
+        Assert.True(pages[2].Width < pages[0].Width); // the 40-pixel gap between the two strokes is closed up
+        Assert.Equal((pages[2].Width, pages[2].Height), (pages[3].Width, pages[3].Height));
+        Assert.True(pages[3].Pixels.Count(shade => shade < 128) < pages[2].Pixels.Count(shade => shade < 128)); // and thinned
+        Assert.Equal(255, Shade(pages[0], 5, 5));
+        Assert.Equal(0, Shade(pages[0], TitleInk.Margin + 15, TitleInk.Margin + 30));
+    }
+
+    [Fact]
+    public void ClosingGapsLeavesTheLettersAndANarrowSpaceBetweenThem()
+    {
+        var page = TitleInk.Render(Paint(1920, 1080, (0, 0, 0), [(new PixelRect(10, 0, 20, 40), (255, 255, 255)), (new PixelRect(80, 0, 90, 40), (255, 255, 255))]),
+            new PixelRect(0, 0, 100, 40));
+
+        var closed = TitleInk.CloseGaps(page);
+
+        // ahead of the first stroke 10 columns stay (under 0.4 of 40), the 60-column gap becomes 6, the 10 after stay
+        Assert.Equal(10 + 10 + 6 + 10 + 10, closed.Width);
+        Assert.Equal(page.Height, closed.Height);
+    }
+
+    [Fact]
     public void MorrighansTitleOnTheSongListIsLettersOnCleanPaper()
     {
         // The title the old cut read as nothing: the jacket behind it is full of bright colour.

@@ -27,7 +27,7 @@ public sealed class CapturePipelineTests
     public CapturePipelineTests()
     {
         _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync("Morrighan");
+            .Returns(() => TitleReads.Of("Morrighan"));
         _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PostOutcome.Recorded(1, "Rise"));
         _failed.Setup(f => f.Save(It.IsAny<CapturedFrame>(), It.IsAny<KeptBecause>(), It.IsAny<string>(), It.IsAny<ResultScreenReading?>()))
@@ -40,9 +40,15 @@ public sealed class CapturePipelineTests
             new Deduplicator(_clock), _failed.Object, _notifier.Object, _catalogs.Object);
     }
 
-    private static CapturedFrame Frame(string fixture, CaptureSource source = CaptureSource.GameWindow)
+    private static CapturedFrame Frame(string fixture, CaptureSource source = CaptureSource.GameWindow, double seconds = 0)
     {
-        return new CapturedFrame(FixtureScreens.Load(fixture), source, Now, null);
+        return new CapturedFrame(FixtureScreens.Load(fixture), source, Now.AddSeconds(seconds), null);
+    }
+
+    private void TitleIs(params string[] reads)
+    {
+        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
+            .Returns(() => TitleReads.Of(reads));
     }
 
     [Fact]
@@ -62,7 +68,7 @@ public sealed class CapturePipelineTests
     public async Task ATitleTheOcrSlippedOnIsPostedInTheCatalogsSpelling()
     {
         _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync("Morrlghan");
+            .Returns(() => TitleReads.Of("Morrlghan"));
         _catalogs.Setup(c => c.For(RiseMix.Rise))
             .Returns(new SongCatalog([new CatalogChart(Guid.NewGuid(), "Morrighan", ChartType.Single, 20)]));
 
@@ -127,7 +133,7 @@ public sealed class CapturePipelineTests
     public async Task AScreenWhoseTitleCannotBeReadIsKept()
     {
         _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string?)null);
+            .Returns(() => TitleReads.Of());
 
         Assert.IsType<FrameOutcome.Kept>(await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None));
         _site.VerifyNoOtherCalls();
@@ -167,6 +173,119 @@ public sealed class CapturePipelineTests
         await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None);
 
         _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.Unreachable, It.Is<string>(r => r.Contains("unreachable")), It.IsAny<ResultScreenReading?>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AWindowResultWhoseNumbersNeverAgreeIsKeptOnceTheyHaveStoodStill()
+    {
+        // D54: the Arcade Station's first 5 read as a 6 stayed "not yet" in the window for as long as it was up
+        var pipeline = Pipeline();
+        Assert.IsType<FrameOutcome.NotYet>(await pipeline.HandleAsync(Frame("20260922192124"), CancellationToken.None));
+        Assert.IsType<FrameOutcome.NotYet>(await pipeline.HandleAsync(Frame("20260922192124", seconds: 2), CancellationToken.None));
+
+        var outcome = await pipeline.HandleAsync(Frame("20260922192124", seconds: 3), CancellationToken.None);
+
+        Assert.IsType<FrameOutcome.Kept>(outcome);
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.NumbersDisagree, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
+        _notifier.Verify(n => n.Notify(It.IsAny<WatcherNotice.Unreadable>()), Times.Once);
+        Assert.IsType<FrameOutcome.Duplicate>(await pipeline.HandleAsync(Frame("20260922192124", seconds: 10), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task AWindowResultThatLeavesWithoutEverAgreeingIsKept()
+    {
+        // a still screen sends one frame; the next thing the window shows is the song wheel
+        var pipeline = Pipeline();
+        await pipeline.HandleAsync(Frame("20260922192124"), CancellationToken.None);
+
+        var outcome = await pipeline.HandleAsync(Frame("20260922184847", seconds: 1), CancellationToken.None);
+
+        Assert.IsType<FrameOutcome.NotAResult>(outcome);
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.NumbersDisagree, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AWindowResultThatNeverAgreesIsKeptWhenTheNextPlayArrives()
+    {
+        var pipeline = Pipeline();
+        await pipeline.HandleAsync(Frame("20260922192124"), CancellationToken.None);
+
+        Assert.IsType<FrameOutcome.Posted>(await pipeline.HandleAsync(Frame("20260921201328", seconds: 1), CancellationToken.None));
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.NumbersDisagree, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AnUnsettledResultItsScreenshotAlreadyKeptIsNotKeptTwice()
+    {
+        var pipeline = Pipeline();
+        await pipeline.HandleAsync(Frame("20260922192124"), CancellationToken.None);
+        await pipeline.HandleAsync(Frame("20260922192124", CaptureSource.SteamScreenshot, 1), CancellationToken.None);
+
+        await pipeline.HandleAsync(Frame("20260922184847", seconds: 2), CancellationToken.None);
+
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.NumbersDisagree, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task APlayOnePointAboveTheFormulaIsPosted()
+    {
+        // D57: VECTOR's judgments make 901,012.99 and the screen prints 901,013; PIU Scores allows the point too
+        TitleIs("VECTOR");
+
+        var posted = Assert.IsType<FrameOutcome.Posted>(await Pipeline().HandleAsync(Frame("20260923223001"), CancellationToken.None));
+
+        Assert.Equal((901013, ChartType.HalfDouble, 15), (posted.Play.Score, posted.Play.ChartType, posted.Play.Level));
+    }
+
+    [Fact]
+    public async Task ALaterAttemptThatNamesAChartIsTheOnePosted()
+    {
+        TitleIs("Morrlqhan Remix", "Morrighan");
+        _catalogs.Setup(c => c.For(RiseMix.Rise))
+            .Returns(new SongCatalog([new CatalogChart(Guid.NewGuid(), "Morrighan", ChartType.Single, 20)]));
+
+        var posted = Assert.IsType<FrameOutcome.Posted>(await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None));
+
+        Assert.Equal("Morrighan", posted.Play.SongName);
+    }
+
+    [Fact]
+    public async Task WithoutAChartListTheFirstReadingStands()
+    {
+        TitleIs("Morrlghan", "Morrighan");
+
+        var posted = Assert.IsType<FrameOutcome.Posted>(await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None));
+
+        Assert.Equal("Morrlghan", posted.Play.SongName);
+        _titles.Verify(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AnArcadePlayIsPostedAtTheLevelItsNotesAddUpTo()
+    {
+        // D56: 8 6's judgments add up to 550, which only its S16 has in this list
+        TitleIs("86");
+        _catalogs.Setup(c => c.For(RiseMix.RiseArcade)).Returns(new SongCatalog(
+        [
+            new CatalogChart(Guid.NewGuid(), "8 6", ChartType.Single, 12, 700),
+            new CatalogChart(Guid.NewGuid(), "8 6", ChartType.Single, 16, 550)
+        ]));
+
+        var posted = Assert.IsType<FrameOutcome.Posted>(await Pipeline().HandleAsync(Frame("20260923224312"), CancellationToken.None));
+
+        Assert.Equal(("8 6", 16), (posted.Play.SongName, posted.Play.Level));
+    }
+
+    [Fact]
+    public async Task AnArcadePlayNoChartOfTheSongAddsUpToIsKept()
+    {
+        TitleIs("86");
+        _catalogs.Setup(c => c.For(RiseMix.RiseArcade))
+            .Returns(new SongCatalog([new CatalogChart(Guid.NewGuid(), "8 6", ChartType.Single, 12, 551)]));
+
+        Assert.IsType<FrameOutcome.Kept>(await Pipeline().HandleAsync(Frame("20260923224312"), CancellationToken.None));
+        _site.VerifyNoOtherCalls();
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.ChartDisagrees, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
     }
 
     [Fact]

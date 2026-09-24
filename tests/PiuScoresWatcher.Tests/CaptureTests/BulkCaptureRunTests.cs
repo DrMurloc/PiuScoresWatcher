@@ -40,12 +40,12 @@ public sealed class BulkCaptureRunTests
             .ReturnsAsync(new PostOutcome.Recorded(1, "Rise"));
         _failed.Setup(f => f.Save(It.IsAny<CapturedFrame>(), It.IsAny<KeptBecause>(), It.IsAny<string>(), It.IsAny<ResultScreenReading?>()))
             .Returns(@"C:\failed\list.png");
-        TitleReads("Aragami");
+        TitleIs("Aragami");
     }
 
-    private void TitleReads(string title)
+    private void TitleIs(string title)
     {
-        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>())).ReturnsAsync(title);
+        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>())).Returns(() => TitleReads.Of(title));
     }
 
     private BulkCaptureRun Run(params StoredBest[] bests)
@@ -107,9 +107,9 @@ public sealed class BulkCaptureRunTests
     {
         var run = Run();
         Assert.IsType<BulkOutcome.Sent>(await SettleAsync(run, Aragami));
-        TitleReads("Morrighan");
+        TitleIs("Morrighan");
         Assert.IsType<BulkOutcome.Sent>(await SettleAsync(run, Morrighan));
-        TitleReads("Aragami");
+        TitleIs("Aragami");
 
         Assert.IsType<BulkOutcome.AlreadyThere>(await SettleAsync(run, Aragami));
 
@@ -140,7 +140,7 @@ public sealed class BulkCaptureRunTests
     [Fact]
     public async Task ATitleThatNamesNoChartIsKeptNotSent()
     {
-        TitleReads("Something Else");
+        TitleIs("Something Else");
         var run = Run();
 
         var kept = Assert.IsType<BulkOutcome.Unreadable>(await SettleAsync(run, Aragami));
