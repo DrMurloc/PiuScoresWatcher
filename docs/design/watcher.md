@@ -216,7 +216,9 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
 - **D48. A capture is taken once the panel has read the same for half a second**, sampled five times a second
   while a run is on. The wait rides out the panel changing between charts; a panel that lingers on the previous
   chart's numbers longer than that is the one risk the owner's test pass watches for (the Arcade plate bug says
-  the game can lag).
+  the game can lag). The panel is known by its numbers and by the lit song's jacket in the list on the right (bug
+  check, owner's go 2026-09-24): two songs in a row can show the same level, score and grade — every 1,000,000 is
+  an SSS — and the panel's own title sits over the song's video, while the jacket holds still.
 - **D49. A run starts by fetching the mix's charts and the player's bests** (`GET api/v2/charts`, `GET
   api/v2/players/{id}/scores`). Only a capture above the stored best is sent; the rest are "already there". The
   title is matched against the chart list — case, spacing and punctuation ignored, and O/0, I/l/1 and S/5 misreads
@@ -256,9 +258,11 @@ never reached the site, and two stepballs were read at the wrong level.
   screen "not yet" for as long as it stood there, so a misread number — the Arcade Station's first 5, read as a
   6 — vanished without a word unless the player also pressed F12. Now it is kept for review, with the same
   notification an unreadable screenshot gets, once its numbers have stood still for three seconds and still
-  disagree, or when the screen goes away (or the next play arrives) before they ever agreed. A score still
-  counting up is never kept: its judgments are final a beat before the score, so a frame of the same play that
-  reconciles later clears it. A play a screenshot already kept is not kept twice.
+  disagree, or when the screen goes away before they ever agreed. On one visit to a result screen the first frame
+  that reconciles speaks for it (owner, 2026-09-24, from the bug check): a frame before or after it that disagrees
+  or will not read is the same screen misread — the video behind the Arcade Station's numbers, numbers still
+  landing — and is dropped, not kept. A frame that will not read waits the same way. A play a screenshot already
+  kept is not kept twice.
 - **D55 (owner's go, "the 8 6 review/fix"). The title is tried up to four ways, and the chart list decides.**
   Windows OCR returned nothing for VANISH, D and 8 6 on clean pages. The page now carries a margin of paper
   (`TitleInk.Pages`), and the reader tries, in order, the page at the 1080p size, at twice that, with wide gaps
@@ -420,7 +424,7 @@ on the site with nothing else to do.
 | Languages | built: the site's eight less Murloc, the Language section with Machine Default (D58–D62); the English unchanged over 370 compared lines; smoke-tested in every language — the windows, the notifications, a live switch |
 | Bulk capture from Warm Up's song list | built to the iteration-2 mocks (D45–D52) and smoke-tested end to end on the fixtures against a stand-in site (start window, sounds, counts, Stop, the summary, Recent); PIU Scores takes captures since it made judgments optional (its PR 358, merged 2026-09-24); one card per run waits on its sittings (PR 357), which ship before the watcher's first release |
 | Reading titles | a soft white-and-colourless mask at the 1080p size (D53): 33 of 38 fixture titles exact, 36 matched |
-| A bug check of the branch (2026-09-24) | 13 findings. Eight fixed on #8: the F12 folder that appears later (D32), paste-and-Enter on first run (D39), the chart list after a failed start-up check, an unreadable screen kept once a second, a screen left up past ten minutes (D29), a `%` in a count, a broken JPEG ending F12 mode, a pause cutting off a post. Five wait on the owner (§9) |
+| A bug check of the branch (2026-09-24) | 13 findings. Ten fixed on #8: the F12 folder that appears later (D32), paste-and-Enter on first run (D39), the chart list after a failed start-up check, an unreadable screen kept once a second, a screen left up past ten minutes (D29), a `%` in a count, a broken JPEG ending F12 mode, a pause cutting off a post, a misread frame beside a good one (D54), and two identical song-list panels in a row (D48). One is not a bug: Ugly Dee D17 really has 71 notes, all holds (owner). Two wait on the test loop (§9) |
 
 **The one loop.** The UI is in. Install the build made on the owner's PC, paste a token, and play one
 session — a Warm Up result, an Arcade Station result, F12 on one, one left up for a minute, a Division result if
@@ -464,19 +468,12 @@ beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14)
 - **The name.** "PIU Scores Watcher" is a placeholder; the owner names it before v0.1.0 (the icon is settled,
   D34).
 - **Steam's "uncompressed copy" folder.** Steam can save a lossless PNG beside the JPEG; worth watching both?
-- **From the bug check (2026-09-24), with the owner:**
-  - *A misread frame beside a good one.* Good → misread → good, or misread → good, posts the play and also keeps
-    the misread frame as "couldn't read" (D54 treats the disagreeing frame as another play). Recommended: within
-    one visit (D29) the first frame that reconciles speaks for the screen.
-  - *A score over more notes than were judged.* `20260922192124` is a finished Aragami S19, not a score counting
-    up: 974/21/3/2/8 is 1,008 notes and the accuracy (97.95%) fits them, but 971,789 is the formula over 1,013 —
-    the game's own song list stores it as the best. No combo makes it fit 1,008, so such a play is kept every
-    time and PIU Scores would refuse it too. 1 of about 43 fixture results. D22, D47 and D54's "still counting
-    up" rest on reading this screen that way.
-  - *A song left early.* `20260922185707` is Ugly Dee D17 at 71/0/0/0/0 — 1,000,000, a Perfect Game — where D18
-    has 1,001 notes. It reconciles, so it posts unless the Arcade chart list knows the chart's note count (none
-    are known in Warm Up).
+- **From the bug check (2026-09-24), waiting on the test loop:**
+  - *A score over more notes than were judged.* `20260922192124` looks like a finished Aragami S19, not a score
+    counting up: 974/21/3/2/8 is 1,008 notes and the accuracy (97.95%) fits them, but 971,789 is the formula over
+    1,013 — and the game's own song list later stored exactly that score with the same 392 combo. No combo makes it
+    fit 1,008, so such a play is kept every time and PIU Scores would refuse it too. 1 of about 43 fixture results.
+    D22's "a score that counts up" and D47's "no one play can score" were both read off this screen. The owner wants
+    to understand it better and see whether more turn up in testing before anything changes (2026-09-24).
   - *Bulk capture at 720p.* Downscaled to 1280×720, Vacuum Cleaner's 956,984 reads 956,934, still an S, and would
-    be sent. Every song-list fixture is 1080p.
-  - *Two identical panels in a row.* The half-second wait compares the panel's numbers, not its title, so a second
-    song whose lit level and score match the one before (both 1,000,000 SSS) never counts as a new panel.
+    be sent. Every song-list fixture is 1080p; the owner's test loop takes the 720p song lists (2026-09-24).

@@ -53,6 +53,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] A Challenge result (division badge in the header) → skipped, nothing posted, one log line.
 - [ ] A grey (broken) grade → `isBroken` true.
 - [ ] Sit on a result screen for a minute → one play, not sixty.
+- [ ] A play held for review whose screen reads right to you → keep its F12: another case like Aragami S19, whose score fits more notes than it judged (watcher.md §9).
 - [ ] F12 on a result screen with the game window mode off → the file is picked up and posted once.
 - [ ] Both modes on, F12 pressed on a screen the grab already read → still one play.
 - [ ] A screen that can't be trusted (F12 in Steam-screenshot mode before the numbers finish counting) → refused locally, saved under `failed\`, surfaced, not posted. Covering the screen with another window does nothing: both modes read the game's own frame, never what's on top of it.
@@ -72,6 +73,8 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] Bulk capture: start it from the tray → the window says how many Warm Up bests PIU Scores has; Start.
 - [ ] Move through a dozen charts on Warm Up's song list, some 6K DOUBLE via TAB → a chime for each best above the site's, a tick for the rest, and the site shows the chimed ones as plays.
 - [ ] Flip quickly between two charts → neither is captured with the other's score.
+- [ ] Two songs in a row showing the same level and score (two 1,000,000s at one level) → both chime.
+- [ ] RISE at 1280×720: F12 a handful of Warm Up song lists with bests on them → they become the 720p fixtures, and the reader is fixed against them before the tag (watcher.md §9).
 - [ ] Start a song → the run ends; one summary notification; one line in Recent.
 - [ ] Run it again over the same charts → ticks only, nothing sent.
 - [ ] The sounds are clear over the song list's music at your usual volume.
