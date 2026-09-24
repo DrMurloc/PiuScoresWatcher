@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="(recommended)" xml:space="preserve">
+    <value>(recomendado)</value>
+  </data>
+  <data name="1 play wasn't recorded" xml:space="preserve">
+    <value>1 intento no se registró</value>
+  </data>
+  <data name="1 screen couldn't be read" xml:space="preserve">
+    <value>1 pantalla no se pudo leer</value>
+  </data>
+  <data name="A play PIU Scores didn't take" xml:space="preserve">
+    <value>Un intento que PIU Scores no aceptó</value>
+  </data>
+  <data name="A screen seen twice is still one play." xml:space="preserve">
+    <value>Una pantalla vista dos veces sigue siendo un solo intento.</value>
+  </data>
+  <data name="A screen that couldn't be read" xml:space="preserve">
+    <value>Una pantalla que no se pudo leer</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>Cuenta</value>
+  </data>
+  <data name="Both" xml:space="preserve">
+    <value>Ambos</value>
+  </data>
+  <data name="broken" xml:space="preserve">
+    <value>broken</value>
+  </data>
+  <data name="Bulk capture" xml:space="preserve">
+    <value>Captura masiva</value>
+  </data>
+  <data name="Bulk capture finished" xml:space="preserve">
+    <value>Captura masiva terminada</value>
+  </data>
+  <data name="Bulk capture on · {0} sent" xml:space="preserve">
+    <value>Captura masiva en marcha · {0} enviados</value>
+  </data>
+  <data name="Bulk capture · {0} sent, {1} already there" xml:space="preserve">
+    <value>Captura masiva · {0} enviados, {1} ya estaban</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Cambiar</value>
+  </data>
+  <data name="Checking your bests on PIU Scores…" xml:space="preserve">
+    <value>Comprobando tus mejores scores en PIU Scores…</value>
+  </data>
+  <data name="Checking…" xml:space="preserve">
+    <value>Comprobando…</value>
+  </data>
+  <data name="Chime" xml:space="preserve">
+    <value>Campanilla</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Conectar</value>
+  </data>
+  <data name="Connect to PIU Scores in settings first." xml:space="preserve">
+    <value>Primero conecta PIU Scores en los ajustes.</value>
+  </data>
+  <data name="Connected as {0}" xml:space="preserve">
+    <value>Conectado como {0}</value>
+  </data>
+  <data name="Couldn't load your bests from PIU Scores. Try again in a moment." xml:space="preserve">
+    <value>No se han podido cargar tus mejores scores de PIU Scores. Vuelve a intentarlo en un momento.</value>
+  </data>
+  <data name="Couldn't reach PIU Scores to check the token. Try again in a moment." xml:space="preserve">
+    <value>No se ha podido contactar con PIU Scores para comprobar el token. Vuelve a intentarlo en un momento.</value>
+  </data>
+  <data name="Couldn't reach PIU Scores. Not recorded." xml:space="preserve">
+    <value>No se ha podido contactar con PIU Scores. No se ha registrado.</value>
+  </data>
+  <data name="Couldn't read it. It's kept for review; move on." xml:space="preserve">
+    <value>No se ha podido leer. Se guarda para revisarlo; sigue adelante.</value>
+  </data>
+  <data name="Couldn't read that result screen" xml:space="preserve">
+    <value>No se ha podido leer esa pantalla de resultados</value>
+  </data>
+  <data name="Create one on {0}. It is stored encrypted on this PC and only ever sent to PIU Scores." xml:space="preserve">
+    <value>Crea uno en {0}. Se guarda cifrado en este PC y solo se envía a PIU Scores.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Delete all {0} unread screens" xml:space="preserve">
+    <value>Eliminar las {0} pantallas sin leer</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Desconectar</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Hecho</value>
+  </data>
+  <data name="Each best on Warm Up's song list becomes a play on PIU Scores: the song, the chart and the score, no judgments." xml:space="preserve">
+    <value>Cada mejor score de la lista de canciones de Warm Up se convierte en un intento en PIU Scores: la canción, el chart y el score, sin juicios.</value>
+  </data>
+  <data name="Every recorded play" xml:space="preserve">
+    <value>Cada intento registrado</value>
+  </data>
+  <data name="Extreme Game" xml:space="preserve">
+    <value>Extreme Game</value>
+  </data>
+  <data name="Fair Game" xml:space="preserve">
+    <value>Fair Game</value>
+  </data>
+  <data name="Full Combo" xml:space="preserve">
+    <value>Full Combo</value>
+  </data>
+  <data name="game window" xml:space="preserve">
+    <value>ventana del juego</value>
+  </data>
+  <data name="Grab your Warm Up bests" xml:space="preserve">
+    <value>Captura tus mejores scores de Warm Up</value>
+  </data>
+  <data name="Grab your Warm Up bests from the song list." xml:space="preserve">
+    <value>Captura tus mejores scores de Warm Up desde la lista de canciones.</value>
+  </data>
+  <data name="How should it watch?" xml:space="preserve">
+    <value>¿Cómo debe vigilar?</value>
+  </data>
+  <data name="Ignore" xml:space="preserve">
+    <value>Ignorar</value>
+  </data>
+  <data name="In the tray at sign-in; wakes when RISE starts." xml:space="preserve">
+    <value>En la bandeja del sistema al iniciar sesión; se activa cuando arranca RISE.</value>
+  </data>
+  <data name="It stays on this PC. Nothing is sent anywhere unless you choose to." xml:space="preserve">
+    <value>Se queda en este PC. No se envía nada a ningún sitio salvo que tú lo elijas.</value>
+  </data>
+  <data name="It stops by itself when a song starts or RISE closes." xml:space="preserve">
+    <value>Se detiene sola cuando empieza una canción o se cierra RISE.</value>
+  </data>
+  <data name="just now" xml:space="preserve">
+    <value>ahora mismo</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Idioma</value>
+  </data>
+  <data name="Last recorded {0}" xml:space="preserve">
+    <value>Último registro: {0}</value>
+  </data>
+  <data name="Looks at RISE once a second while it is running. Nothing else on your screen." xml:space="preserve">
+    <value>Mira RISE una vez por segundo mientras está abierto. Nada más de tu pantalla.</value>
+  </data>
+  <data name="Low tone" xml:space="preserve">
+    <value>Tono grave</value>
+  </data>
+  <data name="Machine Default" xml:space="preserve">
+    <value>Predeterminado del sistema</value>
+  </data>
+  <data name="Marvelous Game" xml:space="preserve">
+    <value>Marvelous Game</value>
+  </data>
+  <data name="MMM d" xml:space="preserve">
+    <value>d MMM</value>
+  </data>
+  <data name="Move through every chart: {A} {D} change the level, {TAB} switches 5K SINGLE and 6K DOUBLE, {W} {S} change the song." xml:space="preserve">
+    <value>Recorre todos los charts: {A} {D} cambian el nivel, {TAB} alterna entre 5K SINGLE y 6K DOUBLE, {W} {S} cambian la canción.</value>
+  </data>
+  <data name="My Steam screenshots" xml:space="preserve">
+    <value>Mis capturas de Steam</value>
+  </data>
+  <data name="No Miss" xml:space="preserve">
+    <value>No Miss</value>
+  </data>
+  <data name="No plays yet since the watcher started." xml:space="preserve">
+    <value>Todavía no hay intentos desde que se inició la aplicación.</value>
+  </data>
+  <data name="Not connected — plays are kept, not posted" xml:space="preserve">
+    <value>Sin conexión — los intentos se guardan, no se envían</value>
+  </data>
+  <data name="not recorded" xml:space="preserve">
+    <value>sin registrar</value>
+  </data>
+  <data name="Nothing recorded yet" xml:space="preserve">
+    <value>Aún no hay nada registrado</value>
+  </data>
+  <data name="Nothing to review." xml:space="preserve">
+    <value>No hay nada que revisar.</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Notificaciones</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>ahora</value>
+  </data>
+  <data name="Open logs folder" xml:space="preserve">
+    <value>Abrir la carpeta de registros</value>
+  </data>
+  <data name="Open PIU Scores" xml:space="preserve">
+    <value>Abrir PIU Scores</value>
+  </data>
+  <data name="Open settings" xml:space="preserve">
+    <value>Abrir ajustes</value>
+  </data>
+  <data name="Open Warm Up and go to the song list." xml:space="preserve">
+    <value>Abre Warm Up y ve a la lista de canciones.</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Pausar</value>
+  </data>
+  <data name="Pause watching" xml:space="preserve">
+    <value>Pausar la vigilancia</value>
+  </data>
+  <data name="Paused" xml:space="preserve">
+    <value>En pausa</value>
+  </data>
+  <data name="Perfect Game" xml:space="preserve">
+    <value>Perfect Game</value>
+  </data>
+  <data name="PIU Scores already has this best, or a higher one." xml:space="preserve">
+    <value>PIU Scores ya tiene este score o uno más alto.</value>
+  </data>
+  <data name="PIU Scores asked the watcher to slow down, so it wasn't recorded." xml:space="preserve">
+    <value>PIU Scores pidió a la aplicación que fuera más despacio, así que no se registró.</value>
+  </data>
+  <data name="PIU Scores asked the watcher to slow down. Not recorded." xml:space="preserve">
+    <value>PIU Scores pidió a la aplicación que fuera más despacio. No se ha registrado.</value>
+  </data>
+  <data name="PIU Scores couldn't be reached, so it wasn't recorded." xml:space="preserve">
+    <value>No se pudo contactar con PIU Scores, así que no se registró.</value>
+  </data>
+  <data name="PIU Scores didn't accept this play" xml:space="preserve">
+    <value>PIU Scores no aceptó este intento</value>
+  </data>
+  <data name="PIU Scores doesn't know that song on this mix — probably a misread title. Not recorded." xml:space="preserve">
+    <value>PIU Scores no conoce esa canción en esta versión — probablemente se leyó mal el título. No se ha registrado.</value>
+  </data>
+  <data name="PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread." xml:space="preserve">
+    <value>PIU Scores no conoce esa canción en esta versión, así que no se registró. Probablemente se leyó mal el título.</value>
+  </data>
+  <data name="PIU Scores has {0} of your Warm Up bests. Only higher ones are sent." xml:space="preserve">
+    <value>PIU Scores tiene {0} de tus mejores scores de Warm Up. Solo se envían los más altos.</value>
+  </data>
+  <data name="PIU Scores refused it. Not recorded." xml:space="preserve">
+    <value>PIU Scores lo rechazó. No se ha registrado.</value>
+  </data>
+  <data name="PIU Scores refused the play, so it wasn't recorded." xml:space="preserve">
+    <value>PIU Scores rechazó el intento, así que no se registró.</value>
+  </data>
+  <data name="Play sounds" xml:space="preserve">
+    <value>Reproducir sonidos</value>
+  </data>
+  <data name="Plays are kept, not posted. Connect in settings." xml:space="preserve">
+    <value>Los intentos se guardan, no se envían. Conéctate en los ajustes.</value>
+  </data>
+  <data name="Plays aren't being recorded. Reconnect in settings." xml:space="preserve">
+    <value>Los intentos no se están registrando. Vuelve a conectarte en los ajustes.</value>
+  </data>
+  <data name="Press F12 on the result screen; the screenshot is read. Costs nothing during play." xml:space="preserve">
+    <value>Pulsa F12 en la pantalla de resultados y se lee la captura. No consume nada mientras juegas.</value>
+  </data>
+  <data name="Privacy" xml:space="preserve">
+    <value>Privacidad</value>
+  </data>
+  <data name="Quit" xml:space="preserve">
+    <value>Salir</value>
+  </data>
+  <data name="Recent" xml:space="preserve">
+    <value>Recientes</value>
+  </data>
+  <data name="Recorded" xml:space="preserve">
+    <value>Registrado</value>
+  </data>
+  <data name="replay" xml:space="preserve">
+    <value>repetición</value>
+  </data>
+  <data name="Result screen" xml:space="preserve">
+    <value>Pantalla de resultados</value>
+  </data>
+  <data name="Resume" xml:space="preserve">
+    <value>Reanudar</value>
+  </data>
+  <data name="Resume watching" xml:space="preserve">
+    <value>Reanudar la vigilancia</value>
+  </data>
+  <data name="Review" xml:space="preserve">
+    <value>Revisar</value>
+  </data>
+  <data name="Rough Game" xml:space="preserve">
+    <value>Rough Game</value>
+  </data>
+  <data name="Saved it. Nothing was recorded." xml:space="preserve">
+    <value>Se ha guardado. No se ha registrado nada.</value>
+  </data>
+  <data name="Sent to PIU Scores." xml:space="preserve">
+    <value>Enviado a PIU Scores.</value>
+  </data>
+  <data name="Set up in three steps" xml:space="preserve">
+    <value>Configúralo en tres pasos</value>
+  </data>
+  <data name="Show notifications" xml:space="preserve">
+    <value>Mostrar notificaciones</value>
+  </data>
+  <data name="Show the file" xml:space="preserve">
+    <value>Mostrar el archivo</value>
+  </data>
+  <data name="Sits in the tray, wakes when RISE starts, sleeps when it closes. Off, it only runs when you open it." xml:space="preserve">
+    <value>Se queda en la bandeja del sistema, se activa cuando arranca RISE y descansa cuando se cierra. Desactivado, solo funciona cuando lo abres.</value>
+  </data>
+  <data name="Some of the numbers couldn't be read, so nothing was recorded." xml:space="preserve">
+    <value>Algunos números no se pudieron leer, así que no se registró nada.</value>
+  </data>
+  <data name="Some of the numbers couldn't be read, so nothing was sent." xml:space="preserve">
+    <value>Algunos números no se pudieron leer, así que no se envió nada.</value>
+  </data>
+  <data name="Song list" xml:space="preserve">
+    <value>Lista de canciones</value>
+  </data>
+  <data name="Sounds while capturing" xml:space="preserve">
+    <value>Sonidos durante la captura</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Empezar</value>
+  </data>
+  <data name="Start bulk capture…" xml:space="preserve">
+    <value>Empezar captura masiva…</value>
+  </data>
+  <data name="Start with Windows" xml:space="preserve">
+    <value>Iniciar con Windows</value>
+  </data>
+  <data name="Startup" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="Start…" xml:space="preserve">
+    <value>Empezar…</value>
+  </data>
+  <data name="Steam screenshot" xml:space="preserve">
+    <value>captura de Steam</value>
+  </data>
+  <data name="Steam screenshots" xml:space="preserve">
+    <value>Capturas de Steam</value>
+  </data>
+  <data name="Steam screenshots folder · chosen" xml:space="preserve">
+    <value>Carpeta de capturas de Steam · elegida</value>
+  </data>
+  <data name="Steam screenshots folder · found" xml:space="preserve">
+    <value>Carpeta de capturas de Steam · encontrada</value>
+  </data>
+  <data name="Steam screenshots folder · not found yet" xml:space="preserve">
+    <value>Carpeta de capturas de Steam · aún no encontrada</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>Parar</value>
+  </data>
+  <data name="Stop bulk capture" xml:space="preserve">
+    <value>Parar la captura masiva</value>
+  </data>
+  <data name="Superb Game" xml:space="preserve">
+    <value>Superb Game</value>
+  </data>
+  <data name="Talented Game" xml:space="preserve">
+    <value>Talented Game</value>
+  </data>
+  <data name="That token wasn't accepted. Check it on the site and paste it again." xml:space="preserve">
+    <value>Ese token no se ha aceptado. Compruébalo en la web y vuelve a pegarlo.</value>
+  </data>
+  <data name="The chart it read has a different number of notes than the judgments add up to, so nothing was recorded." xml:space="preserve">
+    <value>El chart leído tiene un número de notas distinto de lo que suman los juicios, así que no se registró nada.</value>
+  </data>
+  <data name="The game window" xml:space="preserve">
+    <value>La ventana del juego</value>
+  </data>
+  <data name="The grade didn't match the score, so nothing was sent." xml:space="preserve">
+    <value>El grado no coincidía con el score, así que no se envió nada.</value>
+  </data>
+  <data name="The judgment counts didn't add up to the score, so nothing was recorded." xml:space="preserve">
+    <value>Los juicios no cuadraban con el score, así que no se registró nada.</value>
+  </data>
+  <data name="The judgments don't add up to the score — probably a misread. Not recorded." xml:space="preserve">
+    <value>Los juicios no cuadran con el score — probablemente una mala lectura. No se ha registrado.</value>
+  </data>
+  <data name="The screenshot was taken before the numbers finished counting, so nothing was recorded." xml:space="preserve">
+    <value>La captura se hizo antes de que los números terminaran de contar, así que no se registró nada.</value>
+  </data>
+  <data name="The song title couldn't be read, so nothing was recorded." xml:space="preserve">
+    <value>No se pudo leer el título de la canción, así que no se registró nada.</value>
+  </data>
+  <data name="The song title didn't match any song on PIU Scores, so nothing was sent." xml:space="preserve">
+    <value>El título de la canción no coincidía con ninguna canción de PIU Scores, así que no se envió nada.</value>
+  </data>
+  <data name="The token wasn't accepted, so it wasn't recorded." xml:space="preserve">
+    <value>El token no se aceptó, así que no se registró.</value>
+  </data>
+  <data name="The token wasn't accepted. Not recorded." xml:space="preserve">
+    <value>El token no se aceptó. No se ha registrado.</value>
+  </data>
+  <data name="The watcher isn't connected" xml:space="preserve">
+    <value>La aplicación no está conectada</value>
+  </data>
+  <data name="The watcher isn't connected to PIU Scores. Not recorded." xml:space="preserve">
+    <value>La aplicación no está conectada a PIU Scores. No se ha registrado.</value>
+  </data>
+  <data name="The watcher wasn't connected to PIU Scores, so it wasn't recorded." xml:space="preserve">
+    <value>La aplicación no estaba conectada a PIU Scores, así que no se registró.</value>
+  </data>
+  <data name="This best couldn't be read" xml:space="preserve">
+    <value>No se ha podido leer este mejor score</value>
+  </data>
+  <data name="This play wasn't recorded" xml:space="preserve">
+    <value>Este intento no se registró</value>
+  </data>
+  <data name="This screen couldn't be read" xml:space="preserve">
+    <value>No se ha podido leer esta pantalla</value>
+  </data>
+  <data name="Tick" xml:space="preserve">
+    <value>Tic</value>
+  </data>
+  <data name="today {0}" xml:space="preserve">
+    <value>hoy a las {0}</value>
+  </data>
+  <data name="Token saved — PIU Scores hasn't answered yet" xml:space="preserve">
+    <value>Token guardado — PIU Scores aún no ha respondido</value>
+  </data>
+  <data name="Two minutes, once. After this it just runs." xml:space="preserve">
+    <value>Dos minutos, una sola vez. Después funciona solo.</value>
+  </data>
+  <data name="Ultimate Game" xml:space="preserve">
+    <value>Ultimate Game</value>
+  </data>
+  <data name="Updated to {0}" xml:space="preserve">
+    <value>Actualizado a la versión {0}</value>
+  </data>
+  <data name="Version {0}" xml:space="preserve">
+    <value>Versión {0}</value>
+  </data>
+  <data name="Version {0} · an update applies at the next start" xml:space="preserve">
+    <value>Versión {0} · una actualización se aplicará en el próximo inicio</value>
+  </data>
+  <data name="Version {0} · up to date" xml:space="preserve">
+    <value>Versión {0} · actualizada</value>
+  </data>
+  <data name="Wait for the sound before moving on." xml:space="preserve">
+    <value>Espera al sonido antes de pasar al siguiente.</value>
+  </data>
+  <data name="Waiting for RISE" xml:space="preserve">
+    <value>Esperando a RISE</value>
+  </data>
+  <data name="Warm Up · {0} sent, {1} already there" xml:space="preserve">
+    <value>Warm Up · {0} enviados, {1} ya estaban</value>
+  </data>
+  <data name="Watching" xml:space="preserve">
+    <value>Vigilancia</value>
+  </data>
+  <data name="Watching — RISE is running" xml:space="preserve">
+    <value>Vigilando — RISE está abierto</value>
+  </data>
+  <data name="What changed" xml:space="preserve">
+    <value>Qué ha cambiado</value>
+  </data>
+  <data name="What it looks at and sends" xml:space="preserve">
+    <value>Qué mira y qué envía</value>
+  </data>
+  <data name="When a bulk capture finishes" xml:space="preserve">
+    <value>Cuando termina una captura masiva</value>
+  </data>
+  <data name="When the token stops working" xml:space="preserve">
+    <value>Cuando el token deja de funcionar</value>
+  </data>
+  <data name="When the watcher updates" xml:space="preserve">
+    <value>Cuando la aplicación se actualiza</value>
+  </data>
+  <data name="yesterday {0}" xml:space="preserve">
+    <value>ayer a las {0}</value>
+  </data>
+  <data name="Your PIU Scores token" xml:space="preserve">
+    <value>Tu token de PIU Scores</value>
+  </data>
+  <data name="Your token stopped working" xml:space="preserve">
+    <value>Tu token ha dejado de funcionar</value>
+  </data>
+  <data name="{0} already there · {1} couldn't be read" xml:space="preserve">
+    <value>{0} ya estaban · {1} no se pudieron leer</value>
+  </data>
+  <data name="{0} h" xml:space="preserve">
+    <value>{0} h</value>
+  </data>
+  <data name="{0} h ago" xml:space="preserve">
+    <value>hace {0} h</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="{0} min ago" xml:space="preserve">
+    <value>hace {0} min</value>
+  </data>
+  <data name="{0} new bests sent · {1} already on PIU Scores · {2} couldn't be read" xml:space="preserve">
+    <value>{0} mejores scores nuevos enviados · {1} ya estaban en PIU Scores · {2} no se pudieron leer</value>
+  </data>
+  <data name="{0} play today" xml:space="preserve">
+    <value>{0} intento hoy</value>
+  </data>
+  <data name="{0} plays today" xml:space="preserve">
+    <value>{0} intentos hoy</value>
+  </data>
+  <data name="{0} plays weren't recorded" xml:space="preserve">
+    <value>{0} intentos no se registraron</value>
+  </data>
+  <data name="{0} screens couldn't be read" xml:space="preserve">
+    <value>{0} pantallas no se pudieron leer</value>
+  </data>
+  <data name="{0} → Account → API tokens" xml:space="preserve">
+    <value>{0} → Cuenta → API tokens</value>
+  </data>
+</root>

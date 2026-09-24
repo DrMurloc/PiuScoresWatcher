@@ -42,6 +42,32 @@ player meets on the site and in the watcher is the same word in both.
 | Français | fr-FR | [LOCALIZATION-fr-FR.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/LOCALIZATION-fr-FR.md) | `vous`; a no-break space before `?`, `!`, `:` and `;` |
 | Italiano | it-IT | [LOCALIZATION-it-IT.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/LOCALIZATION-it-IT.md) | `tu`; straight apostrophes; `chart` invariable |
 
+### The watcher's own words
+
+Words the site's glossaries have no entry for, decided once and reused everywhere. "The watcher" in a
+sentence is the app, not a brand, so it becomes each language's word for an app.
+
+| English | ko-KR | ja-JP | es-ES | es-MX | pt-BR | fr-FR | it-IT |
+|---|---|---|---|---|---|---|---|
+| Machine Default | 시스템 기본값 | システムの既定 | Predeterminado del sistema | Predeterminado del sistema | Padrão do sistema | Par défaut du système | Predefinita di sistema |
+| the watcher (the app) | 앱 | アプリ | la aplicación | la app | o app | l'appli | l'app |
+| bulk capture | 일괄 캡처 | 一括キャプチャ | captura masiva | captura masiva | captura em massa | capture en masse | acquisizione in blocco |
+| a play | 플레이 | プレイ | intento | jugada | jogada | partie | partita |
+| a best | 최고 기록 | 自己ベスト | mejor score | mejor puntaje | melhor pontuação | meilleur score | miglior punteggio |
+| screenshot | 스크린샷 | スクリーンショット | captura | captura | captura de tela | capture d'écran | screenshot |
+| the game window | 게임 창 | ゲームウィンドウ | la ventana del juego | la ventana del juego | a janela do jogo | la fenêtre du jeu | la finestra del gioco |
+| the tray | 시스템 트레이 | システムトレイ | la bandeja del sistema | la bandeja del sistema | a bandeja do sistema | la zone de notification | l'area di notifica |
+| watching | 감시 | 監視 | vigilar | vigilar | monitorar | surveiller | monitorare |
+| token | 토큰 | トークン | token | token | token | jeton | token |
+| review | 검토 | 確認 | revisar | revisar | revisar | vérifier | controllare |
+| kept (for review) | 보관 | 保存 | guardar | guardar | guardar | conserver | conservare |
+| song list | 노래 목록 | 曲リスト | lista de canciones | lista de canciones | lista de músicas | liste des chansons | lista delle canzoni |
+| judgments | 판정 | 判定 | juicios | juicios | julgamentos | jugements | giudizi |
+| the three sounds | 차임 · 틱 · 낮은 음 | チャイム · カチッ · 低い音 | Campanilla · Tic · Tono grave | Campanita · Tic · Tono grave | Sino · Tique · Tom grave | Carillon · Tic · Son grave | Campanella · Tic · Tono basso |
+
+A play's words agree with it: `jogada`, `partie` and `partita` are feminine (`registrada`, `enregistrée`,
+`registrata`), and French keeps the site's feminine `la chart`.
+
 ### Never translated
 
 PIU Scores and PIU Scores Watcher; RISE, Warm Up and Arcade Station (the game's names); Steam, Windows and F12;

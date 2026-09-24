@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using PiuScoresWatcher.Core.Settings;
 using PiuScoresWatcher.Tests.TestHelpers;
 
 namespace PiuScoresWatcher.Tests.ArchitectureTests;
@@ -60,6 +61,15 @@ public sealed partial class TranslationTests
             .ToArray();
 
         Assert.Empty(twins);
+    }
+
+    [Fact]
+    public void EveryLanguageTheWatcherSpeaksHasAFileAndNoOtherDoes()
+    {
+        // English is Copy.cs itself (D60)
+        var spoken = Languages.All.Where(code => code != Languages.English).Select(code => $"Strings.{code}.resx").Order(StringComparer.Ordinal);
+
+        Assert.Equal(spoken, Translations().Select(file => file.Name).Order(StringComparer.Ordinal));
     }
 
     [Fact]
