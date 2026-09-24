@@ -55,7 +55,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] Sit on a result screen for a minute → one play, not sixty.
 - [ ] F12 on a result screen with the game window mode off → the file is picked up and posted once.
 - [ ] Both modes on, F12 pressed on a screen the grab already read → still one play.
-- [ ] A misread (cover part of the judgments with another window) → refused locally, saved under `failed\`, surfaced, not posted.
+- [ ] A screen that can't be trusted (F12 in Steam-screenshot mode before the numbers finish counting) → refused locally, saved under `failed\`, surfaced, not posted. Covering the screen with another window does nothing: both modes read the game's own frame, never what's on top of it.
 - [ ] Wrong token → the settings window says so; nothing posts.
 - [ ] Quit RISE → the watcher sleeps (no capture, no CPU); start RISE → it wakes.
 - [ ] Install fresh → the first-run window opens on How it works; Set it up → the three steps; a bad token says so; a good one says who it is.

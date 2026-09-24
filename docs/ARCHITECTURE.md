@@ -100,14 +100,16 @@ PiuScoresWatcher.sln
 │   │                                a song list read and reported, never posted), WpfScreenDecoder
 │   ├── Ocr/                         WindowsOcrTitleReader (Windows.Media.Ocr over TitleInk's page)
 │   ├── Api/                         PiuScoresHttp — the HttpClient (site address, User-Agent, timeout);
-│   │                                SongCatalogs (each mix's chart list, loaded at start and before a run)
+│   │                                SongCatalogs (each mix's chart list, loaded once the site answers for
+│   │                                the token — asked again until it does — and before a run)
 │   ├── Sounds/                      CaptureSounds (plays the Tones through Windows: a bulk capture's for each
 │   │                                chart, D50, and a play's, D63, D64)
 │   ├── Security/                    DpapiTokenStore, EnvironmentOrStoredToken (the dev seam)
 │   ├── Capture/                     RiseProcessWatch (is the game running, which window), WindowCaptureSource
 │   │                                (PrintWindow once a second), SteamScreenshotSource + SteamPaths (the F12
 │   │                                folders), CaptureService (runs the sources, feeds a bulk capture first
-│   │                                and the pipeline after, logs), BulkCaptureService (prepares, runs and
+│   │                                and the pipeline after, logs; a source that fails starts again, and a
+│   │                                frame in hand outlives a pause), BulkCaptureService (prepares, runs and
 │   │                                ends a bulk capture; the sounds and its summary)
 │   ├── Notifications/               WatcherNotifier (Windows notifications, each kind switchable, a play's
 │   │                                sound) + the log

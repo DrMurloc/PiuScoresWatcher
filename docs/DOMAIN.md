@@ -58,7 +58,7 @@ A score that does not recompute from the judgments means a digit was misread. Th
 | A | 750,000 |
 | B | 650,000 |
 | C | 550,000 |
-| D | 450,000 |
+| D | 500,000 |
 | F | 0 |
 
 SSS to AA are measured; A and below are placeholders that PIU Scores corrects from recorded plays. The watcher posts the grade it read and the server records a disagreement rather than failing on one.

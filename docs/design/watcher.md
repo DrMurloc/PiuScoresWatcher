@@ -128,7 +128,11 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   kept for review — never when it was merely "not yet" — so the window's once-a-second view of the same
   result screen costs a detect and a read and nothing more, and OCR runs once per play. The key is mix,
   type, level, judgments, max combo, score and the broken flag; the title is left out because OCR may
-  spell it differently between frames.
+  spell it differently between frames. The ten minutes are for a second look — the F12 of a screen the
+  window already read — not a clock on the screen in view: from the window, a play is handled once per
+  visit to its result screen however long the player leaves it up, and a screen that cannot be read at all
+  is kept once per visit, not once a second (bug check, 2026-09-24). A visit ends at the first frame that is
+  not a result.
 - **D30. A window frame that does not reconcile waits; a screenshot that does not is kept.** The window
   brings a new frame every second, so "not yet" is right there; an F12 file is final, so the same
   frame is saved under `failed\` with why. A title the OCR cannot read is kept either way.
@@ -137,7 +141,10 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
 - **D32. F12 folders are found, not asked for.** `HKCU\Software\Valve\Steam\SteamPath` gives the Steam
   root, every numeric folder under `userdata` is an account, and RISE's screenshots sit at
   `760\remote\2756930\screenshots` under each; the settings' folder override replaces the lot. A file is
-  read once its size has held still and it opens, because Steam writes the JPEG in steps.
+  read once its size has held still and it opens, because Steam writes the JPEG in steps. Steam makes the
+  folder with a player's first F12 in RISE, so one that is not there yet is looked for every five seconds and
+  what it holds when it appears is read; a file that will not decode is logged and passed over (bug check,
+  2026-09-24).
 - **D24. WorldMax is skipped, and no station has a stage-break result screen.** WorldMax ends on a mission
   summary without the five counts, so it cannot be posted and never detects; a broken run in the Arcade Station
   never reaches a result, and in Warm Up the grey grade is the whole story. `isBroken` is the grey sticker.
@@ -163,7 +170,9 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
 - **D38. A play the site didn't record is kept for review, whatever the reason** — refused, unknown song, the
   token, a rate limit, no network — so a failure never loses a play silently; the review dialog shows each with
   its reason. A retry button comes after the MVP.
-- **D39. First run opens whenever no token is stored**; after that the watcher starts in the tray. A second
+- **D39. First run opens whenever no token is stored**; after that the watcher starts in the tray. Done
+  connects a token that was pasted but never connected, and stays open with the reason when it does not
+  connect (bug check, 2026-09-24: paste and Enter used to close into a watcher with no token). A second
   launch asks the running one to open its settings (a named event), and a notification's click reaches the
   running one too. A replay is a command and runs beside a running watcher.
 - **D40. Start with Windows is the per-user Run key**, written only for an installed copy (never a dev build),
@@ -411,6 +420,7 @@ on the site with nothing else to do.
 | Languages | built: the site's eight less Murloc, the Language section with Machine Default (D58–D62); the English unchanged over 370 compared lines; smoke-tested in every language — the windows, the notifications, a live switch |
 | Bulk capture from Warm Up's song list | built to the iteration-2 mocks (D45–D52) and smoke-tested end to end on the fixtures against a stand-in site (start window, sounds, counts, Stop, the summary, Recent); PIU Scores takes captures since it made judgments optional (its PR 358, merged 2026-09-24); one card per run waits on its sittings (PR 357), which ship before the watcher's first release |
 | Reading titles | a soft white-and-colourless mask at the 1080p size (D53): 33 of 38 fixture titles exact, 36 matched |
+| A bug check of the branch (2026-09-24) | 13 findings. Eight fixed on #8: the F12 folder that appears later (D32), paste-and-Enter on first run (D39), the chart list after a failed start-up check, an unreadable screen kept once a second, a screen left up past ten minutes (D29), a `%` in a count, a broken JPEG ending F12 mode, a pause cutting off a post. Five wait on the owner (§9) |
 
 **The one loop.** The UI is in. Install the build made on the owner's PC, paste a token, and play one
 session — a Warm Up result, an Arcade Station result, F12 on one, one left up for a minute, a Division result if
@@ -454,3 +464,19 @@ beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14)
 - **The name.** "PIU Scores Watcher" is a placeholder; the owner names it before v0.1.0 (the icon is settled,
   D34).
 - **Steam's "uncompressed copy" folder.** Steam can save a lossless PNG beside the JPEG; worth watching both?
+- **From the bug check (2026-09-24), with the owner:**
+  - *A misread frame beside a good one.* Good → misread → good, or misread → good, posts the play and also keeps
+    the misread frame as "couldn't read" (D54 treats the disagreeing frame as another play). Recommended: within
+    one visit (D29) the first frame that reconciles speaks for the screen.
+  - *A score over more notes than were judged.* `20260922192124` is a finished Aragami S19, not a score counting
+    up: 974/21/3/2/8 is 1,008 notes and the accuracy (97.95%) fits them, but 971,789 is the formula over 1,013 —
+    the game's own song list stores it as the best. No combo makes it fit 1,008, so such a play is kept every
+    time and PIU Scores would refuse it too. 1 of about 43 fixture results. D22, D47 and D54's "still counting
+    up" rest on reading this screen that way.
+  - *A song left early.* `20260922185707` is Ugly Dee D17 at 71/0/0/0/0 — 1,000,000, a Perfect Game — where D18
+    has 1,001 notes. It reconciles, so it posts unless the Arcade chart list knows the chart's note count (none
+    are known in Warm Up).
+  - *Bulk capture at 720p.* Downscaled to 1280×720, Vacuum Cleaner's 956,984 reads 956,934, still an S, and would
+    be sent. Every song-list fixture is 1080p.
+  - *Two identical panels in a row.* The half-second wait compares the panel's numbers, not its title, so a second
+    song whose lit level and score match the one before (both 1,000,000 SSS) never counts as a new panel.
