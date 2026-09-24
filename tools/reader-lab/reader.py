@@ -97,6 +97,8 @@ EXPECTED["20260921202351"] = ("dance", "PARADOXX", "S", 21, 1432, 32, 6, 2, 28, 
 EXPECTED["20260921202708"] = ("dance", "Vacuum Cleaner", "S", 20, 1133, 66, 7, 1, 15, 241, 956984, "96.08", False)
 EXPECTED["20260921204006"] = ("dance", "Solve My Hurt", "S", 22, 1168, 41, 6, 1, 14, 365, 967280, "97.06", False)
 EXPECTED["20260921205925"] = ("dance", "PRiMA MATERiA", "S", 18, 1085, 14, 2, 0, 5, 398, 985823, "98.89", False)
+# the owner's test loop, 09-23: the first Arcade Station 5 in the judgment font (max combo 0500, read as 600)
+EXPECTED["20260923214956"] = ("arcade", "VANISH", "S", 20, 1188, 23, 2, 1, 8, 500, 981005, "98.38", False)
 
 def shot_path(name):
     for candidate in (name + ".jpg", name + "_1.jpg"):

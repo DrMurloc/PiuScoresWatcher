@@ -638,5 +638,22 @@
   "20260923194349": {
     "kind": "arcadelist",
     "note": "the Arcade Station's song list: not read in v1 (D45)"
+  },
+  "20260923214956": {
+    "kind": "result",
+    "layout": "Arcade",
+    "mix": "riseArcade",
+    "title": "VANISH",
+    "chartType": "Single",
+    "level": 20,
+    "perfects": 1188,
+    "greats": 23,
+    "goods": 2,
+    "bads": 1,
+    "misses": 8,
+    "maxCombo": 500,
+    "score": 981005,
+    "accuracy": "98.38",
+    "broken": false
   }
 }
