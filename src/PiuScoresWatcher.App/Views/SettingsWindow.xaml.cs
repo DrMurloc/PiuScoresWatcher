@@ -100,13 +100,16 @@ public partial class SettingsWindow : Window
             _ = _connection.CheckStoredAsync(CancellationToken.None);
     }
 
-    /// <summary>How far down the window is scrolled, so a language change can redraw it at the same place.</summary>
-    public double ScrollOffset => Scroller.VerticalOffset;
+    /// <summary>How far down the window is scrolled, as a share of the way, so a language change redraws it at the same place.</summary>
+    public double ScrollFraction => Scroller.ScrollableHeight > 0 ? Scroller.VerticalOffset / Scroller.ScrollableHeight : 0;
 
-    /// <summary>Opens scrolled to <paramref name="offset" />, once its content has been laid out.</summary>
-    public void ScrollTo(double offset)
+    /// <summary>
+    ///     Opens scrolled as far down as <paramref name="fraction" /> of the way, once its content has been laid out —
+    ///     a share rather than a distance, because the same sections run longer in French than in English.
+    /// </summary>
+    public void ScrollTo(double fraction)
     {
-        Loaded += (_, _) => Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => Scroller.ScrollToVerticalOffset(offset));
+        Loaded += (_, _) => Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => Scroller.ScrollToVerticalOffset(fraction * Scroller.ScrollableHeight));
     }
 
     private void OnStatusChanged(object? sender, EventArgs e)

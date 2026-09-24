@@ -93,23 +93,33 @@
             <Border Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
                 <StackPanel>
                     <TextBlock x:Name="NoPlays" Text="{x:Static app:Copy.NoPlaysYet}" Style="{StaticResource Secondary}" Margin="16,10" />
-                    <ItemsControl x:Name="RecentList">
+                    <!-- The columns share their widths across the rows and grow to the widest word, from the mock's
+                         widths up: "maintenant" or a Japanese date is wider than "now" or "Sep 24" (D61). -->
+                    <ItemsControl x:Name="RecentList" Grid.IsSharedSizeScope="True">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" Padding="16,10">
-                                    <DockPanel>
-                                        <TextBlock DockPanel.Dock="Right" Width="44" Margin="10,0,0,0" TextAlignment="Right" VerticalAlignment="Center"
-                                                   Text="{Binding Age}" Style="{StaticResource Secondary}" TextWrapping="NoWrap" />
-                                        <TextBlock x:Name="Mark" DockPanel.Dock="Right" Width="96" Margin="10,0,0,0" TextAlignment="Right" VerticalAlignment="Center"
-                                                   Text="{Binding Mark}" Style="{StaticResource Secondary}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                                        <TextBlock x:Name="Grade" DockPanel.Dock="Right" Width="40" Margin="10,0,0,0" TextAlignment="Center" VerticalAlignment="Center"
-                                                   Text="{Binding Grade}" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                        <TextBlock x:Name="Score" DockPanel.Dock="Right" Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding Score}"
-                                                   Typography.NumeralAlignment="Tabular" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="RecentScore" />
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="RecentGrade" />
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="RecentMark" />
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="RecentAge" />
+                                        </Grid.ColumnDefinitions>
                                         <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
                                             <Run Text="{Binding Song, Mode=OneWay}" FontWeight="SemiBold" /><Run Text="{Binding Chart, Mode=OneWay}" />
                                         </TextBlock>
-                                    </DockPanel>
+                                        <TextBlock x:Name="Score" Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding Score}"
+                                                   Typography.NumeralAlignment="Tabular" />
+                                        <TextBlock x:Name="Grade" Grid.Column="2" MinWidth="40" Margin="10,0,0,0" TextAlignment="Center" VerticalAlignment="Center"
+                                                   Text="{Binding Grade}" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                        <TextBlock x:Name="Mark" Grid.Column="3" MinWidth="96" MaxWidth="150" Margin="10,0,0,0" TextAlignment="Right"
+                                                   VerticalAlignment="Center" Text="{Binding Mark}" Style="{StaticResource Secondary}" TextWrapping="NoWrap"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="4" MinWidth="44" Margin="10,0,0,0" TextAlignment="Right" VerticalAlignment="Center"
+                                                   Text="{Binding Age}" Style="{StaticResource Secondary}" TextWrapping="NoWrap" />
+                                    </Grid>
                                 </Border>
                                 <DataTemplate.Triggers>
                                     <DataTrigger Binding="{Binding IsGold}" Value="True">

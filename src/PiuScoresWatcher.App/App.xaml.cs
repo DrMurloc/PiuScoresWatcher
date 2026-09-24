@@ -272,13 +272,13 @@ public partial class App : Application
         if (_settings is not { } before)
             return;
 
-        var (left, top, offset) = (before.Left, before.Top, before.ScrollOffset);
+        var (left, top, scrolled) = (before.Left, before.Top, before.ScrollFraction);
         before.Close();
         _settings = OpenSettings();
         _settings.WindowStartupLocation = WindowStartupLocation.Manual;
         _settings.Left = left;
         _settings.Top = top;
-        _settings.ScrollTo(offset);
+        _settings.ScrollTo(scrolled);
         Bring(_settings);
     }
 

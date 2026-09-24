@@ -14,7 +14,8 @@
     <RootNamespace>PiuScoresWatcher.App</RootNamespace>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <!-- Only English resources ship; keeps the publish folder free of satellite assemblies. -->
+    <!-- Trims the packages' own translated resources to English. The watcher's translations are this
+         project's, not a package's, so every Resources/Strings.<code>.resx still ships as <code>\ (D58). -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <!-- WPF's Fluent theme (ThemeMode on Application) is still marked experimental on .NET 10. -->
     <NoWarn>$(NoWarn);WPF0001</NoWarn>
