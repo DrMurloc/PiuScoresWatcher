@@ -404,7 +404,7 @@ on the site with nothing else to do.
 | Watching the game window once a second; the F12 folders | done, not yet tried against the running game (D28–D32) |
 | Updates | done — checked at start-up, applied on the next launch (D8) |
 | The installer | wired in `release.yml`; built on the owner's PC for the loop |
-| First run, settings, the tray menu, notifications, the review dialog | built — iteration 1 of the mocks, with the arrow icon and switchable notifications (D34–D38, D43); smoke-tested on dropped F12 screenshots, not yet with the game |
+| First run, settings, the tray menu, notifications, the review dialog | built — iteration 1 of the mocks, with the arrow icon and switchable notifications (D34–D38, D43); first run opens on how it works (D65); smoke-tested on dropped F12 screenshots, not yet with the game |
 | Start with Windows; a second launch opens the running one's settings | built (D39, D40); the second launch smoke-tested, the Run key waits for an installed copy |
 | Every player-facing string | the mocks' wording, approved, all in `App/Copy.cs` (D36) |
 | A play's sound | built: on by default with its own switch; the chime, the low tone and the tick (D63, D64); smoke-tested — a play's notification goes silent when its sound plays, and keeps Windows' sound when the switch is off |
