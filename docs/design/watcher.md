@@ -183,12 +183,52 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   and kept screens under `%APPDATA%\PiuScoresWatcher\dev\<host>-<port>\`, takes its own one-copy lock, and names the
   site in its title and tray tooltip — so it runs beside the installed copy and never touches its token.
 
+**Bulk capture** — every best a player already has, from RISE's song list, without replaying anything (owner,
+2026-09-23; mocks: https://claude.ai/artifact/GNA8brvdiEB3aEbnFoXVzf, approved with "get it in").
+
+- **D45 (owner, 2026-09-23). Warm Up's song list only, in v1.** The Warm Up song list shows the selected chart's
+  BEST SCORE, ACCURACY, MAX COMBO and grade. The Arcade Station's list shows the best score, grade and plate, but
+  its plate is a game bug — stale or blank as the selection moves (Ugly Dee D18 at 988,166 showed two plates two
+  seconds apart; the owner has reported it) — so the Arcade Station waits.
+- **D46 (owner, 2026-09-23). A capture is a play, the way a Phoenix first import is**: the same write, the same
+  Discord cards, highlights and sessions. It carries no judgments; "judgements should never be mandatory", so the
+  site makes them optional on the plays write (a site change on its own PR). One capture per request, like a live
+  play — no batching: a first import's card truncates, and the site's sittings group a run. A capture is always a
+  pass; the owner has never seen a failed best on the list.
+- **D47. What a capture reads.** The song (Windows OCR, matched against the site's chart list, D49), the chart
+  type (the lit 5K SINGLE or 6K DOUBLE tab), the level (the lit box) and the best score. The grade badge is the
+  check: it must be the grade the score earns, compared against the nine RISE grade sprites, or the frame goes to
+  review. Accuracy and max combo are neither sent nor used: the list's figures do not always come from the
+  best-score play (Aragami S19 shows 971,789 beside 97.95%, which no one play can score), so they check nothing.
+- **D48. A capture is taken once the panel has read the same for half a second**, sampled five times a second
+  while a run is on. The wait rides out the panel changing between charts; a panel that lingers on the previous
+  chart's numbers longer than that is the one risk the owner's test pass watches for (the Arcade plate bug says
+  the game can lag).
+- **D49. A run starts by fetching the mix's charts and the player's bests** (`GET api/v2/charts`, `GET
+  api/v2/players/{id}/scores`). Only a capture above the stored best is sent; the rest are "already there". The
+  title is matched against the chart list — case, spacing and punctuation ignored, and O/0, I/l/1 and S/5 misreads
+  forgiven, among the songs that have the lit chart — so what is posted is the catalog's own spelling. Live result
+  screens use the same match whenever the chart list is loaded; without one they post what the OCR read, as before.
+- **D50. Feedback is sound**: a chime for sent, a tick for already there, a low tone for a panel that could not be
+  read or a capture PIU Scores did not take. The tones are synthesized, no audio files; one switch turns them off.
+  No notification during a run; one summary when it ends, with its own switch (the seventh kind, D35); one line in
+  Recent per run.
+- **D51. A run starts from the tray or settings, through a window** that explains the keys every time and says
+  how many bests PIU Scores already has. It ends when the song list has been gone for thirty seconds (a song
+  started), when a result screen appears, when RISE closes, when the list never shows in ten minutes, or from the
+  tray or settings.
+- **D52. A capture's `source` is `watcher-songlist`**, so the journal and the Undo page name it; it is dated when
+  it is read, like a first import. F12 works during a run too: a Steam screenshot of the song list is read the same
+  way, without the half-second wait — a file is already still.
+
 ## 3. The pipeline
 
 `IScreenSource` (one adapter per mode) → `ResultScreenDetector` (pixel anchors; which station) →
 `ResultScreenReader` (digit templates from the game's own font at layout positions that scale with the window;
 the title by Windows OCR) → `PlayChecksum` (D10) → `Deduplicator` (D11) → `IPlaysClient` → `INotifier`.
-ARCHITECTURE.md draws it.
+ARCHITECTURE.md draws it. A bulk capture run (D45–D52) branches off the same sources: `SongListDetector` →
+`SongListReader` (the lit tab, the lit level box, the best score, the grade badge) → `BulkCaptureRun` (the
+half-second wait, the chart-list match, the stored bests) → `IPlaysClient`, with sounds instead of notifications.
 
 The reader was built on the owner's 81 screenshots of 2026-09-21/22 (39 kept as fixtures: 30 results across
 both layouts, coloured and grey, 1080p and 720p; one mid-count frame; two blank-number frames; a Challenge
@@ -210,6 +250,7 @@ base64("anything:<token>")`. One request per play:
 | `source` | `watcher-grab` or `watcher-f12` (D16) |
 | `plays[]` | one play: `songName`, `chartType`, `level` (the server resolves the chart; `404` for an unknown title), `perfects`, `greats`, `goods`, `bads`, `misses`, `maxCombo`, `score`, `isBroken`, `playedAt` (the clock, ISO-8601 with offset) |
 | `award` | omitted — the server derives it from the judgments and would refuse a wrong claim anyway |
+| a bulk capture | `source` `watcher-songlist`; the play carries `songName`, `chartType`, `level`, `score`, `isBroken` false and `playedAt` (when it was read), and no judgments or max combo (D46) |
 | `recordBrokenAsBest` | omitted — the mix's default |
 
 `200` returns `recorded`, `mix`, `scoringModel`. `400` problem types the toast must turn into sentences:
@@ -217,7 +258,9 @@ base64("anything:<token>")`. One request per play:
 `score-invalid`, `played-at-invalid`, `legacy-mix`, `source-required`, `plays-required`. `401` — the token.
 `404` — the song. `429` carries `Retry-After` (600 requests a minute per token; a session is nowhere near).
 
-`GET api/v2/players/me` verifies the token on the settings window and greets the player by name.
+`GET api/v2/players/me` verifies the token on the settings window and greets the player by name. A bulk capture
+run also reads `GET api/v2/charts?mix=rise` (the chart list the titles are matched against) and `GET
+api/v2/players/{id}/scores?mix=rise` (the player's bests), following each page's `next` link (D49).
 
 ## 5. Player experience
 
@@ -249,6 +292,7 @@ on the site with nothing else to do.
 | First run, settings, the tray menu, notifications, the review dialog | built — iteration 1 of the mocks, with the arrow icon and switchable notifications (D34–D38, D43); smoke-tested on dropped F12 screenshots, not yet with the game |
 | Start with Windows; a second launch opens the running one's settings | built (D39, D40); the second launch smoke-tested, the Run key waits for an installed copy |
 | Every player-facing string | the mocks' placeholder copy, all in `App/Copy.cs` until the owner rewrites it (D36) |
+| Bulk capture from Warm Up's song list | built to the iteration-2 mocks (D45–D52); posting waits on the site making judgments optional, and one card per run on the site's sittings — both ship before the watcher's first release |
 
 **The one loop.** The UI is in. Install the build made on the owner's PC, paste a token, and play one
 session — a Warm Up result, an Arcade Station result, F12 on one, one left up for a minute, a Division result if

@@ -63,6 +63,12 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] Launch the watcher again while it runs → the running one's settings open.
 - [ ] F5 a dev build while the installed watcher runs → both run; the dev one's title and tooltip name the local site; connecting it leaves the installed one connected.
 - [ ] Sign out and back in → it is in the tray (Start with Windows); switched off → it isn't.
+- [ ] Bulk capture: start it from the tray → the window says how many Warm Up bests PIU Scores has; Start.
+- [ ] Move through a dozen charts on Warm Up's song list, some 6K DOUBLE via TAB → a chime for each best above the site's, a tick for the rest, and the site shows the chimed ones as plays.
+- [ ] Flip quickly between two charts → neither is captured with the other's score.
+- [ ] Start a song → the run ends; one summary notification; one line in Recent.
+- [ ] Run it again over the same charts → ticks only, nothing sent.
+- [ ] Sounds switched off → a silent run; the summary still arrives.
 - [ ] Uninstall → the tray icon, the Start menu entry and the sign-in entry are gone; reinstall → still connected, settings kept.
 
 ## What is not tested automatically, and why
