@@ -36,7 +36,9 @@ public abstract record FrameOutcome
 ///     A window result that never reconciles is not left there (D54): once its numbers have stood still
 ///     for <see cref="StandStill" /> and still disagree, or the screen goes away before they ever agree, it
 ///     is kept for review the way a screenshot is — the Arcade Station's first 5 was misread that way and
-///     only its F12 copy ever reached the player.
+///     only its F12 copy ever reached the player. On one visit to a result screen, the first frame that
+///     reconciles speaks for it: a frame beside it that disagrees or cannot be read is the same screen
+///     misread, and is dropped, not kept (owner, 2026-09-24).
 ///     The title is read only for a play not seen before — the window shows the same screen once a
 ///     second, and OCR is the expensive step — attempt by attempt until one names a chart (D55), and
 ///     posted in the catalog's own spelling whenever the mix's chart list is loaded and names the song
@@ -55,18 +57,21 @@ public sealed class CapturePipeline(
     /// <summary>How long a window result's numbers stand still, still disagreeing, before it is kept (D54).</summary>
     public static readonly TimeSpan StandStill = TimeSpan.FromSeconds(3);
 
-    /// <summary>The window result whose numbers have not agreed yet, and since when they have read as they do.</summary>
-    private Unsettled? _unsettled;
-
     /// <summary>
     ///     The window's current visit to a result screen, from its first frame until one that is not a result. The
-    ///     screen stays up as long as the player leaves it (D11), so within a visit an unreadable screen is kept once,
-    ///     however many frames the video behind its numbers sends, and the play it shows is handled once, however long
-    ///     it stands — the dedupe window alone let a screen left up for eleven minutes post its play twice.
+    ///     screen stays up as long as the player leaves it (D11), so within a visit the play it shows is handled once,
+    ///     however long it stands — the dedupe window alone let a screen left up for eleven minutes post its play
+    ///     twice — and it is kept for review at most once, however many frames the video behind its numbers sends.
     /// </summary>
-    private bool _keptUnreadableThisVisit;
-
     private PlayKey? _handledThisVisit;
+
+    private bool _keptThisVisit;
+
+    /// <summary>A frame of this visit reconciled: every frame of it that does not is the same screen misread.</summary>
+    private bool _settledThisVisit;
+
+    /// <summary>The frame of this visit that is not a play yet, and since when it has read as it does.</summary>
+    private Pending? _pending;
 
     public async Task<FrameOutcome> HandleAsync(CapturedFrame frame, CancellationToken cancellationToken)
     {
@@ -75,11 +80,7 @@ public sealed class CapturePipeline(
         if (layout is null)
         {
             if (fromWindow)
-            {
-                KeepUnsettled(); // the screen went away and its numbers never agreed
                 EndVisit();
-            }
-
             return new FrameOutcome.NotAResult();
         }
 
@@ -88,41 +89,35 @@ public sealed class CapturePipeline(
         {
             case ReadingStatus.NotAPlay:
                 if (fromWindow)
-                {
-                    KeepUnsettled();
                     EndVisit();
-                }
-
                 return new FrameOutcome.NotAPlay();
             case ReadingStatus.NumbersNotShown:
                 return fromWindow
                     ? new FrameOutcome.NotYet(reading.Reason ?? "the numbers have not landed")
                     : Keep(frame, KeptBecause.NumbersNotShown, reading.Reason ?? "the numbers had not landed", reading);
             case ReadingStatus.Unreadable:
-                if (fromWindow && _keptUnreadableThisVisit)
-                    return new FrameOutcome.Duplicate();
-                _keptUnreadableThisVisit |= fromWindow;
-                return Keep(frame, KeptBecause.NumbersUnreadable, reading.Reason ?? "unreadable", reading);
+                return fromWindow
+                    ? Wait(frame, reading, KeptBecause.NumbersUnreadable, reading.Reason ?? "unreadable")
+                    : Keep(frame, KeptBecause.NumbersUnreadable, reading.Reason ?? "unreadable", reading);
         }
 
         var verdict = PlayChecksum.Verify(reading);
         if (!verdict.Reconciles)
         {
+            var problem = verdict.Problem ?? "the numbers do not agree";
+            if (fromWindow)
+                return Wait(frame, reading, KeptBecause.NumbersDisagree, problem);
             // kept already — from the window, or from a screenshot of the same screen — is kept once
-            if (PlayKey.Of(reading) is { } handled && (HandledThisVisit(fromWindow, handled) || !deduplicator.IsNew(handled)))
-                return new FrameOutcome.Duplicate();
-            return fromWindow
-                ? Unsettle(frame, reading, verdict.Problem ?? "the numbers do not agree")
-                : Keep(frame, KeptBecause.NumbersDisagree, verdict.Problem ?? "the numbers do not agree", reading);
+            return PlayKey.Of(reading) is { } handled && !deduplicator.IsNew(handled)
+                ? new FrameOutcome.Duplicate()
+                : Keep(frame, KeptBecause.NumbersDisagree, problem, reading);
         }
 
-        if (fromWindow && _unsettled is { } unsettled)
+        if (fromWindow)
         {
-            // the same play settling (its score was still counting) is no longer unsettled; another play means it never did
-            if (SamePlay(unsettled.Reading, reading))
-                _unsettled = null;
-            else
-                KeepUnsettled();
+            // the first frame of the visit that reconciles speaks for the screen: one still waiting was it misread
+            _settledThisVisit = true;
+            _pending = null;
         }
 
         var key = PlayKey.Of(reading)!;
@@ -158,44 +153,37 @@ public sealed class CapturePipeline(
         return new FrameOutcome.Posted(play, outcome);
     }
 
-    /// <summary>A window result whose numbers disagree: not yet, until they have stood still long enough to be kept.</summary>
-    private FrameOutcome Unsettle(CapturedFrame frame, ResultScreenReading reading, string problem)
+    /// <summary>
+    ///     A window frame that is not a play: its numbers disagree, or a glyph would not read. Once a frame of the visit
+    ///     has reconciled or been kept it is the same screen again, and is dropped. Otherwise it waits (D54) — kept once
+    ///     it has read the same for <see cref="StandStill" />, or when the screen goes away, unless a frame that
+    ///     reconciles arrives first.
+    /// </summary>
+    private FrameOutcome Wait(CapturedFrame frame, ResultScreenReading reading, KeptBecause because, string problem)
     {
-        if (_unsettled is { } unsettled && PlayKey.Of(unsettled.Reading) == PlayKey.Of(reading))
+        var key = PlayKey.Of(reading);
+        if (_settledThisVisit || _keptThisVisit || (key is not null && !deduplicator.IsNew(key)))
+            return new FrameOutcome.Duplicate();
+
+        if (_pending is { } pending && pending.Key == key)
         {
-            if (frame.SeenAt - unsettled.Since < StandStill)
+            if (frame.SeenAt - pending.Since < StandStill)
                 return new FrameOutcome.NotYet(problem);
-            _unsettled = null;
-            return Keep(frame, KeptBecause.NumbersDisagree, problem, reading);
+            _pending = null;
+            return Keep(frame, because, problem, reading);
         }
 
-        // a new play, or the same one still counting up: the clock starts again
-        if (_unsettled is { } other && !SamePlay(other.Reading, reading))
-            KeepUnsettled();
-        _unsettled = new Unsettled(reading, frame, problem, frame.SeenAt);
+        // the first, or the numbers moved (a score still counting up, a misread that changes): the clock starts again
+        _pending = new Pending(reading, key, frame, because, problem, frame.SeenAt);
         return new FrameOutcome.NotYet(problem);
-    }
-
-    /// <summary>The unsettled window result, kept for review — unless another source already handled the play.</summary>
-    private void KeepUnsettled()
-    {
-        if (_unsettled is not { } unsettled)
-            return;
-        _unsettled = null;
-        if (PlayKey.Of(unsettled.Reading) is { } key && deduplicator.IsNew(key))
-            Keep(unsettled.Frame, KeptBecause.NumbersDisagree, unsettled.Problem, unsettled.Reading);
-    }
-
-    /// <summary>One play whatever its score has counted up to: the same station, chart type, judgments and combo.</summary>
-    private static bool SamePlay(ResultScreenReading a, ResultScreenReading b)
-    {
-        return a.Mix == b.Mix && a.ChartType == b.ChartType && a.Judgments == b.Judgments && a.MaxCombo == b.MaxCombo;
     }
 
     private FrameOutcome Keep(CapturedFrame frame, KeptBecause because, string reason, ResultScreenReading reading)
     {
         if (PlayKey.Of(reading) is { } key)
             Remember(frame, key);
+        if (frame.Source == CaptureSource.GameWindow)
+            _keptThisVisit = true;
         var path = failed.Save(frame, because, reason, reading);
         notifier.Notify(new WatcherNotice.Unreadable(reason, path));
         return new FrameOutcome.Kept(reason, path);
@@ -214,12 +202,20 @@ public sealed class CapturePipeline(
         return fromWindow && key == _handledThisVisit;
     }
 
-    /// <summary>The window left the result screen: the next one is a new visit.</summary>
+    /// <summary>
+    ///     The window left the result screen. A frame still waiting never had one that reconciled beside it, so it is
+    ///     kept — unless another source already handled the play — and the next screen is a new visit.
+    /// </summary>
     private void EndVisit()
     {
-        _keptUnreadableThisVisit = false;
+        if (_pending is { } pending && (pending.Key is null || deduplicator.IsNew(pending.Key)))
+            Keep(pending.Frame, pending.Because, pending.Problem, pending.Reading);
+        _pending = null;
+        _settledThisVisit = false;
+        _keptThisVisit = false;
         _handledThisVisit = null;
     }
 
-    private sealed record Unsettled(ResultScreenReading Reading, CapturedFrame Frame, string Problem, DateTimeOffset Since);
+    private sealed record Pending(
+        ResultScreenReading Reading, PlayKey? Key, CapturedFrame Frame, KeptBecause Because, string Problem, DateTimeOffset Since);
 }

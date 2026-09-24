@@ -53,6 +53,20 @@ public sealed class CapturePipelineTests
         return new CapturedFrame(image, source, Now.AddSeconds(seconds), null);
     }
 
+    /// <summary>Morrighan with its goods (13) pasted over its misses (14): every digit reads, and the numbers no longer agree.</summary>
+    private static CapturedFrame Disagreeing(double seconds = 0)
+    {
+        var image = FixtureScreens.LoadWithCopy("20260921201328",
+            FractionRect.At1080p(1690, 386, 1850, 434), FractionRect.At1080p(1690, 582, 1850, 630));
+        return new CapturedFrame(image, CaptureSource.GameWindow, Now.AddSeconds(seconds), null);
+    }
+
+    private void NothingKept()
+    {
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), It.IsAny<KeptBecause>(), It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Never);
+        _notifier.Verify(n => n.Notify(It.IsAny<WatcherNotice.Unreadable>()), Times.Never);
+    }
+
     private void TitleIs(params string[] reads)
     {
         _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
@@ -213,13 +227,33 @@ public sealed class CapturePipelineTests
     }
 
     [Fact]
-    public async Task AWindowResultThatNeverAgreesIsKeptWhenTheNextPlayArrives()
+    public async Task AMisreadFrameBeforeTheScreenReadsRightIsDropped()
+    {
+        // owner, 2026-09-24: the first frame of a visit that adds up speaks for the screen
+        var pipeline = Pipeline();
+        Assert.IsType<FrameOutcome.NotYet>(await pipeline.HandleAsync(Misread(0), CancellationToken.None));
+        Assert.IsType<FrameOutcome.NotYet>(await pipeline.HandleAsync(Disagreeing(1), CancellationToken.None));
+
+        Assert.IsType<FrameOutcome.Posted>(await pipeline.HandleAsync(Frame("20260921201328", seconds: 2), CancellationToken.None));
+        await pipeline.HandleAsync(Frame("20260922184847", seconds: 3), CancellationToken.None);
+
+        NothingKept();
+    }
+
+    [Fact]
+    public async Task AMisreadFrameAfterTheScreenReadRightIsDropped()
     {
         var pipeline = Pipeline();
-        await pipeline.HandleAsync(Frame("20260922192124"), CancellationToken.None);
+        Assert.IsType<FrameOutcome.Posted>(await pipeline.HandleAsync(Frame("20260921201328"), CancellationToken.None));
 
-        Assert.IsType<FrameOutcome.Posted>(await pipeline.HandleAsync(Frame("20260921201328", seconds: 1), CancellationToken.None));
-        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.NumbersDisagree, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
+        Assert.IsType<FrameOutcome.Duplicate>(await pipeline.HandleAsync(Disagreeing(1), CancellationToken.None));
+        Assert.IsType<FrameOutcome.Duplicate>(await pipeline.HandleAsync(Misread(2), CancellationToken.None));
+        Assert.IsType<FrameOutcome.Duplicate>(await pipeline.HandleAsync(Frame("20260921201328", seconds: 3), CancellationToken.None));
+        Assert.IsType<FrameOutcome.Duplicate>(await pipeline.HandleAsync(Disagreeing(30), CancellationToken.None));
+        await pipeline.HandleAsync(Frame("20260922184847", seconds: 31), CancellationToken.None);
+
+        NothingKept();
+        _site.Verify(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -248,12 +282,15 @@ public sealed class CapturePipelineTests
     {
         // the Arcade Station's video behind the numbers changes every frame; one screen is one review
         var pipeline = Pipeline();
-        Assert.IsType<FrameOutcome.Kept>(await pipeline.HandleAsync(Misread(0), CancellationToken.None));
-        Assert.IsType<FrameOutcome.Duplicate>(await pipeline.HandleAsync(Misread(1), CancellationToken.None));
-        Assert.IsType<FrameOutcome.Duplicate>(await pipeline.HandleAsync(Misread(2), CancellationToken.None));
+        Assert.IsType<FrameOutcome.NotYet>(await pipeline.HandleAsync(Misread(0), CancellationToken.None));
+        Assert.IsType<FrameOutcome.NotYet>(await pipeline.HandleAsync(Misread(2), CancellationToken.None));
+        Assert.IsType<FrameOutcome.Kept>(await pipeline.HandleAsync(Misread(3), CancellationToken.None));
+        Assert.IsType<FrameOutcome.Duplicate>(await pipeline.HandleAsync(Misread(4), CancellationToken.None));
+        await pipeline.HandleAsync(Frame("20260922184847", seconds: 5), CancellationToken.None);
 
-        await pipeline.HandleAsync(Frame("20260922184847", seconds: 3), CancellationToken.None);
-        Assert.IsType<FrameOutcome.Kept>(await pipeline.HandleAsync(Misread(60), CancellationToken.None));
+        // the next visit that never reads is kept when the screen goes away
+        Assert.IsType<FrameOutcome.NotYet>(await pipeline.HandleAsync(Misread(60), CancellationToken.None));
+        await pipeline.HandleAsync(Frame("20260922184847", seconds: 61), CancellationToken.None);
 
         _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.NumbersUnreadable, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Exactly(2));
         _notifier.Verify(n => n.Notify(It.IsAny<WatcherNotice.Unreadable>()), Times.Exactly(2));
