@@ -50,10 +50,47 @@ public sealed class TonesTests
         Assert.InRange(loudest, 1000, short.MaxValue - 1);
     }
 
+    [Theory]
+    [MemberData(nameof(Sounds))]
+    public void EachSoundIsAsLoudAsAWavGoesWithoutDistorting(string name)
+    {
+        // the first play test lost the soft beeps under Warm Up's song previews
+        var samples = Samples(Tones.Wav(Named(name)));
+
+        Assert.InRange(samples.Max(Math.Abs) / (double)short.MaxValue, Tones.Loudness - 0.01, Tones.Loudness + 0.01);
+    }
+
+    [Theory]
+    [MemberData(nameof(Sounds))]
+    public void EachSoundHitsAtOnce(string name)
+    {
+        var samples = Samples(Tones.Wav(Named(name)));
+        var half = samples.Max(Math.Abs) / 2;
+
+        var firstLoud = Array.FindIndex(samples, sample => Math.Abs(sample) >= half);
+
+        Assert.InRange(firstLoud / (double)Tones.SampleRate, 0, 0.005);
+    }
+
+    [Theory]
+    [MemberData(nameof(Sounds))]
+    public void EachSoundIsTheSameEveryTime(string name)
+    {
+        Assert.Equal(Tones.Wav(Named(name)), Tones.Wav(Named(name)));
+    }
+
     [Fact]
     public void TheThreeSoundsDiffer()
     {
         Assert.NotEqual(Tones.Wav(Tones.Sent), Tones.Wav(Tones.Already));
         Assert.NotEqual(Tones.Wav(Tones.Already), Tones.Wav(Tones.NotSent));
+    }
+
+    private static int[] Samples(byte[] wav)
+    {
+        var samples = new int[(wav.Length - 44) / 2];
+        for (var i = 0; i < samples.Length; i++)
+            samples[i] = BitConverter.ToInt16(wav, 44 + i * 2);
+        return samples;
     }
 }
