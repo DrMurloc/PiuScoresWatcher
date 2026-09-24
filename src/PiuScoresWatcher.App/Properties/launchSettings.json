@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Local site": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "PIUSCORESWATCHER_BASE_URL": "https://localhost:7144/"
+      }
+    },
+    "Production": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "PIUSCORESWATCHER_BASE_URL": "https://piuscores.arroweclip.se/"
+      }
+    }
+  }
+}

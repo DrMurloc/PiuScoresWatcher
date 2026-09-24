@@ -1,0 +1,192 @@
+<Window x:Class="PiuScoresWatcher.App.Views.FirstRunWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="clr-namespace:PiuScoresWatcher.App"
+        Title="{x:Static app:Copy.AppName}"
+        Icon="/Assets/app.ico"
+        Width="480" SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen">
+    <!-- How it works first (watcher.md D65), then the mocks' first-run screen (D37), one page at a time.
+         Every string is Copy's (D36). -->
+    <Window.Resources>
+        <!-- One of how-it-works' three icons: a 24-unit stroke drawing in the accent, on a faint accent disc. -->
+        <Style x:Key="StepIcon" TargetType="Path">
+            <Setter Property="Stroke" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeStartLineCap" Value="Round" />
+            <Setter Property="StrokeEndLineCap" Value="Round" />
+            <Setter Property="StrokeLineJoin" Value="Round" />
+        </Style>
+        <Style x:Key="IconDisc" TargetType="Ellipse">
+            <Setter Property="Fill" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+            <Setter Property="Opacity" Value="0.12" />
+        </Style>
+        <Style x:Key="Bullet" TargetType="Ellipse">
+            <Setter Property="Width" Value="6" />
+            <Setter Property="Height" Value="6" />
+            <Setter Property="Margin" Value="0,7,10,0" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Fill" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="24,12,24,20">
+        <StackPanel x:Name="IntroPage">
+            <TextBlock Text="{x:Static app:Copy.IntroHeadline}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
+            <TextBlock Text="{x:Static app:Copy.IntroLede}" Style="{StaticResource Secondary}" FontSize="14" Margin="0,2,0,12" />
+
+            <Border Style="{StaticResource Card}" Padding="16" Margin="0,0,0,10">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,14">
+                        <Grid DockPanel.Dock="Left" Width="32" Height="32" Margin="0,0,12,0" VerticalAlignment="Top">
+                            <Ellipse Style="{StaticResource IconDisc}" />
+                            <Viewbox Width="18" Height="18">
+                                <Canvas Width="24" Height="24">
+                                    <Path Style="{StaticResource StepIcon}"
+                                          Data="M5,4 H19 A2,2 0 0 1 21,6 V15 A2,2 0 0 1 19,17 H5 A2,2 0 0 1 3,15 V6 A2,2 0 0 1 5,4 Z M8,21 H16 M12,17 V21" />
+                                </Canvas>
+                            </Viewbox>
+                        </Grid>
+                        <StackPanel>
+                            <TextBlock Text="{x:Static app:Copy.IntroSees}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <TextBlock Text="{x:Static app:Copy.IntroSeesDetail}" Style="{StaticResource Secondary}" />
+                        </StackPanel>
+                    </DockPanel>
+                    <DockPanel Margin="0,0,0,14">
+                        <Grid DockPanel.Dock="Left" Width="32" Height="32" Margin="0,0,12,0" VerticalAlignment="Top">
+                            <Ellipse Style="{StaticResource IconDisc}" />
+                            <Viewbox Width="18" Height="18">
+                                <Canvas Width="24" Height="24">
+                                    <Path Style="{StaticResource StepIcon}"
+                                          Data="M9,11 L12,14 L20,6 M20,12 V18 A2,2 0 0 1 18,20 H6 A2,2 0 0 1 4,18 V6 A2,2 0 0 1 6,4 H15" />
+                                </Canvas>
+                            </Viewbox>
+                        </Grid>
+                        <StackPanel>
+                            <TextBlock Text="{x:Static app:Copy.IntroChecks}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <TextBlock Text="{x:Static app:Copy.IntroChecksDetail}" Style="{StaticResource Secondary}" />
+                        </StackPanel>
+                    </DockPanel>
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Left" Width="32" Height="32" Margin="0,0,12,0" VerticalAlignment="Top">
+                            <Ellipse Style="{StaticResource IconDisc}" />
+                            <Viewbox Width="18" Height="18">
+                                <Canvas Width="24" Height="24">
+                                    <Path Style="{StaticResource StepIcon}"
+                                          Data="M12,16 V4 M7,9 L12,4 L17,9 M4,16 V19 A1,1 0 0 0 5,20 H19 A1,1 0 0 0 20,19 V16" />
+                                </Canvas>
+                            </Viewbox>
+                        </Grid>
+                        <StackPanel>
+                            <TextBlock Text="{x:Static app:Copy.IntroRecords}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <TextBlock Text="{x:Static app:Copy.IntroRecordsDetail}" Style="{StaticResource Secondary}" />
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Padding="16,14">
+                <StackPanel>
+                    <TextBlock Text="{x:Static app:Copy.IntroOutOfTheWay}" Style="{StaticResource Secondary}" FontWeight="SemiBold" Margin="0,0,0,8" />
+                    <DockPanel Margin="0,0,0,6">
+                        <Ellipse DockPanel.Dock="Left" Style="{StaticResource Bullet}" />
+                        <TextBlock Text="{x:Static app:Copy.IntroTray}" TextWrapping="Wrap" />
+                    </DockPanel>
+                    <DockPanel Margin="0,0,0,6">
+                        <Ellipse DockPanel.Dock="Left" Style="{StaticResource Bullet}" />
+                        <TextBlock Text="{x:Static app:Copy.IntroOnlyRise}" TextWrapping="Wrap" />
+                    </DockPanel>
+                    <DockPanel>
+                        <Ellipse DockPanel.Dock="Left" Style="{StaticResource Bullet}" />
+                        <TextBlock Text="{x:Static app:Copy.IntroReview}" TextWrapping="Wrap" />
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <DockPanel Margin="0,14,0,0">
+                <Button x:Name="SetItUpButton" DockPanel.Dock="Right" Style="{DynamicResource AccentButtonStyle}" Padding="20,4"
+                        Content="{x:Static app:Copy.SetItUp}" Click="OnSetItUp" IsDefault="True" />
+                <TextBlock Text="{x:Static app:Copy.IntroSetupTakes}" Style="{StaticResource Secondary}" VerticalAlignment="Center" Margin="0,0,16,0" />
+            </DockPanel>
+        </StackPanel>
+
+        <StackPanel x:Name="SetupPage" Visibility="Collapsed">
+            <TextBlock Text="{x:Static app:Copy.FirstRunHeadline}" FontSize="20" FontWeight="SemiBold" />
+            <TextBlock Text="{x:Static app:Copy.FirstRunLede}" Style="{StaticResource Secondary}" FontSize="14" Margin="0,2,0,12" />
+
+            <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource StepBadge}"><TextBlock Text="1" Style="{StaticResource StepNumber}" /></Border>
+                        <TextBlock Text="{x:Static app:Copy.TokenLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <DockPanel Margin="0,10,0,0">
+                        <Button x:Name="ConnectButton" DockPanel.Dock="Right" Margin="8,0,0,0" Padding="16,4"
+                                Content="{x:Static app:Copy.Connect}" Click="OnConnect" />
+                        <PasswordBox x:Name="TokenBox" />
+                    </DockPanel>
+                    <DockPanel x:Name="ConnectionLine" Margin="0,8,0,0" Visibility="Collapsed">
+                        <Grid x:Name="CheckIcon" DockPanel.Dock="Left" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Ellipse Fill="{DynamicResource SystemFillColorSuccessBrush}" />
+                            <Path Data="M4.5,8.2 L6.8,10.5 L11.5,5.7" Stroke="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                                  StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                        </Grid>
+                        <TextBlock x:Name="ConnectionText" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <TextBlock x:Name="TokenHelpText" Style="{StaticResource Secondary}" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Border Style="{StaticResource StepBadge}"><TextBlock Text="2" Style="{StaticResource StepNumber}" /></Border>
+                        <TextBlock Text="{x:Static app:Copy.ModeQuestion}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <RadioButton x:Name="ModeGame" GroupName="Mode" Margin="0,0,0,6">
+                        <StackPanel>
+                            <TextBlock Text="{x:Static app:Copy.ModeGame}" FontWeight="SemiBold" />
+                            <TextBlock Text="{x:Static app:Copy.ModeGameDetail}" Style="{StaticResource Secondary}" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="ModeSteam" GroupName="Mode" Margin="0,0,0,6">
+                        <StackPanel>
+                            <TextBlock Text="{x:Static app:Copy.ModeSteam}" FontWeight="SemiBold" />
+                            <TextBlock Text="{x:Static app:Copy.ModeSteamDetail}" Style="{StaticResource Secondary}" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="ModeBoth" GroupName="Mode">
+                        <StackPanel>
+                            <TextBlock>
+                                <Run Text="{x:Static app:Copy.ModeBothShort}" FontWeight="SemiBold" />
+                                <Run Text="{x:Static app:Copy.Recommended}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </TextBlock>
+                            <TextBlock Text="{x:Static app:Copy.ModeBothDetail}" Style="{StaticResource Secondary}" />
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource StepBadge}"><TextBlock Text="3" Style="{StaticResource StepNumber}" /></Border>
+                        <CheckBox x:Name="StartWithWindowsBox" VerticalAlignment="Center">
+                            <TextBlock Text="{x:Static app:Copy.StartWithWindows}" FontWeight="SemiBold" />
+                        </CheckBox>
+                    </StackPanel>
+                    <TextBlock Text="{x:Static app:Copy.StartWithWindowsDetail}" Style="{StaticResource Secondary}" Margin="32,4,0,0" />
+                </StackPanel>
+            </Border>
+
+            <DockPanel Margin="0,14,0,0">
+                <Button x:Name="DoneButton" DockPanel.Dock="Right" Style="{DynamicResource AccentButtonStyle}" Padding="20,4"
+                        Content="{x:Static app:Copy.Done}" Click="OnDone" />
+                <TextBlock VerticalAlignment="Center" FontSize="12">
+                    <Hyperlink Click="OnPrivacy"><Run Text="{x:Static app:Copy.PrivacyLink}" /></Hyperlink>
+                </TextBlock>
+            </DockPanel>
+        </StackPanel>
+    </Grid>
+</Window>

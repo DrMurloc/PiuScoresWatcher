@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="(recommended)" xml:space="preserve">
+    <value>（おすすめ）</value>
+  </data>
+  <data name="1 play wasn't recorded" xml:space="preserve">
+    <value>1件のプレイが記録されませんでした</value>
+  </data>
+  <data name="1 screen couldn't be read" xml:space="preserve">
+    <value>1件の画面を読み取れませんでした</value>
+  </data>
+  <data name="A chime when a play is recorded, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it." xml:space="preserve">
+    <value>プレイが記録されるとチャイム、画面を読み取れないと低い音、PIU Scoresが受け付けないとカチッと鳴ります。</value>
+  </data>
+  <data name="A play PIU Scores didn't take" xml:space="preserve">
+    <value>PIU Scoresが受け付けなかったプレイ</value>
+  </data>
+  <data name="A screen it can't read makes a low tone and waits for you in Review. Nothing is guessed." xml:space="preserve">
+    <value>読み取れない画面は低い音で知らせ、確認画面で待っています。推測はしません。</value>
+  </data>
+  <data name="A screen seen twice is still one play." xml:space="preserve">
+    <value>2回見た画面も、プレイは1回です。</value>
+  </data>
+  <data name="A screen that couldn't be read" xml:space="preserve">
+    <value>読み取れなかった画面</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>アカウント</value>
+  </data>
+  <data name="Both" xml:space="preserve">
+    <value>両方</value>
+  </data>
+  <data name="broken" xml:space="preserve">
+    <value>Break Off</value>
+  </data>
+  <data name="Bulk capture" xml:space="preserve">
+    <value>一括キャプチャ</value>
+  </data>
+  <data name="Bulk capture finished" xml:space="preserve">
+    <value>一括キャプチャが終わりました</value>
+  </data>
+  <data name="Bulk capture on · {0} sent" xml:space="preserve">
+    <value>一括キャプチャ中 · {0}件送信</value>
+  </data>
+  <data name="Bulk capture · {0} sent, {1} already there" xml:space="preserve">
+    <value>一括キャプチャ · {0}件送信、{1}件は登録済み</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>変更</value>
+  </data>
+  <data name="Checking your bests on PIU Scores…" xml:space="preserve">
+    <value>PIU Scoresで自己ベストを確認中…</value>
+  </data>
+  <data name="Checking…" xml:space="preserve">
+    <value>確認中…</value>
+  </data>
+  <data name="Chime" xml:space="preserve">
+    <value>チャイム</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>接続</value>
+  </data>
+  <data name="Connect to PIU Scores in settings first." xml:space="preserve">
+    <value>先に設定でPIU Scoresに接続してください。</value>
+  </data>
+  <data name="Connected as {0}" xml:space="preserve">
+    <value>{0}として接続済み</value>
+  </data>
+  <data name="Couldn't load your bests from PIU Scores. Try again in a moment." xml:space="preserve">
+    <value>PIU Scoresから自己ベストを読み込めませんでした。少し待ってからもう一度お試しください。</value>
+  </data>
+  <data name="Couldn't reach PIU Scores to check the token. Try again in a moment." xml:space="preserve">
+    <value>トークンを確認するためにPIU Scoresへ接続できませんでした。少し待ってからもう一度お試しください。</value>
+  </data>
+  <data name="Couldn't reach PIU Scores. Not recorded." xml:space="preserve">
+    <value>PIU Scoresに接続できませんでした。記録されていません。</value>
+  </data>
+  <data name="Couldn't read it. It's kept for review; move on." xml:space="preserve">
+    <value>読み取れませんでした。確認用に保存されるので、次へ進んでください。</value>
+  </data>
+  <data name="Couldn't read that result screen" xml:space="preserve">
+    <value>リザルト画面を読み取れませんでした</value>
+  </data>
+  <data name="Create one on {0}. It is stored encrypted on this PC and only ever sent to PIU Scores." xml:space="preserve">
+    <value>{0}で作成できます。このPCに暗号化して保存され、PIU Scores以外には送信されません。</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Delete all {0} unread screens" xml:space="preserve">
+    <value>読み取れなかった画面{0}件をすべて削除</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>接続解除</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="Each best on Warm Up's song list becomes a play on PIU Scores: the song, the chart and the score, no judgments." xml:space="preserve">
+    <value>Warm Upの曲リストにある自己ベストが、それぞれPIU Scoresのプレイになります。曲・譜面・スコアのみで、判定は含みません。</value>
+  </data>
+  <data name="Every recorded play" xml:space="preserve">
+    <value>記録されたすべてのプレイ</value>
+  </data>
+  <data name="Every result screen becomes a play on PIU Scores, with nothing to press while you play." xml:space="preserve">
+    <value>リザルト画面はすべてPIU Scoresのプレイになります。プレイ中に押すものはありません。</value>
+  </data>
+  <data name="Extreme Game" xml:space="preserve">
+    <value>Extreme Game</value>
+  </data>
+  <data name="Fair Game" xml:space="preserve">
+    <value>Fair Game</value>
+  </data>
+  <data name="Full Combo" xml:space="preserve">
+    <value>Full Combo</value>
+  </data>
+  <data name="game window" xml:space="preserve">
+    <value>ゲームウィンドウ</value>
+  </data>
+  <data name="Grab your Warm Up bests" xml:space="preserve">
+    <value>Warm Upの自己ベストを取り込む</value>
+  </data>
+  <data name="Grab your Warm Up bests from the song list." xml:space="preserve">
+    <value>曲リストからWarm Upの自己ベストを取り込みます。</value>
+  </data>
+  <data name="How should it watch?" xml:space="preserve">
+    <value>どの方法で監視しますか？</value>
+  </data>
+  <data name="Ignore" xml:space="preserve">
+    <value>無視</value>
+  </data>
+  <data name="In the tray at sign-in; wakes when RISE starts." xml:space="preserve">
+    <value>サインイン時にシステムトレイに常駐し、RISEの起動で動き出します。</value>
+  </data>
+  <data name="It checks the numbers" xml:space="preserve">
+    <value>数字を確かめます</value>
+  </data>
+  <data name="It looks at RISE and nothing else, and sends only your plays." xml:space="preserve">
+    <value>RISE以外は見ず、送るのはプレイだけです。</value>
+  </data>
+  <data name="It records the play" xml:space="preserve">
+    <value>プレイを記録します</value>
+  </data>
+  <data name="It sees the result screen" xml:space="preserve">
+    <value>リザルト画面を見ます</value>
+  </data>
+  <data name="It sits in the tray, wakes when RISE starts and updates itself." xml:space="preserve">
+    <value>システムトレイに常駐し、RISEの起動で動き出し、自動で更新されます。</value>
+  </data>
+  <data name="It stays on this PC. Nothing is sent anywhere unless you choose to." xml:space="preserve">
+    <value>このPCにだけ残ります。あなたが選ばない限り、どこにも送信されません。</value>
+  </data>
+  <data name="It stops by itself when a song starts or RISE closes." xml:space="preserve">
+    <value>曲が始まるか、RISEを閉じると自動で止まります。</value>
+  </data>
+  <data name="just now" xml:space="preserve">
+    <value>たった今</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>言語</value>
+  </data>
+  <data name="Last recorded {0}" xml:space="preserve">
+    <value>最終記録：{0}</value>
+  </data>
+  <data name="Looks at RISE once a second while it is running. Nothing else on your screen." xml:space="preserve">
+    <value>RISEの起動中、1秒に1回RISEだけを見ます。画面のほかの部分は見ません。</value>
+  </data>
+  <data name="Low tone" xml:space="preserve">
+    <value>低い音</value>
+  </data>
+  <data name="Machine Default" xml:space="preserve">
+    <value>システムの既定</value>
+  </data>
+  <data name="Made to stay out of the way" xml:space="preserve">
+    <value>邪魔にならない設計</value>
+  </data>
+  <data name="Marvelous Game" xml:space="preserve">
+    <value>Marvelous Game</value>
+  </data>
+  <data name="MMM d" xml:space="preserve">
+    <value>M月d日</value>
+  </data>
+  <data name="Move through every chart: {A} {D} change the level, {TAB} switches 5K SINGLE and 6K DOUBLE, {W} {S} change the song." xml:space="preserve">
+    <value>すべての譜面を順に見てください：{A} {D}でレベル、{TAB}で5K SINGLEと6K DOUBLEの切り替え、{W} {S}で曲を変えます。</value>
+  </data>
+  <data name="My Steam screenshots" xml:space="preserve">
+    <value>自分のSteamスクリーンショット</value>
+  </data>
+  <data name="No Miss" xml:space="preserve">
+    <value>No Miss</value>
+  </data>
+  <data name="No plays yet since the watcher started." xml:space="preserve">
+    <value>アプリを起動してから、まだプレイがありません。</value>
+  </data>
+  <data name="Not connected — plays are kept, not posted" xml:space="preserve">
+    <value>未接続 — プレイは保存されますが、送信されません</value>
+  </data>
+  <data name="not recorded" xml:space="preserve">
+    <value>未記録</value>
+  </data>
+  <data name="Nothing recorded yet" xml:space="preserve">
+    <value>まだ記録なし</value>
+  </data>
+  <data name="Nothing to review." xml:space="preserve">
+    <value>確認するものはありません。</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>通知</value>
+  </data>
+  <data name="now" xml:space="preserve">
+    <value>たった今</value>
+  </data>
+  <data name="Once a second in the game window, or each time you press F12. Nothing appears over the game." xml:space="preserve">
+    <value>ゲームウィンドウを1秒に1回、またはF12を押すたびに見ます。ゲームの上には何も表示されません。</value>
+  </data>
+  <data name="Open logs folder" xml:space="preserve">
+    <value>ログフォルダーを開く</value>
+  </data>
+  <data name="Open PIU Scores" xml:space="preserve">
+    <value>PIU Scoresを開く</value>
+  </data>
+  <data name="Open settings" xml:space="preserve">
+    <value>設定を開く</value>
+  </data>
+  <data name="Open Warm Up and go to the song list." xml:space="preserve">
+    <value>Warm Upを開き、曲リストに移動してください。</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>一時停止</value>
+  </data>
+  <data name="Pause watching" xml:space="preserve">
+    <value>監視を一時停止</value>
+  </data>
+  <data name="Paused" xml:space="preserve">
+    <value>一時停止中</value>
+  </data>
+  <data name="Perfect Game" xml:space="preserve">
+    <value>Perfect Game</value>
+  </data>
+  <data name="PIU Scores already has this best, or a higher one." xml:space="preserve">
+    <value>PIU Scoresにはすでにこの記録か、それ以上の記録があります。</value>
+  </data>
+  <data name="PIU Scores asked the watcher to slow down, so it wasn't recorded." xml:space="preserve">
+    <value>PIU Scoresからアプリに送信を控えるよう求められたため、記録されませんでした。</value>
+  </data>
+  <data name="PIU Scores asked the watcher to slow down. Not recorded." xml:space="preserve">
+    <value>PIU Scoresからアプリに送信を控えるよう求められました。記録されていません。</value>
+  </data>
+  <data name="PIU Scores couldn't be reached, so it wasn't recorded." xml:space="preserve">
+    <value>PIU Scoresに接続できなかったため、記録されませんでした。</value>
+  </data>
+  <data name="PIU Scores didn't accept this play" xml:space="preserve">
+    <value>PIU Scoresがこのプレイを受け付けませんでした</value>
+  </data>
+  <data name="PIU Scores doesn't know that song on this mix — probably a misread title. Not recorded." xml:space="preserve">
+    <value>PIU Scoresはこのバージョンでその曲を知りません — おそらく曲名の読み間違いです。記録されていません。</value>
+  </data>
+  <data name="PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread." xml:space="preserve">
+    <value>PIU Scoresがこのバージョンでその曲を知らないため、記録されませんでした。おそらく曲名の読み間違いです。</value>
+  </data>
+  <data name="PIU Scores has {0} of your Warm Up bests. Only higher ones are sent." xml:space="preserve">
+    <value>PIU ScoresにはWarm Upの自己ベストが{0}件あります。それより高い記録だけが送信されます。</value>
+  </data>
+  <data name="PIU Scores refused it. Not recorded." xml:space="preserve">
+    <value>PIU Scoresに拒否されました。記録されていません。</value>
+  </data>
+  <data name="PIU Scores refused the play, so it wasn't recorded." xml:space="preserve">
+    <value>PIU Scoresがプレイを拒否したため、記録されませんでした。</value>
+  </data>
+  <data name="Play RISE. It does the rest." xml:space="preserve">
+    <value>RISEをプレイするだけ。あとは自動で進みます。</value>
+  </data>
+  <data name="Play sounds" xml:space="preserve">
+    <value>音を鳴らす</value>
+  </data>
+  <data name="Plays are kept, not posted. Connect in settings." xml:space="preserve">
+    <value>プレイは保存されますが、送信されません。設定で接続してください。</value>
+  </data>
+  <data name="Plays aren't being recorded. Reconnect in settings." xml:space="preserve">
+    <value>プレイが記録されていません。設定で再接続してください。</value>
+  </data>
+  <data name="Press F12 on the result screen; the screenshot is read. Costs nothing during play." xml:space="preserve">
+    <value>リザルト画面でF12を押すと、スクリーンショットを読み取ります。プレイ中の負荷はありません。</value>
+  </data>
+  <data name="Privacy" xml:space="preserve">
+    <value>プライバシー</value>
+  </data>
+  <data name="Quit" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="Recent" xml:space="preserve">
+    <value>最近</value>
+  </data>
+  <data name="Recorded" xml:space="preserve">
+    <value>記録しました</value>
+  </data>
+  <data name="replay" xml:space="preserve">
+    <value>リプレイ</value>
+  </data>
+  <data name="Result screen" xml:space="preserve">
+    <value>リザルト画面</value>
+  </data>
+  <data name="Resume" xml:space="preserve">
+    <value>再開</value>
+  </data>
+  <data name="Resume watching" xml:space="preserve">
+    <value>監視を再開</value>
+  </data>
+  <data name="Review" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Rough Game" xml:space="preserve">
+    <value>Rough Game</value>
+  </data>
+  <data name="Saved it. Nothing was recorded." xml:space="preserve">
+    <value>保存しました。何も記録されていません。</value>
+  </data>
+  <data name="Sent to PIU Scores." xml:space="preserve">
+    <value>PIU Scoresに送信しました。</value>
+  </data>
+  <data name="Set it up" xml:space="preserve">
+    <value>設定する</value>
+  </data>
+  <data name="Set up in three steps" xml:space="preserve">
+    <value>3つのステップで設定</value>
+  </data>
+  <data name="Setting up takes two minutes, once." xml:space="preserve">
+    <value>設定は最初の一度、2分だけです。</value>
+  </data>
+  <data name="Show notifications" xml:space="preserve">
+    <value>通知を表示</value>
+  </data>
+  <data name="Show the file" xml:space="preserve">
+    <value>ファイルを表示</value>
+  </data>
+  <data name="Sits in the tray, wakes when RISE starts, sleeps when it closes. Off, it only runs when you open it." xml:space="preserve">
+    <value>システムトレイに常駐し、RISEの起動で動き出し、終了すると休みます。オフにすると、開いたときだけ動作します。</value>
+  </data>
+  <data name="Some of the numbers couldn't be read, so nothing was recorded." xml:space="preserve">
+    <value>一部の数字を読み取れなかったため、何も記録されませんでした。</value>
+  </data>
+  <data name="Some of the numbers couldn't be read, so nothing was sent." xml:space="preserve">
+    <value>一部の数字を読み取れなかったため、何も送信されませんでした。</value>
+  </data>
+  <data name="Song list" xml:space="preserve">
+    <value>曲リスト</value>
+  </data>
+  <data name="Sounds while capturing" xml:space="preserve">
+    <value>キャプチャ中の音</value>
+  </data>
+  <data name="Sounds while playing" xml:space="preserve">
+    <value>プレイ中の音</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="Start bulk capture…" xml:space="preserve">
+    <value>一括キャプチャを開始…</value>
+  </data>
+  <data name="Start with Windows" xml:space="preserve">
+    <value>Windowsの起動時に開始</value>
+  </data>
+  <data name="Startup" xml:space="preserve">
+    <value>スタートアップ</value>
+  </data>
+  <data name="Start…" xml:space="preserve">
+    <value>開始…</value>
+  </data>
+  <data name="Steam screenshot" xml:space="preserve">
+    <value>Steamのスクリーンショット</value>
+  </data>
+  <data name="Steam screenshots" xml:space="preserve">
+    <value>Steamのスクリーンショット</value>
+  </data>
+  <data name="Steam screenshots folder · chosen" xml:space="preserve">
+    <value>Steamのスクリーンショットフォルダー · 選択済み</value>
+  </data>
+  <data name="Steam screenshots folder · found" xml:space="preserve">
+    <value>Steamのスクリーンショットフォルダー · 検出済み</value>
+  </data>
+  <data name="Steam screenshots folder · not found yet" xml:space="preserve">
+    <value>Steamのスクリーンショットフォルダー · まだ見つかりません</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Stop bulk capture" xml:space="preserve">
+    <value>一括キャプチャを停止</value>
+  </data>
+  <data name="Straight onto PIU Scores, like any import. A chime tells you it landed." xml:space="preserve">
+    <value>インポートと同じように、そのままPIU Scoresへ。チャイムが鳴れば記録完了です。</value>
+  </data>
+  <data name="Superb Game" xml:space="preserve">
+    <value>Superb Game</value>
+  </data>
+  <data name="Talented Game" xml:space="preserve">
+    <value>Talented Game</value>
+  </data>
+  <data name="That token wasn't accepted. Check it on the site and paste it again." xml:space="preserve">
+    <value>そのトークンは受け付けられませんでした。サイトで確認して、もう一度貼り付けてください。</value>
+  </data>
+  <data name="The chart it read has a different number of notes than the judgments add up to, so nothing was recorded." xml:space="preserve">
+    <value>読み取った譜面のノーツ数が判定の合計と違うため、何も記録されませんでした。</value>
+  </data>
+  <data name="The game window" xml:space="preserve">
+    <value>ゲームウィンドウ</value>
+  </data>
+  <data name="The grade didn't match the score, so nothing was sent." xml:space="preserve">
+    <value>ランクがスコアと合わないため、何も送信されませんでした。</value>
+  </data>
+  <data name="The judgment counts didn't add up to the score, so nothing was recorded." xml:space="preserve">
+    <value>判定数がスコアと合わないため、何も記録されませんでした。</value>
+  </data>
+  <data name="The judgments don't add up to the score — probably a misread. Not recorded." xml:space="preserve">
+    <value>判定がスコアと合いません — おそらく読み間違いです。記録されていません。</value>
+  </data>
+  <data name="The judgments have to add up to the score, so a misread never reaches PIU Scores." xml:space="preserve">
+    <value>判定がスコアと合わなければ送らないので、読み間違いがPIU Scoresに届くことはありません。</value>
+  </data>
+  <data name="The screenshot was taken before the numbers finished counting, so nothing was recorded." xml:space="preserve">
+    <value>数字のカウントが終わる前にスクリーンショットを撮ったため、何も記録されませんでした。</value>
+  </data>
+  <data name="The song title couldn't be read, so nothing was recorded." xml:space="preserve">
+    <value>曲名を読み取れなかったため、何も記録されませんでした。</value>
+  </data>
+  <data name="The song title didn't match any song on PIU Scores, so nothing was sent." xml:space="preserve">
+    <value>曲名がPIU Scoresのどの曲とも一致しなかったため、何も送信されませんでした。</value>
+  </data>
+  <data name="The token wasn't accepted, so it wasn't recorded." xml:space="preserve">
+    <value>トークンが受け付けられなかったため、記録されませんでした。</value>
+  </data>
+  <data name="The token wasn't accepted. Not recorded." xml:space="preserve">
+    <value>トークンが受け付けられませんでした。記録されていません。</value>
+  </data>
+  <data name="The watcher isn't connected" xml:space="preserve">
+    <value>アプリが接続されていません</value>
+  </data>
+  <data name="The watcher isn't connected to PIU Scores. Not recorded." xml:space="preserve">
+    <value>アプリがPIU Scoresに接続されていません。記録されていません。</value>
+  </data>
+  <data name="The watcher wasn't connected to PIU Scores, so it wasn't recorded." xml:space="preserve">
+    <value>アプリがPIU Scoresに接続されていなかったため、記録されませんでした。</value>
+  </data>
+  <data name="This best couldn't be read" xml:space="preserve">
+    <value>この自己ベストを読み取れませんでした</value>
+  </data>
+  <data name="This play wasn't recorded" xml:space="preserve">
+    <value>このプレイは記録されませんでした</value>
+  </data>
+  <data name="This screen couldn't be read" xml:space="preserve">
+    <value>この画面を読み取れませんでした</value>
+  </data>
+  <data name="Tick" xml:space="preserve">
+    <value>カチッ</value>
+  </data>
+  <data name="today {0}" xml:space="preserve">
+    <value>今日 {0}</value>
+  </data>
+  <data name="Token saved — PIU Scores hasn't answered yet" xml:space="preserve">
+    <value>トークンを保存しました — PIU Scoresからまだ応答がありません</value>
+  </data>
+  <data name="Two minutes, once. After this it just runs." xml:space="preserve">
+    <value>最初の一度、2分だけ。あとは自動で動きます。</value>
+  </data>
+  <data name="Ultimate Game" xml:space="preserve">
+    <value>Ultimate Game</value>
+  </data>
+  <data name="Updated to {0}" xml:space="preserve">
+    <value>{0}に更新しました</value>
+  </data>
+  <data name="Version {0}" xml:space="preserve">
+    <value>バージョン {0}</value>
+  </data>
+  <data name="Version {0} · an update applies at the next start" xml:space="preserve">
+    <value>バージョン {0} · 次回の起動時にアップデートが適用されます</value>
+  </data>
+  <data name="Version {0} · up to date" xml:space="preserve">
+    <value>バージョン {0} · 最新です</value>
+  </data>
+  <data name="Wait for the sound before moving on." xml:space="preserve">
+    <value>音が鳴ってから次へ進んでください。</value>
+  </data>
+  <data name="Waiting for RISE" xml:space="preserve">
+    <value>RISEを待機中</value>
+  </data>
+  <data name="Warm Up · {0} sent, {1} already there" xml:space="preserve">
+    <value>Warm Up · {0}件送信、{1}件は登録済み</value>
+  </data>
+  <data name="Watching" xml:space="preserve">
+    <value>監視</value>
+  </data>
+  <data name="Watching — RISE is running" xml:space="preserve">
+    <value>監視中 — RISE起動中</value>
+  </data>
+  <data name="What changed" xml:space="preserve">
+    <value>変更点</value>
+  </data>
+  <data name="What it looks at and sends" xml:space="preserve">
+    <value>何を見て、何を送るか</value>
+  </data>
+  <data name="When a bulk capture finishes" xml:space="preserve">
+    <value>一括キャプチャが終わったとき</value>
+  </data>
+  <data name="When the token stops working" xml:space="preserve">
+    <value>トークンが使えなくなったとき</value>
+  </data>
+  <data name="When the watcher updates" xml:space="preserve">
+    <value>アプリが更新されたとき</value>
+  </data>
+  <data name="yesterday {0}" xml:space="preserve">
+    <value>昨日 {0}</value>
+  </data>
+  <data name="Your PIU Scores token" xml:space="preserve">
+    <value>PIU Scoresのトークン</value>
+  </data>
+  <data name="Your token stopped working" xml:space="preserve">
+    <value>トークンが使えなくなりました</value>
+  </data>
+  <data name="{0} already there · {1} couldn't be read" xml:space="preserve">
+    <value>{0}件は登録済み · {1}件は読み取れず</value>
+  </data>
+  <data name="{0} h" xml:space="preserve">
+    <value>{0}時間</value>
+  </data>
+  <data name="{0} h ago" xml:space="preserve">
+    <value>{0}時間前</value>
+  </data>
+  <data name="{0} min" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="{0} min ago" xml:space="preserve">
+    <value>{0}分前</value>
+  </data>
+  <data name="{0} new bests sent · {1} already on PIU Scores · {2} couldn't be read" xml:space="preserve">
+    <value>新しい自己ベスト{0}件を送信 · {1}件はPIU Scoresに登録済み · {2}件は読み取れず</value>
+  </data>
+  <data name="{0} play today" xml:space="preserve">
+    <value>今日{0}プレイ</value>
+  </data>
+  <data name="{0} plays today" xml:space="preserve">
+    <value>今日{0}プレイ</value>
+  </data>
+  <data name="{0} plays weren't recorded" xml:space="preserve">
+    <value>{0}件のプレイが記録されませんでした</value>
+  </data>
+  <data name="{0} screens couldn't be read" xml:space="preserve">
+    <value>{0}件の画面を読み取れませんでした</value>
+  </data>
+  <data name="{0} → Account → API tokens" xml:space="preserve">
+    <value>{0} → アカウント → API tokens</value>
+  </data>
+</root>

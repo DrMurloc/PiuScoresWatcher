@@ -1,0 +1,48 @@
+<Window x:Class="PiuScoresWatcher.App.Views.ReviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="clr-namespace:PiuScoresWatcher.App"
+        Title="{x:Static app:Copy.AppName}"
+        Icon="/Assets/app.ico"
+        Width="600" SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen">
+    <!-- Iteration 1: the mocks' review dialog (watcher.md D37), which shows the file instead of sending
+         it, and every kept frame whatever the reason (D38). One screen at a time, newest first; Delete
+         moves to the next. -->
+    <Grid Margin="24,12,24,20">
+        <TextBlock x:Name="NothingText" Text="{x:Static app:Copy.ReviewNothing}" Style="{StaticResource Secondary}" FontSize="14"
+                   Visibility="Collapsed" Margin="0,8" />
+        <Grid x:Name="ScreenPanel">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <Border Width="240" Height="135" CornerRadius="6" ClipToBounds="True"
+                        Background="{DynamicResource ControlFillColorDefaultBrush}">
+                    <Image x:Name="Shot" Stretch="Uniform" />
+                </Border>
+                <TextBlock x:Name="SeenText" Style="{StaticResource Secondary}" Margin="0,8,0,0" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="20,0,0,0">
+                <TextBlock x:Name="HeadingText" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock x:Name="ReasonText" Margin="0,10,0,0" TextWrapping="Wrap" />
+                <TextBlock Text="{x:Static app:Copy.ReviewStaysHere}" Style="{StaticResource Secondary}" Margin="0,10,0,0" />
+                <WrapPanel Margin="0,12,0,0">
+                    <Button Style="{DynamicResource AccentButtonStyle}" Padding="16,4" Margin="0,0,8,0"
+                            Content="{x:Static app:Copy.ShowFile}" Click="OnShowFile" />
+                    <Button Padding="14,4" Content="{x:Static app:Copy.Delete}" Click="OnDelete" />
+                </WrapPanel>
+                <DockPanel Margin="0,16,0,0">
+                    <TextBlock DockPanel.Dock="Right" FontSize="12">
+                        <Hyperlink Click="OnPrivacy"><Run Text="{x:Static app:Copy.Privacy}" /></Hyperlink>
+                    </TextBlock>
+                    <TextBlock x:Name="DeleteAllLine" FontSize="12">
+                        <Hyperlink Click="OnDeleteAll"><Run x:Name="DeleteAllText" /></Hyperlink>
+                    </TextBlock>
+                </DockPanel>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

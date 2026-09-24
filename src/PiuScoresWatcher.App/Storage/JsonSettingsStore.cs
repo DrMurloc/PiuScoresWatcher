@@ -13,6 +13,8 @@ namespace PiuScoresWatcher.App.Storage;
 /// </summary>
 public sealed class JsonSettingsStore(ILogger<JsonSettingsStore> log) : ISettingsStore
 {
+    public event EventHandler<WatcherSettings>? Changed;
+
     private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
@@ -42,5 +44,6 @@ public sealed class JsonSettingsStore(ILogger<JsonSettingsStore> log) : ISetting
         var staging = AppPaths.SettingsFile + ".tmp";
         File.WriteAllText(staging, JsonSerializer.Serialize(settings, Options));
         File.Move(staging, AppPaths.SettingsFile, overwrite: true);
+        Changed?.Invoke(this, settings);
     }
 }

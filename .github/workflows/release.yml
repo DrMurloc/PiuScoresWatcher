@@ -1,11 +1,14 @@
 # A tag `vX.Y.Z` becomes a GitHub release: the Velopack installer, the full package and a delta
 # from the previous version, which installed copies pick up on their next launch.
 #
-# Signing is Azure Trusted Signing and is gated on four repository variables, so the workflow
+# Signing is Azure Artifact Signing (Trusted Signing until its rename; the variables and Velopack's
+# --azureTrustedSignFile keep the old name) and is gated on six repository variables, so the workflow
 # releases unsigned until the account exists and signed from then on, with no edit here:
 #   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID  — the federated (OIDC) identity
 #   TRUSTED_SIGNING_ENDPOINT, TRUSTED_SIGNING_ACCOUNT, TRUSTED_SIGNING_PROFILE — the signing account
-# None is a secret; the identity has no password, GitHub's OIDC token is the credential.
+# None is a secret; the identity has no password, GitHub's OIDC token is the credential. The job runs
+# in the `release` environment because Azure trusts one exact token subject, never a pattern: every
+# tag signs in as repo:DrMurloc/PiuScoresWatcher:environment:release.
 name: Release
 
 on:
@@ -14,15 +17,16 @@ on:
 
 permissions:
   contents: write   # create the release
-  id-token: write   # Azure OIDC sign-in for Trusted Signing
+  id-token: write   # Azure OIDC sign-in for Artifact Signing
 
 jobs:
   release:
     runs-on: windows-latest
+    environment: release
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
@@ -46,15 +50,15 @@ jobs:
       - name: Publish the app
         run: dotnet publish src/PiuScoresWatcher.App/PiuScoresWatcher.App.csproj -c Release -r win-x64 --self-contained false -o publish -p:Version=${{ env.VERSION }}
 
-      - name: Sign in to Azure (Trusted Signing)
+      - name: Sign in to Azure (Artifact Signing)
         if: vars.TRUSTED_SIGNING_ENDPOINT != ''
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Trusted Signing metadata
+      - name: Artifact Signing metadata
         if: vars.TRUSTED_SIGNING_ENDPOINT != ''
         shell: pwsh
         run: |
@@ -73,6 +77,7 @@ jobs:
           --packVersion ${{ env.VERSION }}
           --packDir publish
           --mainExe PiuScoresWatcher.exe
+          --runtime win-x64
           --packTitle "PIU Scores Watcher"
           --packAuthors DrMurloc
           --icon src/PiuScoresWatcher.App/Assets/app.ico
