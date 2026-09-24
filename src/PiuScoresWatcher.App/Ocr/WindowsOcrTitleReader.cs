@@ -8,15 +8,12 @@ using Windows.Media.Ocr;
 namespace PiuScoresWatcher.App.Ocr;
 
 /// <summary>
-///     Reads the song title with the OCR built into Windows. The title is white text on the yellow
-///     bar (or the Arcade Station's blue band), so the region is turned into black text on white
-///     and doubled in size first — the shape OCR was made for.
+///     Reads the song title with the OCR built into Windows, from the region <see cref="TitleInk" /> has
+///     turned into dark letters on white at the size they have on a 1080p screen — the shape and size
+///     Windows OCR reads best.
 /// </summary>
 public sealed class WindowsOcrTitleReader(ILogger<WindowsOcrTitleReader> log) : ITitleReader
 {
-    private const int Scale = 2;
-    private const int BrightText = 200;
-
     public async Task<string?> ReadAsync(ScreenImage image, PixelRect region, CancellationToken cancellationToken)
     {
         var engine = OcrEngine.TryCreateFromLanguage(new Language("en-US")) ?? OcrEngine.TryCreateFromUserProfileLanguages();
@@ -26,24 +23,18 @@ public sealed class WindowsOcrTitleReader(ILogger<WindowsOcrTitleReader> log) : 
             return null;
         }
 
-        var width = region.Width * Scale;
-        var height = region.Height * Scale;
-        var pixels = new byte[width * height * 4];
-        for (var y = 0; y < height; y++)
-        for (var x = 0; x < width; x++)
+        var page = TitleInk.Render(image, region);
+        var pixels = new byte[page.Width * page.Height * 4];
+        for (var i = 0; i < page.Pixels.Length; i++)
         {
-            var sx = region.X0 + x / Scale;
-            var sy = region.Y0 + y / Scale;
-            var luminance = 0.299 * image.Red(sx, sy) + 0.587 * image.Green(sx, sy) + 0.114 * image.Blue(sx, sy);
-            var shade = (byte)(luminance > BrightText ? 0 : 255);
-            var offset = (y * width + x) * 4;
-            pixels[offset] = shade;
-            pixels[offset + 1] = shade;
-            pixels[offset + 2] = shade;
-            pixels[offset + 3] = 255;
+            var shade = page.Pixels[i];
+            pixels[i * 4] = shade;
+            pixels[i * 4 + 1] = shade;
+            pixels[i * 4 + 2] = shade;
+            pixels[i * 4 + 3] = 255;
         }
 
-        using var bitmap = SoftwareBitmap.CreateCopyFromBuffer(pixels.AsBuffer(), BitmapPixelFormat.Bgra8, width, height, BitmapAlphaMode.Ignore);
+        using var bitmap = SoftwareBitmap.CreateCopyFromBuffer(pixels.AsBuffer(), BitmapPixelFormat.Bgra8, page.Width, page.Height, BitmapAlphaMode.Ignore);
         cancellationToken.ThrowIfCancellationRequested();
         var result = await engine.RecognizeAsync(bitmap);
         var text = result.Text?.Trim();

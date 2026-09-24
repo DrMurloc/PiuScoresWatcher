@@ -19,8 +19,10 @@ namespace PiuScoresWatcher.App.Replay;
 /// <summary>
 ///     <c>--replay &lt;screenshot&gt;</c>: one file through the whole pipeline with no game open,
 ///     reported as JSON on the console that launched us. The way the reader is developed, and the
-///     way a player's failed screen is reproduced. Exit 0 is a play that reconciles, 1 a frame that
-///     is not one (not a play, numbers not landed, unreadable, refused), 3 not a result screen at all.
+///     way a player's failed screen is reproduced. Warm Up's song list is read the way a bulk capture
+///     reads it, and reported, never posted. Exit 0 is a play that reconciles or a best read with its
+///     title, 1 a frame that is not one (not a play, numbers not landed, unreadable, refused, no best),
+///     3 neither a result screen nor the song list.
 /// </summary>
 internal static partial class ReplayRunner
 {
@@ -58,7 +60,7 @@ internal static partial class ReplayRunner
         var image = WpfScreenDecoder.Decode(file);
         var layout = new ResultScreenDetector().Detect(image);
         if (layout is null)
-            return (new { file, image.Width, image.Height, result = "not a result screen" }, 3);
+            return await SongListAsync(file, image);
 
         var reading = new ResultScreenReader().Read(image, layout.Value);
         var verdict = reading.Status == ReadingStatus.Complete ? PlayChecksum.Verify(reading) : null;
@@ -118,6 +120,37 @@ internal static partial class ReplayRunner
             note = connection is null ? "no token: set PIUSCORESWATCHER_TOKEN or connect in settings to post" : options.DryRun ? "--dry-run: nothing posted" : null
         };
         return (report, verdict is { Reconciles: true } ? 0 : 1);
+    }
+
+    /// <summary>
+    ///     What a bulk capture would read from Warm Up's song list (D47), the title included even when the
+    ///     chart has no best. Never posted: a replay has neither the chart list nor the player's bests to
+    ///     check a best against.
+    /// </summary>
+    private static async Task<(object Report, int ExitCode)> SongListAsync(string file, ScreenImage image)
+    {
+        var reading = new SongListReader().Read(image);
+        if (reading is null)
+            return (new { file, image.Width, image.Height, result = "neither a result screen nor Warm Up's song list" }, 3);
+
+        var title = await new WindowsOcrTitleReader(NullLogger<WindowsOcrTitleReader>.Instance)
+            .ReadAsync(image, reading.TitleRegion, CancellationToken.None);
+        var report = new
+        {
+            file,
+            image.Width,
+            image.Height,
+            screen = "Warm Up song list",
+            reading.Status,
+            reading.Reason,
+            reading.ChartType,
+            reading.Level,
+            title,
+            reading.Score,
+            reading.Grade,
+            note = "a song list is reported, never posted: only a bulk capture checks a best against yours"
+        };
+        return (report, reading.Status == SongListStatus.Best && title is not null ? 0 : 1);
     }
 
     private sealed record ConnectionReport(string Status, string? Username, string? GameTag, string Site);
