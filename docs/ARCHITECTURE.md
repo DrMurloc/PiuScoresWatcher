@@ -44,7 +44,7 @@ The reader **fails loud**: an unreadable screen is saved under `failed/` and sur
 
 ### Enforcement over convention
 
-The rules above are ratcheted by `tests/PiuScoresWatcher.Tests/ArchitectureTests/`: Core stays headless (no OS target, no forbidden references); the wall clock is read in `SystemClock.cs` and nowhere else; nothing is written under `%LOCALAPPDATA%\PiuScoresWatcher`, the install folder; every string a player reads comes from `App/Copy.cs` — no literal text in a window, and no text property set to a literal in code. Rules are added, never removed. The machine-readable conventions live in [CLAUDE.md](../CLAUDE.md).
+The rules above are ratcheted by `tests/PiuScoresWatcher.Tests/ArchitectureTests/`: Core stays headless (no OS target, no forbidden references); the wall clock is read in `SystemClock.cs` and nowhere else; nothing is written under `%LOCALAPPDATA%\PiuScoresWatcher`, the install folder; every string a player reads comes from `App/Copy.cs` — no literal text in a window, and no text property set to a literal in code — and every line in it has a translation in each language's resx, keyed, ordered and holed the way the site keeps its own. Rules are added, never removed. The machine-readable conventions live in [CLAUDE.md](../CLAUDE.md).
 
 ---
 
@@ -54,7 +54,8 @@ The rules above are ratcheted by `tests/PiuScoresWatcher.Tests/ArchitectureTests
 PiuScoresWatcher.sln
 ├── src/PiuScoresWatcher.Core        net10.0 — headless
 │   ├── Startup/                     LaunchOptions (--replay, --dry-run, --base-url)
-│   ├── Settings/                    WatcherSettings, CaptureMode, ISettingsStore
+│   ├── Settings/                    WatcherSettings, CaptureMode, ISettingsStore, Languages (the eight the
+│   │                                watcher speaks, and how Windows' languages place onto them, D58, D59)
 │   ├── Time/                        IClock
 │   ├── Domain/                      RiseMix, ChartType, Judgments
 │   ├── Exceptions/                  WatcherException and its kinds (player-showable messages)
@@ -81,7 +82,12 @@ PiuScoresWatcher.sln
 │   ├── Program.cs                   Velopack hook (+ uninstall clean-up) → launch options → replay, or
 │   │                                the single instance (a second launch opens the running one's settings) → WPF
 │   ├── App.xaml(.cs)                the generic host, the tray icon and its menu, first run or tray at start-up
-│   ├── Copy.cs                      every string a player reads (the owner's copy; placeholders until then)
+│   ├── Copy.cs                      every string a player reads, in English — the owner's copy, and the key
+│   │                                each translation is looked up by (D36, D60)
+│   ├── Resources/                   Strings.<code>.resx, one per language besides English (D58), and an
+│   │                                empty neutral Strings.resx
+│   ├── Localization/                WatcherLanguage (the chosen language, or Windows', put to work: Copy's
+│   │                                lookups and formats, WPF's own words, each window's xml:lang, D59)
 │   ├── Views/                       FirstRunWindow, SettingsWindow, ReviewWindow, BulkCaptureWindow (D51)
 │   ├── Status/                      WatcherStatus (connection, pause, a run's count, recent plays and runs —
 │   │                                what the tray and settings show)
@@ -105,7 +111,9 @@ PiuScoresWatcher.sln
 │   └── Assets/                      app.ico (placeholder art)
 ├── tests/PiuScoresWatcher.Tests     xUnit + Moq (+ SkiaSharp to decode fixtures), references Core only
 │   ├── StartupTests/                LaunchOptionsTests
-│   ├── ArchitectureTests/           CoreStaysHeadlessTests, ClockSeamTests
+│   ├── ArchitectureTests/           CoreStaysHeadlessTests, ClockSeamTests, DataFolderTests,
+│   │                                CopyLivesInOneFileTests, TranslationTests
+│   ├── SettingsTests/               NotificationSettingsTests, LanguagesTests
 │   ├── RecognitionTests/            every fixture screen through the detector, the reader and the checksum;
 │   │                                SongListReaderTests, TitleInkTests
 │   ├── ApiTests/                    PiuScoresClientTests (the wire shape over a stub handler), ObservedPlayTests

@@ -71,8 +71,8 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   ratcheted). No telemetry (PRIVACY.md).
 - **D13. The reader fails loud.** An unreadable screen is saved and surfaced; nothing is guessed, nothing
   partial is posted. A failed screen becomes a fixture (with the player's ok) before the fix is written.
-- **D14. English only in v1.** A settings window has a dozen strings; the site's nine locales came with a
-  community behind them. Every string is the owner's copy (CONTRIBUTING §6).
+- **D14. ~~English only in v1.~~ Superseded by D58** (owner, 2026-09-24): the watcher speaks the site's
+  languages. Every English string is the owner's copy (CONTRIBUTING §6).
 - **D15. The layout decides the mix.** Warm Up / Division screens post to `rise`, Arcade Station screens to
   `riseArcade`; a Challenge result — a division badge where the song title goes — is an aggregate and is
   skipped.
@@ -153,9 +153,10 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   recorded play, a play PIU Scores didn't take, a screen that couldn't be read, the token stopping working, an
   update. All on by default (D2). With them off, the tray menu's status line and the settings window still say
   when something is wrong.
-- **D36. Every string a player reads lives in one file, `src/PiuScoresWatcher.App/Copy.cs`.** XAML binds to it
-  (`{x:Static}`) and code formats through it, so the owner rewrites the copy in one place; the text there is the
-  mocks' placeholder copy until he does. Ratcheted: no literal text in XAML.
+- **D36. Every string a player reads lives in one file, `src/PiuScoresWatcher.App/Copy.cs`**, in English. XAML
+  binds to it (`{x:Static}`) and code formats through it, so the owner changes the copy in one place. **The mocks'
+  wording is approved copy** (owner, 2026-09-24: approving the mocks approved their words, D37); a line written
+  since is called out in its PR. Ratcheted: no literal text in XAML, and every line has its translations (D60).
 - **D37 (owner, 2026-09-23). The mocks are iteration 1's contract**, with D34, D35 and one cut: the review
   dialog shows the file rather than sending it (there is nowhere to send one yet), so the couldn't-read toast's
   buttons are Review and Ignore.
@@ -272,6 +273,42 @@ never reached the site, and two stepballs were read at the wrong level.
   formula, and the game prints 901,013. PIU Scores already allows the point (its formula matched 2,268 of 2,277
   real judgment-carrying records exactly); the watcher refused the play. A misread count moves the score by
   far more than a point, so the checksum still catches every one.
+
+**Languages** (owner, 2026-09-24: "we want to support all the languages we support there", a picker "with
+'Machine Default' as default", "don't worry about murloc", then "get them all localized").
+
+- **D58 (owner, 2026-09-24). The watcher speaks PIU Scores' languages, less Murloc**: English, Español (México),
+  Español (España), Português, 한국어, 日本語, Français and Italiano — the site's `SupportedCultures`, in its
+  order, each named in its own language. Replaces D14.
+- **D59 (owner, 2026-09-24). Language is the last section of settings, and Machine Default comes first.** Machine
+  Default is where every player starts, and it is stored as no choice at all. It follows Windows' preferred
+  languages in order, each placed the way the site places a browser's: an exact match, else the language's
+  default region — Spanish from anywhere but Mexico is Spain's (the site's own ruling, 2026-08-03), French is
+  France's, Portuguese is Brazil's — and English when none places. Picking a language redraws the settings
+  window on the spot and relabels the tray menu, and every notification after it speaks it; nothing restarts
+  and watching never stops. Other windows follow the next time they open; first run follows Windows and has no
+  picker.
+- **D60. English is the key, as on the site.** A translation is an entry in `Resources/Strings.<code>.resx` keyed
+  by the English line verbatim, so a rewritten line is a new key and the tests fail until every language has
+  it. Copy.cs is the only English — there is no English resx; the ratchets read the keys out of Copy.cs. The
+  site's rules come with it: keys in alphabetical order (`OrdinalIgnoreCase`, so two branches' new keys never
+  meet at the end of a file), and no two keys that differ only by case (MSBuild's resource compiler keeps one
+  and drops the other without a word). One rule is the watcher's own: a translation keeps exactly the `{0}` holes
+  and `{KEY}` key caps its English has. A section label is its word upper-cased in code (`ACCOUNT` is
+  `Account`), which also keeps it from twinning with the same word elsewhere. The game's own labels (`5K S18`,
+  `Arcade 10K D23`) are marked `Verbatim` and never translated; grade letters come from Core and are not copy.
+  Arch-test enforced, `TranslationTests`.
+- **D61. Numbers, dates and plurals follow the language; the log stays English.** A score, a time and a date are
+  written in the chosen language's formats, as on the site, and a count picks its form by the language's rule
+  (French and Portuguese count 0 as one). A log line is written in English whatever the player reads, so a log a
+  player sends is readable. Reading titles never changes: Windows' English OCR, whatever the language (D55).
+- **D62. The site's glossaries are the vocabulary — linked, not copied** ([LOCALIZATION.md](../LOCALIZATION.md)).
+  The site's repository is public, each glossary runs 250 to 880 lines of mostly site words, and a term a player
+  meets on both must not drift apart: 채보 for a chart, 퍼펙트 게임 on a Korean plate, and each language's
+  register — Korean's formal 합쇼체, Japanese です/ます, `tú` in Spain, `usted` in Mexico (the site glossary's
+  documented register; its open tú/usted fork is the site's to settle), `você`, `vous`, `tu`. The watcher's own
+  words — capture, screenshot, the game window, the tray, the token, review, the three sounds, Machine Default —
+  are LOCALIZATION.md's table. The translations are Claude's, as the site's are.
 
 ## 3. The pipeline
 

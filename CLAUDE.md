@@ -20,6 +20,7 @@ Reader-facing docs live in `docs/` (README.md at the root). Keep them current **
 - [docs/PRIVACY.md](docs/PRIVACY.md) — what the app looks at, sends and keeps; player-facing, the owner's copy
 - [docs/TECHNOLOGIES.md](docs/TECHNOLOGIES.md) — new stack pieces get an entry
 - [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) — the owner's contribution policies
+- [docs/LOCALIZATION.md](docs/LOCALIZATION.md) — the eight languages: how a line is translated, the site glossaries each follows, the watcher's own words
 - [docs/design/watcher.md](docs/design/watcher.md) — the design of record. Decisions are numbered `D1…`, owner decisions marked **(owner, date)**, the rest "decided unless objected"; open questions live in its last section
 
 ## Commands
@@ -72,14 +73,15 @@ Adding a package outside its allowed project is a violation. Pin versions; Depen
 - `--replay` and `--base-url` are dev seams; an unknown switch is refused, not ignored. **The app defaults to production; only the dev launch profile (`Properties/launchSettings.json`) points at the local site** (D44). A run against any site other than production keeps its own data folder (`%APPDATA%\PiuScoresWatcher\dev\<host>-<port>\`), token and one-copy lock (`SiteScope`), so a dev run never touches the installed copy.
 - **The site's API contract is read, never guessed**: PumpItUpScoreTracker `docs/API.md` and its Swagger are shape truth for `GET api/v2/players/me` and `POST api/v2/players/me/plays`. Auth is `Authorization: Basic base64("anything:<token>")`. A problem's `type` is `https://piuscores.arroweclip.se/errors/<slug>`; the mix and chart-type tokens are enum names, case-insensitive; the song name must match the catalog exactly. `ApiTests/PiuScoresClientTests` pins all of it from this side — a change there is a contract change, not a casual edit.
 - **The token is never on a command line and never in a file in clear.** DPAPI (`token.bin`) at rest; `PIUSCORESWATCHER_TOKEN` in the environment is the one dev seam, never persisted.
-- **Every server answer is a `PostOutcome`, never an exception**; a toast or a log line is built from the outcome. Player-facing wording for outcomes is the owner's copy (arrives with the settings window).
+- **Every server answer is a `PostOutcome`, never an exception**; a toast or a log line is built from the outcome. Player-facing wording for outcomes lives in `Copy` (D43).
 
 ## UI conventions
 
 - WPF with the built-in Fluent theme (`ThemeMode="System"` on the Application); no third-party control library.
 - **The tray icon is the app.** `ShutdownMode="OnExplicitShutdown"`: windows come and go, only Quit exits. Startup lives in `Program.Main` (the Velopack hook, then the single-instance mutex, then WPF), so `App.xaml` compiles as a Page.
 - **Feedback is a notification** — never a window that takes focus from the game, and **never an overlay** of any kind (design D3). **Every kind of notification can be switched off**, all at once or one by one (D35); state that matters (not connected, paused) is always visible in the tray menu's status line and the settings window, so switching notifications off never hides a problem.
-- **Player-facing strings are the owner's copy, and they all live in `src/PiuScoresWatcher.App/Copy.cs`** (D36). XAML binds with `{x:Static app:Copy.…}`, code formats through `Copy`; a new string is a placeholder in `Copy.cs`, called out in the PR. No literal text in XAML (arch-test enforced, `CopyLivesInOneFileTests`). English only in v1 (D14).
+- **Player-facing strings are the owner's copy, and they all live in `src/PiuScoresWatcher.App/Copy.cs`, in English** (D36). XAML binds with `{x:Static app:Copy.…}`, code formats through `Copy`; a line written since the mocks is called out in the PR. No literal text in XAML (arch-test enforced, `CopyLivesInOneFileTests`).
+- **Every line is translated into all seven other languages in the same change** (D58–D62; [docs/LOCALIZATION.md](docs/LOCALIZATION.md)). A line is `L("English")` in Copy.cs — `L("… {0} …", value)` with holes, `Plural(n, one, other)` for a count — and an entry keyed by that exact English in every `Resources/Strings.<code>.resx`, **inserted in alphabetical position** (`OrdinalIgnoreCase`), never appended, keeping the same `{0}` holes and `{KEY}` key caps. A changed English line is a new key: every file gets the new entry and loses the old one. Two keys never differ only by case — MSBuild's resource compiler keeps one and silently drops the other — so a section label is `Upper(L("Account"))`, not a second key. Words the game prints as-is are `Verbatim(…)`. There is no English resx: Copy.cs is the English. Every lookup and format reads `Copy.Culture`, never the thread's culture; a log line takes `Copy.English(…)`. Vocabulary and register come from the site's glossaries. Arch-test enforced, `TranslationTests`.
 - No color literals in XAML beyond what the theme provides; a brand color, when one arrives, is a resource with a name.
 
 ## Test conventions
@@ -87,7 +89,7 @@ Adding a package outside its allowed project is a violation. Pin versions; Depen
 See [docs/HOW-TO-TEST.md](docs/HOW-TO-TEST.md) for the philosophy; the agent-facing specifics:
 
 - **xUnit 2.9.3 + Moq 4.20.72.** No `FakeItEasy`, `NSubstitute`, `AutoFixture`. Talk about doubles by role (stub / mock / fake), not by library type.
-- **Folder-as-tag**: `StartupTests/`, `DomainTests/`, `ScoringTests/`, `RecognitionTests/`, `ApiTests/` and `CaptureTests/` (unit — real objects, fixtures in, records out; the API client over a stub `HttpMessageHandler`; the pipeline with Moq doubles for the site, the title reader, the failed store and the notifier), `ArchitectureTests/` (ratchets — rules are added, never removed). No per-test traits.
+- **Folder-as-tag**: `StartupTests/`, `SettingsTests/`, `DomainTests/`, `ScoringTests/`, `RecognitionTests/`, `ApiTests/` and `CaptureTests/` (unit — real objects, fixtures in, records out; the API client over a stub `HttpMessageHandler`; the pipeline with Moq doubles for the site, the title reader, the failed store and the notifier), `ArchitectureTests/` (ratchets — rules are added, never removed). No per-test traits.
 - **Naming**: `<TypeName>Tests.cs`, one class per subject; method names describe behavior (`AnUnknownSwitchIsRefusedRatherThanIgnored`), never implementation.
 - **Fixtures**: result screenshots under `tests/PiuScoresWatcher.Tests/Fixtures/screens/` (copied to output) with `expected.json`, written by `tools/reader-lab/fixtures.py`. The owner's own screens are the base set; a player's screen is added only with their ok. Never commit the game's sprites (`tools/reader-lab/sprites/` is ignored).
 - **Builders** in `TestData/` (`<Type>Builder`, `WithX` returning `this`, `Build()`); **`FakeClock`** in `TestHelpers/` once `IClock` has a consumer. Never `DateTime.Now` in a test.

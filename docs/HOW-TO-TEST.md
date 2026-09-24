@@ -75,6 +75,8 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] Run it again over the same charts → ticks only, nothing sent.
 - [ ] The sounds are clear over the song list's music at your usual volume.
 - [ ] Sounds switched off → a silent run; the summary still arrives.
+- [ ] Settings → Language → 한국어 → the settings window redraws in Korean at once, the tray menu follows, and the next notification is in Korean; Machine Default → back to Windows' language.
+- [ ] Every window in Français and in 日本語 → nothing cut off, and Japanese in Japanese type.
 - [ ] Uninstall → the tray icon, the Start menu entry and the sign-in entry are gone; reinstall → still connected, settings kept.
 
 ## What is not tested automatically, and why

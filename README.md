@@ -28,6 +28,7 @@ Download, once released:
 - [docs/PRIVACY.md](docs/PRIVACY.md) — what it looks at, what it sends, what it keeps
 - [docs/TECHNOLOGIES.md](docs/TECHNOLOGIES.md) — the stack, and why each piece
 - [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) — the contribution policies
+- [docs/LOCALIZATION.md](docs/LOCALIZATION.md) — the eight languages and how a line is translated
 - [docs/design/watcher.md](docs/design/watcher.md) — the design of record: decisions, phases, open questions
 - [CLAUDE.md](CLAUDE.md) — machine-readable conventions for AI coding agents
 
