@@ -66,7 +66,9 @@ sentence is the app, not a brand, so it becomes each language's word for an app.
 | the three sounds | 차임 · 틱 · 낮은 음 | チャイム · カチッ · 低い音 | Campanilla · Tic · Tono grave | Campanita · Tic · Tono grave | Sino · Tique · Tom grave | Carillon · Tic · Son grave | Campanella · Tic · Tono basso |
 
 A play's words agree with it: `jogada`, `partie` and `partita` are feminine (`registrada`, `enregistrée`,
-`registrata`), and French keeps the site's feminine `la chart`.
+`registrata`), and French keeps the site's feminine `la chart`. So does the app: `l'appli`, `la aplicación`,
+`la app` and `l'app` are feminine wherever a line points back at it (`elle`, `desactivada`, `da sola`); `o app`
+is masculine.
 
 ### Never translated
 

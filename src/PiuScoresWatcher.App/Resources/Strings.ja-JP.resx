@@ -27,6 +27,9 @@
   <data name="A play PIU Scores didn't take" xml:space="preserve">
     <value>PIU Scoresが受け付けなかったプレイ</value>
   </data>
+  <data name="A screen it can't read makes a low tone and waits for you in Review. Nothing is guessed." xml:space="preserve">
+    <value>読み取れない画面は低い音で知らせ、確認画面で待っています。推測はしません。</value>
+  </data>
   <data name="A screen seen twice is still one play." xml:space="preserve">
     <value>2回見た画面も、プレイは1回です。</value>
   </data>
@@ -114,6 +117,9 @@
   <data name="Every recorded play" xml:space="preserve">
     <value>記録されたすべてのプレイ</value>
   </data>
+  <data name="Every result screen becomes a play on PIU Scores, with nothing to press while you play." xml:space="preserve">
+    <value>リザルト画面はすべてPIU Scoresのプレイになります。プレイ中に押すものはありません。</value>
+  </data>
   <data name="Extreme Game" xml:space="preserve">
     <value>Extreme Game</value>
   </data>
@@ -141,6 +147,21 @@
   <data name="In the tray at sign-in; wakes when RISE starts." xml:space="preserve">
     <value>サインイン時にシステムトレイに常駐し、RISEの起動で動き出します。</value>
   </data>
+  <data name="It checks the numbers" xml:space="preserve">
+    <value>数字を確かめます</value>
+  </data>
+  <data name="It looks at RISE and nothing else, and sends only your plays." xml:space="preserve">
+    <value>RISE以外は見ず、送るのはプレイだけです。</value>
+  </data>
+  <data name="It records the play" xml:space="preserve">
+    <value>プレイを記録します</value>
+  </data>
+  <data name="It sees the result screen" xml:space="preserve">
+    <value>リザルト画面を見ます</value>
+  </data>
+  <data name="It sits in the tray, wakes when RISE starts and updates itself." xml:space="preserve">
+    <value>システムトレイに常駐し、RISEの起動で動き出し、自動で更新されます。</value>
+  </data>
   <data name="It stays on this PC. Nothing is sent anywhere unless you choose to." xml:space="preserve">
     <value>このPCにだけ残ります。あなたが選ばない限り、どこにも送信されません。</value>
   </data>
@@ -164,6 +185,9 @@
   </data>
   <data name="Machine Default" xml:space="preserve">
     <value>システムの既定</value>
+  </data>
+  <data name="Made to stay out of the way" xml:space="preserve">
+    <value>邪魔にならない設計</value>
   </data>
   <data name="Marvelous Game" xml:space="preserve">
     <value>Marvelous Game</value>
@@ -200,6 +224,9 @@
   </data>
   <data name="now" xml:space="preserve">
     <value>たった今</value>
+  </data>
+  <data name="Once a second in the game window, or each time you press F12. Nothing appears over the game." xml:space="preserve">
+    <value>ゲームウィンドウを1秒に1回、またはF12を押すたびに見ます。ゲームの上には何も表示されません。</value>
   </data>
   <data name="Open logs folder" xml:space="preserve">
     <value>ログフォルダーを開く</value>
@@ -255,6 +282,9 @@
   <data name="PIU Scores refused the play, so it wasn't recorded." xml:space="preserve">
     <value>PIU Scoresがプレイを拒否したため、記録されませんでした。</value>
   </data>
+  <data name="Play RISE. It does the rest." xml:space="preserve">
+    <value>RISEをプレイするだけ。あとは自動で進みます。</value>
+  </data>
   <data name="Play sounds" xml:space="preserve">
     <value>音を鳴らす</value>
   </data>
@@ -303,8 +333,14 @@
   <data name="Sent to PIU Scores." xml:space="preserve">
     <value>PIU Scoresに送信しました。</value>
   </data>
+  <data name="Set it up" xml:space="preserve">
+    <value>設定する</value>
+  </data>
   <data name="Set up in three steps" xml:space="preserve">
     <value>3つのステップで設定</value>
+  </data>
+  <data name="Setting up takes two minutes, once." xml:space="preserve">
+    <value>設定は最初の一度、2分だけです。</value>
   </data>
   <data name="Show notifications" xml:space="preserve">
     <value>通知を表示</value>
@@ -366,6 +402,9 @@
   <data name="Stop bulk capture" xml:space="preserve">
     <value>一括キャプチャを停止</value>
   </data>
+  <data name="Straight onto PIU Scores, like any import. A chime tells you it landed." xml:space="preserve">
+    <value>インポートと同じように、そのままPIU Scoresへ。チャイムが鳴れば記録完了です。</value>
+  </data>
   <data name="Superb Game" xml:space="preserve">
     <value>Superb Game</value>
   </data>
@@ -389,6 +428,9 @@
   </data>
   <data name="The judgments don't add up to the score — probably a misread. Not recorded." xml:space="preserve">
     <value>判定がスコアと合いません — おそらく読み間違いです。記録されていません。</value>
+  </data>
+  <data name="The judgments have to add up to the score, so a misread never reaches PIU Scores." xml:space="preserve">
+    <value>判定がスコアと合わなければ送らないので、読み間違いがPIU Scoresに届くことはありません。</value>
   </data>
   <data name="The screenshot was taken before the numbers finished counting, so nothing was recorded." xml:space="preserve">
     <value>数字のカウントが終わる前にスクリーンショットを撮ったため、何も記録されませんでした。</value>

@@ -9,8 +9,8 @@ using PiuScoresWatcher.Core.Startup;
 namespace PiuScoresWatcher.App.Views;
 
 /// <summary>
-///     Shown whenever no token is stored (D39): the token, checked on the spot; how to watch; Start with
-///     Windows. Done saves the choices and closes into the tray.
+///     Shown whenever no token is stored (D39): how it works first (D65), then, from "Set it up", the token,
+///     checked on the spot; how to watch; Start with Windows. Done saves the choices and closes into the tray.
 /// </summary>
 public partial class FirstRunWindow : Window
 {
@@ -35,6 +35,16 @@ public partial class FirstRunWindow : Window
         StartWithWindowsBox.IsChecked = current.StartWithWindows;
         if (status.Player is { } player)
             ShowConnected(player);
+    }
+
+    /// <summary>From how it works to the three steps; Enter now means Done, and the token box is ready for a paste.</summary>
+    private void OnSetItUp(object sender, RoutedEventArgs e)
+    {
+        IntroPage.Visibility = Visibility.Collapsed;
+        SetupPage.Visibility = Visibility.Visible;
+        SetItUpButton.IsDefault = false;
+        DoneButton.IsDefault = true;
+        TokenBox.Focus();
     }
 
     private async void OnConnect(object sender, RoutedEventArgs e)

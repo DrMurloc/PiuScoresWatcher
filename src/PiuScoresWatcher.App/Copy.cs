@@ -58,7 +58,23 @@ public static class Copy
     /// <summary>A window with a name of its own: <c>PIU Scores Watcher · Bulk capture</c>.</summary>
     public static string AppNameFor(SiteScope scope, string window) => $"{AppNameFor(scope)} · {window}";
 
-    // ---- First run ----
+    // ---- First run: how it works, before the token (D65) ----
+    public static string IntroHeadline => L("Play RISE. It does the rest.");
+    public static string IntroLede => L("Every result screen becomes a play on PIU Scores, with nothing to press while you play.");
+    public static string IntroSees => L("It sees the result screen");
+    public static string IntroSeesDetail => L("Once a second in the game window, or each time you press F12. Nothing appears over the game.");
+    public static string IntroChecks => L("It checks the numbers");
+    public static string IntroChecksDetail => L("The judgments have to add up to the score, so a misread never reaches PIU Scores.");
+    public static string IntroRecords => L("It records the play");
+    public static string IntroRecordsDetail => L("Straight onto PIU Scores, like any import. A chime tells you it landed.");
+    public static string IntroOutOfTheWay => Upper(L("Made to stay out of the way"));
+    public static string IntroTray => L("It sits in the tray, wakes when RISE starts and updates itself.");
+    public static string IntroOnlyRise => L("It looks at RISE and nothing else, and sends only your plays.");
+    public static string IntroReview => L("A screen it can't read makes a low tone and waits for you in Review. Nothing is guessed.");
+    public static string IntroSetupTakes => L("Setting up takes two minutes, once.");
+    public static string SetItUp => L("Set it up");
+
+    // ---- First run: the three steps ----
     public static string FirstRunHeadline => L("Set up in three steps");
     public static string FirstRunLede => L("Two minutes, once. After this it just runs.");
     public static string TokenLabel => L("Your PIU Scores token");

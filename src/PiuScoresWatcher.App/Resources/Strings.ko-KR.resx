@@ -27,6 +27,9 @@
   <data name="A play PIU Scores didn't take" xml:space="preserve">
     <value>PIU Scores가 받지 않은 플레이</value>
   </data>
+  <data name="A screen it can't read makes a low tone and waits for you in Review. Nothing is guessed." xml:space="preserve">
+    <value>읽지 못한 화면은 낮은 음을 내고 검토 창에서 기다립니다. 추측하는 것은 없습니다.</value>
+  </data>
   <data name="A screen seen twice is still one play." xml:space="preserve">
     <value>두 번 본 화면도 플레이는 하나입니다.</value>
   </data>
@@ -114,6 +117,9 @@
   <data name="Every recorded play" xml:space="preserve">
     <value>기록된 모든 플레이</value>
   </data>
+  <data name="Every result screen becomes a play on PIU Scores, with nothing to press while you play." xml:space="preserve">
+    <value>모든 결과 화면이 PIU Scores의 플레이가 됩니다. 플레이하는 동안 누를 것은 없습니다.</value>
+  </data>
   <data name="Extreme Game" xml:space="preserve">
     <value>익스트림 게임</value>
   </data>
@@ -141,6 +147,21 @@
   <data name="In the tray at sign-in; wakes when RISE starts." xml:space="preserve">
     <value>로그인하면 시스템 트레이에 있다가 RISE가 시작되면 작동합니다.</value>
   </data>
+  <data name="It checks the numbers" xml:space="preserve">
+    <value>숫자를 확인합니다</value>
+  </data>
+  <data name="It looks at RISE and nothing else, and sends only your plays." xml:space="preserve">
+    <value>RISE 외에는 아무것도 보지 않고, 플레이만 전송합니다.</value>
+  </data>
+  <data name="It records the play" xml:space="preserve">
+    <value>플레이를 기록합니다</value>
+  </data>
+  <data name="It sees the result screen" xml:space="preserve">
+    <value>결과 화면을 봅니다</value>
+  </data>
+  <data name="It sits in the tray, wakes when RISE starts and updates itself." xml:space="preserve">
+    <value>시스템 트레이에 있다가 RISE가 시작되면 작동하고, 스스로 업데이트됩니다.</value>
+  </data>
   <data name="It stays on this PC. Nothing is sent anywhere unless you choose to." xml:space="preserve">
     <value>이 PC에만 남습니다. 직접 선택하지 않는 한 어디에도 전송되지 않습니다.</value>
   </data>
@@ -164,6 +185,9 @@
   </data>
   <data name="Machine Default" xml:space="preserve">
     <value>시스템 기본값</value>
+  </data>
+  <data name="Made to stay out of the way" xml:space="preserve">
+    <value>방해하지 않게</value>
   </data>
   <data name="Marvelous Game" xml:space="preserve">
     <value>마블러스 게임</value>
@@ -200,6 +224,9 @@
   </data>
   <data name="now" xml:space="preserve">
     <value>방금</value>
+  </data>
+  <data name="Once a second in the game window, or each time you press F12. Nothing appears over the game." xml:space="preserve">
+    <value>게임 창에서 1초에 한 번, 또는 F12를 누를 때마다 봅니다. 게임 위에는 아무것도 나타나지 않습니다.</value>
   </data>
   <data name="Open logs folder" xml:space="preserve">
     <value>로그 폴더 열기</value>
@@ -255,6 +282,9 @@
   <data name="PIU Scores refused the play, so it wasn't recorded." xml:space="preserve">
     <value>PIU Scores가 플레이를 거부해서 기록되지 않았습니다.</value>
   </data>
+  <data name="Play RISE. It does the rest." xml:space="preserve">
+    <value>RISE를 플레이하세요. 나머지는 알아서 합니다.</value>
+  </data>
   <data name="Play sounds" xml:space="preserve">
     <value>소리 재생</value>
   </data>
@@ -303,8 +333,14 @@
   <data name="Sent to PIU Scores." xml:space="preserve">
     <value>PIU Scores로 전송했습니다.</value>
   </data>
+  <data name="Set it up" xml:space="preserve">
+    <value>설정하기</value>
+  </data>
   <data name="Set up in three steps" xml:space="preserve">
     <value>세 단계로 설정하기</value>
+  </data>
+  <data name="Setting up takes two minutes, once." xml:space="preserve">
+    <value>설정은 한 번, 2분이면 됩니다.</value>
   </data>
   <data name="Show notifications" xml:space="preserve">
     <value>알림 표시</value>
@@ -366,6 +402,9 @@
   <data name="Stop bulk capture" xml:space="preserve">
     <value>일괄 캡처 중지</value>
   </data>
+  <data name="Straight onto PIU Scores, like any import. A chime tells you it landed." xml:space="preserve">
+    <value>가져오기처럼 곧바로 PIU Scores에 올라갑니다. 차임이 울리면 기록된 것입니다.</value>
+  </data>
   <data name="Superb Game" xml:space="preserve">
     <value>슈퍼브 게임</value>
   </data>
@@ -389,6 +428,9 @@
   </data>
   <data name="The judgments don't add up to the score — probably a misread. Not recorded." xml:space="preserve">
     <value>판정이 점수와 맞지 않습니다 — 잘못 읽었을 가능성이 높습니다. 기록되지 않았습니다.</value>
+  </data>
+  <data name="The judgments have to add up to the score, so a misread never reaches PIU Scores." xml:space="preserve">
+    <value>판정의 합이 점수와 맞아야 하므로, 잘못 읽은 결과는 PIU Scores에 가지 않습니다.</value>
   </data>
   <data name="The screenshot was taken before the numbers finished counting, so nothing was recorded." xml:space="preserve">
     <value>숫자가 다 올라가기 전에 스크린샷을 찍어서 아무것도 기록되지 않았습니다.</value>

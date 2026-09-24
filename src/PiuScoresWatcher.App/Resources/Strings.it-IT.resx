@@ -27,6 +27,9 @@
   <data name="A play PIU Scores didn't take" xml:space="preserve">
     <value>Una partita che PIU Scores non ha accettato</value>
   </data>
+  <data name="A screen it can't read makes a low tone and waits for you in Review. Nothing is guessed." xml:space="preserve">
+    <value>Una schermata che non riesce a leggere emette un tono basso e ti aspetta nella finestra di controllo. Non si tira a indovinare.</value>
+  </data>
   <data name="A screen seen twice is still one play." xml:space="preserve">
     <value>Una schermata vista due volte resta una sola partita.</value>
   </data>
@@ -114,6 +117,9 @@
   <data name="Every recorded play" xml:space="preserve">
     <value>Ogni partita registrata</value>
   </data>
+  <data name="Every result screen becomes a play on PIU Scores, with nothing to press while you play." xml:space="preserve">
+    <value>Ogni schermata dei risultati diventa una partita su PIU Scores, senza niente da premere mentre giochi.</value>
+  </data>
   <data name="Extreme Game" xml:space="preserve">
     <value>Extreme Game</value>
   </data>
@@ -141,6 +147,21 @@
   <data name="In the tray at sign-in; wakes when RISE starts." xml:space="preserve">
     <value>Nell'area di notifica all'accesso; si attiva all'avvio di RISE.</value>
   </data>
+  <data name="It checks the numbers" xml:space="preserve">
+    <value>Controlla i numeri</value>
+  </data>
+  <data name="It looks at RISE and nothing else, and sends only your plays." xml:space="preserve">
+    <value>Guarda solo RISE e invia solo le tue partite.</value>
+  </data>
+  <data name="It records the play" xml:space="preserve">
+    <value>Registra la partita</value>
+  </data>
+  <data name="It sees the result screen" xml:space="preserve">
+    <value>Vede la schermata dei risultati</value>
+  </data>
+  <data name="It sits in the tray, wakes when RISE starts and updates itself." xml:space="preserve">
+    <value>Resta nell'area di notifica, si attiva all'avvio di RISE e si aggiorna da sola.</value>
+  </data>
   <data name="It stays on this PC. Nothing is sent anywhere unless you choose to." xml:space="preserve">
     <value>Resta su questo PC. Non viene inviato nulla da nessuna parte, a meno che tu non lo scelga.</value>
   </data>
@@ -164,6 +185,9 @@
   </data>
   <data name="Machine Default" xml:space="preserve">
     <value>Predefinita di sistema</value>
+  </data>
+  <data name="Made to stay out of the way" xml:space="preserve">
+    <value>Pensata per non disturbare</value>
   </data>
   <data name="Marvelous Game" xml:space="preserve">
     <value>Marvelous Game</value>
@@ -200,6 +224,9 @@
   </data>
   <data name="now" xml:space="preserve">
     <value>ora</value>
+  </data>
+  <data name="Once a second in the game window, or each time you press F12. Nothing appears over the game." xml:space="preserve">
+    <value>Una volta al secondo nella finestra del gioco, o ogni volta che premi F12. Niente compare sopra il gioco.</value>
   </data>
   <data name="Open logs folder" xml:space="preserve">
     <value>Apri la cartella dei log</value>
@@ -255,6 +282,9 @@
   <data name="PIU Scores refused the play, so it wasn't recorded." xml:space="preserve">
     <value>PIU Scores ha rifiutato la partita, quindi non è stata registrata.</value>
   </data>
+  <data name="Play RISE. It does the rest." xml:space="preserve">
+    <value>Gioca a RISE. Al resto pensa l'app.</value>
+  </data>
   <data name="Play sounds" xml:space="preserve">
     <value>Riproduci i suoni</value>
   </data>
@@ -303,8 +333,14 @@
   <data name="Sent to PIU Scores." xml:space="preserve">
     <value>Inviato a PIU Scores.</value>
   </data>
+  <data name="Set it up" xml:space="preserve">
+    <value>Configura</value>
+  </data>
   <data name="Set up in three steps" xml:space="preserve">
     <value>Configura in tre passaggi</value>
+  </data>
+  <data name="Setting up takes two minutes, once." xml:space="preserve">
+    <value>La configurazione richiede due minuti, una volta sola.</value>
   </data>
   <data name="Show notifications" xml:space="preserve">
     <value>Mostra le notifiche</value>
@@ -313,7 +349,7 @@
     <value>Mostra il file</value>
   </data>
   <data name="Sits in the tray, wakes when RISE starts, sleeps when it closes. Off, it only runs when you open it." xml:space="preserve">
-    <value>Resta nell'area di notifica, si attiva all'avvio di RISE e si ferma quando si chiude. Se disattivato, funziona solo quando lo apri.</value>
+    <value>Resta nell'area di notifica, si attiva all'avvio di RISE e si ferma quando si chiude. Se disattivata, funziona solo quando la apri.</value>
   </data>
   <data name="Some of the numbers couldn't be read, so nothing was recorded." xml:space="preserve">
     <value>Alcuni numeri non sono stati letti, quindi non è stato registrato nulla.</value>
@@ -366,6 +402,9 @@
   <data name="Stop bulk capture" xml:space="preserve">
     <value>Ferma l'acquisizione in blocco</value>
   </data>
+  <data name="Straight onto PIU Scores, like any import. A chime tells you it landed." xml:space="preserve">
+    <value>Dritta su PIU Scores, come qualsiasi importazione. Una campanella ti dice che è arrivata.</value>
+  </data>
   <data name="Superb Game" xml:space="preserve">
     <value>Superb Game</value>
   </data>
@@ -389,6 +428,9 @@
   </data>
   <data name="The judgments don't add up to the score — probably a misread. Not recorded." xml:space="preserve">
     <value>I giudizi non tornano con il punteggio — probabilmente un errore di lettura. Non registrata.</value>
+  </data>
+  <data name="The judgments have to add up to the score, so a misread never reaches PIU Scores." xml:space="preserve">
+    <value>I giudizi devono tornare con il punteggio, così un errore di lettura non arriva mai su PIU Scores.</value>
   </data>
   <data name="The screenshot was taken before the numbers finished counting, so nothing was recorded." xml:space="preserve">
     <value>Lo screenshot è stato fatto prima che i numeri finissero di contare, quindi non è stato registrato nulla.</value>
@@ -433,7 +475,7 @@
     <value>Token salvato — PIU Scores non ha ancora risposto</value>
   </data>
   <data name="Two minutes, once. After this it just runs." xml:space="preserve">
-    <value>Due minuti, una volta sola. Poi va da solo.</value>
+    <value>Due minuti, una volta sola. Poi va da sola.</value>
   </data>
   <data name="Ultimate Game" xml:space="preserve">
     <value>Ultimate Game</value>
