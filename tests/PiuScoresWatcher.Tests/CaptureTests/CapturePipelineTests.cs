@@ -45,6 +45,14 @@ public sealed class CapturePipelineTests
         return new CapturedFrame(FixtureScreens.Load(fixture), source, Now.AddSeconds(seconds), null);
     }
 
+    /// <summary>Morrighan with its accuracy ("94.93%") pasted over its perfect count, where Warm Up's layout puts both (Layouts.DanceGrade).</summary>
+    private static CapturedFrame Misread(double seconds = 0, CaptureSource source = CaptureSource.GameWindow)
+    {
+        var image = FixtureScreens.LoadWithCopy("20260921201328",
+            FractionRect.At1080p(1690, 779, 1850, 827), FractionRect.At1080p(1690, 191, 1850, 239));
+        return new CapturedFrame(image, source, Now.AddSeconds(seconds), null);
+    }
+
     private void TitleIs(params string[] reads)
     {
         _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
@@ -224,6 +232,45 @@ public sealed class CapturePipelineTests
         await pipeline.HandleAsync(Frame("20260922184847", seconds: 2), CancellationToken.None);
 
         _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.NumbersDisagree, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ACountThatReadsWithAPercentSignIsKeptForReviewNotAnError()
+    {
+        var outcome = await Pipeline().HandleAsync(Misread(source: CaptureSource.SteamScreenshot), CancellationToken.None);
+
+        Assert.IsType<FrameOutcome.Kept>(outcome);
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.NumbersUnreadable, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AWindowResultThatCannotBeReadIsKeptOnceWhileItStaysUp()
+    {
+        // the Arcade Station's video behind the numbers changes every frame; one screen is one review
+        var pipeline = Pipeline();
+        Assert.IsType<FrameOutcome.Kept>(await pipeline.HandleAsync(Misread(0), CancellationToken.None));
+        Assert.IsType<FrameOutcome.Duplicate>(await pipeline.HandleAsync(Misread(1), CancellationToken.None));
+        Assert.IsType<FrameOutcome.Duplicate>(await pipeline.HandleAsync(Misread(2), CancellationToken.None));
+
+        await pipeline.HandleAsync(Frame("20260922184847", seconds: 3), CancellationToken.None);
+        Assert.IsType<FrameOutcome.Kept>(await pipeline.HandleAsync(Misread(60), CancellationToken.None));
+
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.NumbersUnreadable, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()), Times.Exactly(2));
+        _notifier.Verify(n => n.Notify(It.IsAny<WatcherNotice.Unreadable>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task AResultLeftUpPastTheDedupeWindowIsNotPostedAgain()
+    {
+        // the screen stays up as long as the player leaves it (D11)
+        var pipeline = Pipeline();
+        Assert.IsType<FrameOutcome.Posted>(await pipeline.HandleAsync(Frame("20260921201328"), CancellationToken.None));
+
+        _clock.Advance(TimeSpan.FromMinutes(11));
+        var outcome = await pipeline.HandleAsync(Frame("20260921201328", seconds: 660), CancellationToken.None);
+
+        Assert.IsType<FrameOutcome.Duplicate>(outcome);
+        _site.Verify(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

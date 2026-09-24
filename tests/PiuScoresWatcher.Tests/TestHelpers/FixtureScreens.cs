@@ -37,4 +37,20 @@ internal static class FixtureScreens
         using var bgra = decoded.ColorType == SKColorType.Bgra8888 ? decoded.Copy() : decoded.Copy(SKColorType.Bgra8888);
         return new ScreenImage(bgra.Width, bgra.Height, bgra.Bytes);
     }
+
+    /// <summary>A fixture with one region's pixels pasted over another's — a misread made to order.</summary>
+    public static ScreenImage LoadWithCopy(string name, FractionRect from, FractionRect to)
+    {
+        using var decoded = SKBitmap.Decode(Path.Combine(Directory, name + ".jpg"))
+                            ?? throw new InvalidOperationException($"Fixture {name} did not decode.");
+        using var bgra = decoded.ColorType == SKColorType.Bgra8888 ? decoded.Copy() : decoded.Copy(SKColorType.Bgra8888);
+        var original = bgra.Bytes;
+        var sized = new ScreenImage(bgra.Width, bgra.Height, original);
+        var (source, target) = (from.On(sized), to.On(sized));
+        var pasted = (byte[])original.Clone();
+        for (var y = 0; y < Math.Min(source.Height, target.Height); y++)
+            Array.Copy(original, ((source.Y0 + y) * bgra.Width + source.X0) * 4,
+                pasted, ((target.Y0 + y) * bgra.Width + target.X0) * 4, Math.Min(source.Width, target.Width) * 4);
+        return new ScreenImage(bgra.Width, bgra.Height, pasted);
+    }
 }

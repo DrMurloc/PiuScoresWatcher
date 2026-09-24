@@ -58,6 +58,16 @@ public sealed class CapturePipeline(
     /// <summary>The window result whose numbers have not agreed yet, and since when they have read as they do.</summary>
     private Unsettled? _unsettled;
 
+    /// <summary>
+    ///     The window's current visit to a result screen, from its first frame until one that is not a result. The
+    ///     screen stays up as long as the player leaves it (D11), so within a visit an unreadable screen is kept once,
+    ///     however many frames the video behind its numbers sends, and the play it shows is handled once, however long
+    ///     it stands — the dedupe window alone let a screen left up for eleven minutes post its play twice.
+    /// </summary>
+    private bool _keptUnreadableThisVisit;
+
+    private PlayKey? _handledThisVisit;
+
     public async Task<FrameOutcome> HandleAsync(CapturedFrame frame, CancellationToken cancellationToken)
     {
         var fromWindow = frame.Source == CaptureSource.GameWindow;
@@ -65,7 +75,11 @@ public sealed class CapturePipeline(
         if (layout is null)
         {
             if (fromWindow)
+            {
                 KeepUnsettled(); // the screen went away and its numbers never agreed
+                EndVisit();
+            }
+
             return new FrameOutcome.NotAResult();
         }
 
@@ -74,13 +88,20 @@ public sealed class CapturePipeline(
         {
             case ReadingStatus.NotAPlay:
                 if (fromWindow)
+                {
                     KeepUnsettled();
+                    EndVisit();
+                }
+
                 return new FrameOutcome.NotAPlay();
             case ReadingStatus.NumbersNotShown:
                 return fromWindow
                     ? new FrameOutcome.NotYet(reading.Reason ?? "the numbers have not landed")
                     : Keep(frame, KeptBecause.NumbersNotShown, reading.Reason ?? "the numbers had not landed", reading);
             case ReadingStatus.Unreadable:
+                if (fromWindow && _keptUnreadableThisVisit)
+                    return new FrameOutcome.Duplicate();
+                _keptUnreadableThisVisit |= fromWindow;
                 return Keep(frame, KeptBecause.NumbersUnreadable, reading.Reason ?? "unreadable", reading);
         }
 
@@ -88,7 +109,7 @@ public sealed class CapturePipeline(
         if (!verdict.Reconciles)
         {
             // kept already — from the window, or from a screenshot of the same screen — is kept once
-            if (PlayKey.Of(reading) is { } handled && !deduplicator.IsNew(handled))
+            if (PlayKey.Of(reading) is { } handled && (HandledThisVisit(fromWindow, handled) || !deduplicator.IsNew(handled)))
                 return new FrameOutcome.Duplicate();
             return fromWindow
                 ? Unsettle(frame, reading, verdict.Problem ?? "the numbers do not agree")
@@ -105,7 +126,7 @@ public sealed class CapturePipeline(
         }
 
         var key = PlayKey.Of(reading)!;
-        if (!deduplicator.IsNew(key))
+        if (HandledThisVisit(fromWindow, key) || !deduplicator.IsNew(key))
             return new FrameOutcome.Duplicate();
 
         var type = reading.ChartType!.Value;
@@ -124,7 +145,7 @@ public sealed class CapturePipeline(
         if (choice.Match is CatalogMatch.Found found)
             play = play with { SongName = found.Chart.SongName, Level = found.Chart.Level };
         var outcome = await site.PostAsync(play, frame.Source.Token(), cancellationToken);
-        deduplicator.Remember(key);
+        Remember(frame, key);
         if (outcome is PostOutcome.Recorded recorded)
         {
             notifier.Notify(new WatcherNotice.Recorded(play, recorded));
@@ -174,10 +195,30 @@ public sealed class CapturePipeline(
     private FrameOutcome Keep(CapturedFrame frame, KeptBecause because, string reason, ResultScreenReading reading)
     {
         if (PlayKey.Of(reading) is { } key)
-            deduplicator.Remember(key);
+            Remember(frame, key);
         var path = failed.Save(frame, because, reason, reading);
         notifier.Notify(new WatcherNotice.Unreadable(reason, path));
         return new FrameOutcome.Kept(reason, path);
+    }
+
+    /// <summary>Handled: for the dedupe window, and from the window for as long as this visit to the screen lasts.</summary>
+    private void Remember(CapturedFrame frame, PlayKey key)
+    {
+        deduplicator.Remember(key);
+        if (frame.Source == CaptureSource.GameWindow)
+            _handledThisVisit = key;
+    }
+
+    private bool HandledThisVisit(bool fromWindow, PlayKey key)
+    {
+        return fromWindow && key == _handledThisVisit;
+    }
+
+    /// <summary>The window left the result screen: the next one is a new visit.</summary>
+    private void EndVisit()
+    {
+        _keptUnreadableThisVisit = false;
+        _handledThisVisit = null;
     }
 
     private sealed record Unsettled(ResultScreenReading Reading, CapturedFrame Frame, string Problem, DateTimeOffset Since);

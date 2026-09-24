@@ -122,14 +122,18 @@ public sealed class ResultScreenReader
         return null;
     }
 
+    /// <summary>
+    ///     The first field that is not a number: a glyph no template claimed, or one that is not a digit — a '%' or a
+    ///     '.' from the accuracy's own font can land in a count, and a count must parse, not throw.
+    /// </summary>
     private static string? Unreadable(FieldReading[] values, FieldReading score, FieldReading level)
     {
         for (var i = 0; i < values.Length; i++)
-            if (!values[i].IsClean)
+            if (values[i].Value is null)
                 return $"{Layouts.ValueNames[i]} read as '{values[i].Text}'";
-        if (!score.IsClean)
+        if (score.Value is null)
             return $"score read as '{score.Text}'";
-        if (!level.IsClean)
+        if (level.Value is null)
             return $"level read as '{level.Text}'";
         return null;
     }
