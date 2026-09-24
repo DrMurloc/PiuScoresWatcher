@@ -1,6 +1,7 @@
 using Moq;
 using PiuScoresWatcher.Core.Api;
 using PiuScoresWatcher.Core.Capture;
+using PiuScoresWatcher.Core.Catalog;
 using PiuScoresWatcher.Core.Domain;
 using PiuScoresWatcher.Core.Recognition;
 using PiuScoresWatcher.Tests.TestHelpers;
@@ -20,13 +21,14 @@ public sealed class CapturePipelineTests
     private readonly Mock<ITitleReader> _titles = new();
     private readonly Mock<IFailedScreenStore> _failed = new();
     private readonly Mock<INotifier> _notifier = new();
+    private readonly Mock<ISongCatalogs> _catalogs = new();
     private readonly FakeClock _clock = FakeClock.At(Now);
 
     public CapturePipelineTests()
     {
         _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("Morrighan");
-        _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<CaptureSource>(), It.IsAny<CancellationToken>()))
+        _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PostOutcome.Recorded(1, "Rise"));
         _failed.Setup(f => f.Save(It.IsAny<CapturedFrame>(), It.IsAny<KeptBecause>(), It.IsAny<string>(), It.IsAny<ResultScreenReading?>()))
             .Returns(@"C:\failed\frame.png");
@@ -35,7 +37,7 @@ public sealed class CapturePipelineTests
     private CapturePipeline Pipeline()
     {
         return new CapturePipeline(new ResultScreenDetector(), new ResultScreenReader(), _titles.Object, _site.Object,
-            new Deduplicator(_clock), _failed.Object, _notifier.Object);
+            new Deduplicator(_clock), _failed.Object, _notifier.Object, _catalogs.Object);
     }
 
     private static CapturedFrame Frame(string fixture, CaptureSource source = CaptureSource.GameWindow)
@@ -52,8 +54,21 @@ public sealed class CapturePipelineTests
         Assert.Equal("Morrighan", posted.Play.SongName);
         Assert.Equal(945403, posted.Play.Score);
         Assert.Equal(Now, posted.Play.PlayedAt);
-        _site.Verify(s => s.PostAsync(It.Is<ObservedPlay>(p => p.Mix == RiseMix.Rise && p.Level == 20), CaptureSource.GameWindow, It.IsAny<CancellationToken>()), Times.Once);
+        _site.Verify(s => s.PostAsync(It.Is<ObservedPlay>(p => p.Mix == RiseMix.Rise && p.Level == 20), "watcher-grab", It.IsAny<CancellationToken>()), Times.Once);
         _notifier.Verify(n => n.Notify(It.IsAny<WatcherNotice.Recorded>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ATitleTheOcrSlippedOnIsPostedInTheCatalogsSpelling()
+    {
+        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("Morrlghan");
+        _catalogs.Setup(c => c.For(RiseMix.Rise))
+            .Returns(new SongCatalog([new CatalogChart(Guid.NewGuid(), "Morrighan", ChartType.Single, 20)]));
+
+        var posted = Assert.IsType<FrameOutcome.Posted>(await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None));
+
+        Assert.Equal("Morrighan", posted.Play.SongName);
     }
 
     [Fact]
@@ -65,7 +80,7 @@ public sealed class CapturePipelineTests
         var again = await pipeline.HandleAsync(Frame("20260921201328", CaptureSource.SteamScreenshot), CancellationToken.None);
 
         Assert.IsType<FrameOutcome.Duplicate>(again);
-        _site.Verify(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<CaptureSource>(), It.IsAny<CancellationToken>()), Times.Once);
+        _site.Verify(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -122,7 +137,7 @@ public sealed class CapturePipelineTests
     [Fact]
     public async Task APlayARejectedTokenCostIsReportedWithThePlay()
     {
-        _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<CaptureSource>(), It.IsAny<CancellationToken>()))
+        _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PostOutcome.Unauthorized());
 
         var outcome = await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None);
@@ -135,7 +150,7 @@ public sealed class CapturePipelineTests
     [Fact]
     public async Task ASongTheSiteDoesNotKnowIsReportedNotRecorded()
     {
-        _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<CaptureSource>(), It.IsAny<CancellationToken>()))
+        _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PostOutcome.SongUnknown("Play 0: no chart matches on Rise."));
 
         await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None);
@@ -146,7 +161,7 @@ public sealed class CapturePipelineTests
     [Fact]
     public async Task APlayTheSiteCouldNotBeReachedForIsKeptNotLost()
     {
-        _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<CaptureSource>(), It.IsAny<CancellationToken>()))
+        _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PostOutcome.Failed(null, "the site is unreachable"));
 
         await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None);

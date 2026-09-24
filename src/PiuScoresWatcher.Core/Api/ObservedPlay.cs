@@ -14,6 +14,9 @@ public enum CaptureSource
 
 public static class CaptureSources
 {
+    /// <summary>What a bulk capture's plays carry as their <c>source</c>, whichever way the song list was seen (D52).</summary>
+    public const string SongList = "watcher-songlist";
+
     public static string Token(this CaptureSource source)
     {
         return source switch
@@ -29,7 +32,8 @@ public static class CaptureSources
 /// <summary>
 ///     One play as the watcher will post it: the reading that reconciled, the title the OCR read,
 ///     and when it happened. The award is not here on purpose — the server derives it from the
-///     judgments and would refuse a wrong claim anyway.
+///     judgments and would refuse a wrong claim anyway. A bulk capture from the song list carries
+///     no judgments and no max combo (D46).
 /// </summary>
 [ExcludeFromCodeCoverage]
 public sealed record ObservedPlay(
@@ -37,8 +41,8 @@ public sealed record ObservedPlay(
     string SongName,
     ChartType ChartType,
     int Level,
-    Judgments Judgments,
-    int MaxCombo,
+    Judgments? Judgments,
+    int? MaxCombo,
     int Score,
     bool IsBroken,
     DateTimeOffset PlayedAt)
@@ -53,5 +57,13 @@ public sealed record ObservedPlay(
         if (string.IsNullOrWhiteSpace(songName))
             throw new IncompletePlayException("A play needs the song's title to be posted.");
         return new ObservedPlay(reading.Mix, songName.Trim(), chartType, level, judgments, maxCombo, score, reading.IsBroken, playedAt);
+    }
+
+    /// <summary>A best read off the song list: the song, the chart and the score, a pass, dated when it was read (D46, D52).</summary>
+    public static ObservedPlay Captured(RiseMix mix, string songName, ChartType chartType, int level, int score, DateTimeOffset readAt)
+    {
+        if (string.IsNullOrWhiteSpace(songName))
+            throw new IncompletePlayException("A capture needs the song's title to be posted.");
+        return new ObservedPlay(mix, songName.Trim(), chartType, level, null, null, score, false, readAt);
     }
 }

@@ -1,4 +1,5 @@
 using PiuScoresWatcher.Core.Api;
+using PiuScoresWatcher.Core.Catalog;
 using PiuScoresWatcher.Core.Recognition;
 using PiuScoresWatcher.Core.Scoring;
 
@@ -33,7 +34,8 @@ public abstract record FrameOutcome
 ///     "not yet"; a screenshot file is final, so one that does not reconcile is kept for review, and
 ///     so is any play the site does not record.
 ///     The title is read only for a play not seen before — the window shows the same screen once a
-///     second, and OCR is the expensive step.
+///     second, and OCR is the expensive step — and posted in the catalog's own spelling whenever the
+///     mix's chart list is loaded and names the song (D49).
 /// </summary>
 public sealed class CapturePipeline(
     ResultScreenDetector detector,
@@ -42,7 +44,8 @@ public sealed class CapturePipeline(
     IPlaysClient site,
     Deduplicator deduplicator,
     IFailedScreenStore failed,
-    INotifier notifier)
+    INotifier notifier,
+    ISongCatalogs catalogs)
 {
     public async Task<FrameOutcome> HandleAsync(CapturedFrame frame, CancellationToken cancellationToken)
     {
@@ -77,8 +80,9 @@ public sealed class CapturePipeline(
         if (string.IsNullOrWhiteSpace(title))
             return Keep(frame, KeptBecause.TitleUnreadable, "the song title could not be read", reading);
 
-        var play = ObservedPlay.From(reading, title, frame.SeenAt);
-        var outcome = await site.PostAsync(play, frame.Source, cancellationToken);
+        var catalogName = catalogs.For(reading.Mix)?.Match(title, reading.ChartType!.Value, reading.Level!.Value)?.SongName;
+        var play = ObservedPlay.From(reading, catalogName ?? title, frame.SeenAt);
+        var outcome = await site.PostAsync(play, frame.Source.Token(), cancellationToken);
         deduplicator.Remember(key);
         if (outcome is PostOutcome.Recorded recorded)
         {

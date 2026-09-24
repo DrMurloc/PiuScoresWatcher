@@ -22,6 +22,7 @@ using PiuScoresWatcher.App.Updates;
 using PiuScoresWatcher.App.Views;
 using PiuScoresWatcher.Core.Api;
 using PiuScoresWatcher.Core.Capture;
+using PiuScoresWatcher.Core.Catalog;
 using PiuScoresWatcher.Core.Recognition;
 using PiuScoresWatcher.Core.Settings;
 using PiuScoresWatcher.Core.Startup;
@@ -129,6 +130,9 @@ public partial class App : Application
         builder.Services.AddSingleton<INotifier, WatcherNotifier>();
         builder.Services.AddSingleton<Connection>();
         builder.Services.AddSingleton<StartupRegistration>();
+        builder.Services.AddSingleton<SongCatalogs>();
+        builder.Services.AddSingleton<ISongCatalogs>(services => services.GetRequiredService<SongCatalogs>());
+        builder.Services.AddHostedService(services => services.GetRequiredService<SongCatalogs>());
         builder.Services.AddSingleton<CapturePipeline>();
         builder.Services.AddSingleton<RiseProcessWatch>();
         builder.Services.AddSingleton<IGameSession>(services => services.GetRequiredService<RiseProcessWatch>());

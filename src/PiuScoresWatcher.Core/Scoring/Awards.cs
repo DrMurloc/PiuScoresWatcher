@@ -24,11 +24,12 @@ public enum Award
 /// </summary>
 public static class Awards
 {
-    public static Award? Of(RiseMix mix, Judgments judgments, bool isBroken)
+    /// <summary>The award, or none: a broken play has none, and a capture from the song list has no judgments to earn one from.</summary>
+    public static Award? Of(RiseMix mix, Judgments? judgments, bool isBroken)
     {
-        if (isBroken)
+        if (isBroken || judgments is not { } counted)
             return null;
-        var plate = Plate(judgments);
+        var plate = Plate(counted);
         return mix switch
         {
             RiseMix.RiseArcade => plate,

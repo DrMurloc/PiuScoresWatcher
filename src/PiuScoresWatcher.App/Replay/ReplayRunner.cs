@@ -85,7 +85,7 @@ internal static partial class ReplayRunner
             if (verdict is { Reconciles: true } && title is not null && !options.DryRun)
             {
                 var play = ObservedPlay.From(reading, title, new SystemClock().Now);
-                var outcome = await client.PostAsync(play, CaptureSource.Replay, CancellationToken.None);
+                var outcome = await client.PostAsync(play, CaptureSource.Replay.Token(), CancellationToken.None);
                 posted = outcome is PostOutcome.Recorded;
                 posting = new { outcome = outcome.GetType().Name, summary = outcome.Describe() };
             }

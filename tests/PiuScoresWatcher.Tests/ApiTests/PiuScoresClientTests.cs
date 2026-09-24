@@ -70,7 +70,7 @@ public sealed class PiuScoresClientTests
         var (client, exchange) = ClientOver(HttpStatusCode.OK, "{}", token: null);
 
         Assert.IsType<IdentityCheck.Unauthorized>(await client.WhoAmIAsync(CancellationToken.None));
-        Assert.IsType<PostOutcome.NotConnected>(await client.PostAsync(Play, CaptureSource.Replay, CancellationToken.None));
+        Assert.IsType<PostOutcome.NotConnected>(await client.PostAsync(Play, CaptureSource.Replay.Token(), CancellationToken.None));
         Assert.Null(exchange.Request);
     }
 
@@ -87,7 +87,7 @@ public sealed class PiuScoresClientTests
     {
         var (client, exchange) = ClientOver(HttpStatusCode.OK, """{"recorded":1,"mix":"Rise","scoringModel":"phoenix"}""");
 
-        var outcome = await client.PostAsync(Play, CaptureSource.SteamScreenshot, CancellationToken.None);
+        var outcome = await client.PostAsync(Play, CaptureSource.SteamScreenshot.Token(), CancellationToken.None);
 
         Assert.Equal("https://piuscores.test/api/v2/players/me/plays", exchange.Request!.RequestUri!.ToString());
         Assert.Equal(HttpMethod.Post, exchange.Request.Method);
@@ -116,13 +116,103 @@ public sealed class PiuScoresClientTests
     }
 
     [Fact]
+    public async Task ACaptureFromTheSongListPostsNoJudgmentsAndItsOwnSource()
+    {
+        var (client, exchange) = ClientOver(HttpStatusCode.OK, """{"recorded":1,"mix":"Rise","scoringModel":"phoenix"}""");
+        var capture = ObservedPlay.Captured(RiseMix.Rise, "Aragami", ChartType.Single, 19, 971789,
+            new DateTimeOffset(2026, 9, 23, 19, 31, 18, TimeSpan.FromHours(-4)));
+
+        Assert.IsType<PostOutcome.Recorded>(await client.PostAsync(capture, CaptureSources.SongList, CancellationToken.None));
+
+        using var body = JsonDocument.Parse(exchange.RequestBody!);
+        Assert.Equal("watcher-songlist", body.RootElement.GetProperty("source").GetString());
+        var play = Assert.Single(body.RootElement.GetProperty("plays").EnumerateArray());
+        Assert.Equal("Aragami", play.GetProperty("songName").GetString());
+        Assert.Equal(971789, play.GetProperty("score").GetInt32());
+        Assert.False(play.GetProperty("isBroken").GetBoolean());
+        Assert.Equal("2026-09-23T19:31:18-04:00", play.GetProperty("playedAt").GetString());
+        foreach (var absent in new[] { "perfects", "greats", "goods", "bads", "misses", "maxCombo", "award" })
+            Assert.False(play.TryGetProperty(absent, out _), absent);
+    }
+
+    [Fact]
+    public async Task TheChartListIsReadPageByPageKeepingTheChartsAWatcherCanSee()
+    {
+        var pages = new Pages(new Dictionary<string, string>
+        {
+            ["https://piuscores.test/api/v2/charts?mix=rise&limit=500"] =
+                """{"data":[{"id":"11111111-1111-1111-1111-111111111111","songName":"Aragami","type":"Single","level":19},{"id":"22222222-2222-2222-2222-222222222222","songName":"Aragami","type":"CoOp","level":2}],"limit":500,"total":3,"next":"https://piuscores.test/api/v2/charts?cursor=abc"}""",
+            ["https://piuscores.test/api/v2/charts?cursor=abc"] =
+                """{"data":[{"id":"33333333-3333-3333-3333-333333333333","songName":"Morrighan","type":"HalfDouble","level":20}],"limit":500,"total":3,"next":null}"""
+        });
+
+        var result = await ClientOn(pages).GetChartsAsync(RiseMix.Rise, CancellationToken.None);
+
+        var charts = Assert.IsType<SiteResult<IReadOnlyList<CatalogChart>>.Ok>(result).Value;
+        Assert.Equal(
+            [
+                new CatalogChart(Guid.Parse("11111111-1111-1111-1111-111111111111"), "Aragami", ChartType.Single, 19),
+                new CatalogChart(Guid.Parse("33333333-3333-3333-3333-333333333333"), "Morrighan", ChartType.HalfDouble, 20)
+            ],
+            charts);
+        Assert.Equal(2, pages.Seen.Count);
+        Assert.All(pages.Seen, request => Assert.Equal("Basic", request.Scheme));
+    }
+
+    [Fact]
+    public async Task ThePlayersBestsAreReadPageByPage()
+    {
+        var player = Guid.Parse("44444444-4444-4444-4444-444444444444");
+        var pages = new Pages(new Dictionary<string, string>
+        {
+            [$"https://piuscores.test/api/v2/players/{player}/scores?mix=rise&limit=500"] =
+                """{"mix":"Rise","scoringModel":"phoenix","data":[{"chartId":"11111111-1111-1111-1111-111111111111","score":971789,"isBroken":false},{"chartId":"33333333-3333-3333-3333-333333333333","score":null,"isBroken":true}],"limit":500,"next":null}"""
+        });
+
+        var result = await ClientOn(pages).GetBestsAsync(player, RiseMix.Rise, CancellationToken.None);
+
+        var bests = Assert.IsType<SiteResult<IReadOnlyList<StoredBest>>.Ok>(result).Value;
+        Assert.Equal(
+            [
+                new StoredBest(Guid.Parse("11111111-1111-1111-1111-111111111111"), 971789, false),
+                new StoredBest(Guid.Parse("33333333-3333-3333-3333-333333333333"), null, true)
+            ],
+            bests);
+    }
+
+    [Fact]
+    public async Task ANextLinkToAnotherSiteIsNeverFollowedWithTheToken()
+    {
+        var pages = new Pages(new Dictionary<string, string>
+        {
+            ["https://piuscores.test/api/v2/charts?mix=rise&limit=500"] =
+                """{"data":[],"limit":500,"total":0,"next":"https://elsewhere.test/api/v2/charts?cursor=abc"}"""
+        });
+
+        var result = await ClientOn(pages).GetChartsAsync(RiseMix.Rise, CancellationToken.None);
+
+        Assert.IsType<SiteResult<IReadOnlyList<CatalogChart>>.Failed>(result);
+        Assert.Single(pages.Seen);
+    }
+
+    [Fact]
+    public async Task WithoutATokenNoListIsAskedFor()
+    {
+        var pages = new Pages(new Dictionary<string, string>());
+
+        Assert.IsType<SiteResult<IReadOnlyList<CatalogChart>>.Unauthorized>(
+            await ClientOn(pages, token: null).GetChartsAsync(RiseMix.Rise, CancellationToken.None));
+        Assert.Empty(pages.Seen);
+    }
+
+    [Fact]
     public async Task AProblemBecomesARefusalNamedByItsSlug()
     {
         var (client, _) = ClientOver(HttpStatusCode.BadRequest,
             """{"type":"https://piuscores.arroweclip.se/errors/judgments-do-not-reconcile","title":"The judgments do not produce the score.","status":400,"detail":"Play 0: 945403 vs 945408."}""",
             mediaType: "application/problem+json");
 
-        var refused = Assert.IsType<PostOutcome.Refused>(await client.PostAsync(Play, CaptureSource.Replay, CancellationToken.None));
+        var refused = Assert.IsType<PostOutcome.Refused>(await client.PostAsync(Play, CaptureSource.Replay.Token(), CancellationToken.None));
 
         Assert.Equal("judgments-do-not-reconcile", refused.ProblemType);
         Assert.Equal("Play 0: 945403 vs 945408.", refused.Detail);
@@ -135,7 +225,7 @@ public sealed class PiuScoresClientTests
             """{"type":"https://piuscores.arroweclip.se/errors/not-found","title":"Not found.","status":404,"detail":"Play 0: no chart matches on Rise."}""",
             mediaType: "application/problem+json");
 
-        var unknown = Assert.IsType<PostOutcome.SongUnknown>(await client.PostAsync(Play, CaptureSource.Replay, CancellationToken.None));
+        var unknown = Assert.IsType<PostOutcome.SongUnknown>(await client.PostAsync(Play, CaptureSource.Replay.Token(), CancellationToken.None));
 
         Assert.Equal("Play 0: no chart matches on Rise.", unknown.Detail);
     }
@@ -145,7 +235,7 @@ public sealed class PiuScoresClientTests
     {
         var (client, _) = ClientOver(HttpStatusCode.TooManyRequests, null, retryAfter: TimeSpan.FromSeconds(30));
 
-        var limited = Assert.IsType<PostOutcome.RateLimited>(await client.PostAsync(Play, CaptureSource.Replay, CancellationToken.None));
+        var limited = Assert.IsType<PostOutcome.RateLimited>(await client.PostAsync(Play, CaptureSource.Replay.Token(), CancellationToken.None));
 
         Assert.Equal(TimeSpan.FromSeconds(30), limited.RetryAfter);
     }
@@ -155,7 +245,7 @@ public sealed class PiuScoresClientTests
     {
         var (client, _) = ClientOver(HttpStatusCode.InternalServerError, "<html>oops</html>", mediaType: "text/html");
 
-        var failed = Assert.IsType<PostOutcome.Failed>(await client.PostAsync(Play, CaptureSource.Replay, CancellationToken.None));
+        var failed = Assert.IsType<PostOutcome.Failed>(await client.PostAsync(Play, CaptureSource.Replay.Token(), CancellationToken.None));
 
         Assert.Equal(500, failed.Status);
     }
@@ -166,10 +256,30 @@ public sealed class PiuScoresClientTests
         var http = new HttpClient(new ThrowingHandler()) { BaseAddress = new Uri("https://piuscores.test/") };
         var client = new PiuScoresClient(http, new StubTokens("pst_secret"));
 
-        var failed = Assert.IsType<PostOutcome.Failed>(await client.PostAsync(Play, CaptureSource.Replay, CancellationToken.None));
+        var failed = Assert.IsType<PostOutcome.Failed>(await client.PostAsync(Play, CaptureSource.Replay.Token(), CancellationToken.None));
 
         Assert.Null(failed.Status);
         Assert.Contains("unreachable", failed.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>A site that answers a fixed set of URLs, and remembers every request as it arrived.</summary>
+    private sealed class Pages(Dictionary<string, string> bodies) : HttpMessageHandler
+    {
+        public List<(string Url, string? Scheme)> Seen { get; } = [];
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var url = request.RequestUri!.ToString();
+            Seen.Add((url, request.Headers.Authorization?.Scheme));
+            return Task.FromResult(bodies.TryGetValue(url, out var body)
+                ? new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body, Encoding.UTF8, "application/json") }
+                : new HttpResponseMessage(HttpStatusCode.NotFound));
+        }
+    }
+
+    private static PiuScoresClient ClientOn(HttpMessageHandler handler, string? token = "pst_secret")
+    {
+        return new PiuScoresClient(new HttpClient(handler) { BaseAddress = new Uri("https://piuscores.test/") }, new StubTokens(token));
     }
 
     private sealed class ThrowingHandler : HttpMessageHandler
