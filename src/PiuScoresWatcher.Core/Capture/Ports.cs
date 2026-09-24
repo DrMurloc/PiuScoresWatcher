@@ -29,8 +29,9 @@ public interface IGameSession
 
 /// <summary>
 ///     Why a frame was kept for review, as a closed list: the words a player reads for each live in the app's
-///     copy (D36), and the free-form detail stays in the note beside the frame and in the log. The first four
-///     are screens that could not be read; the rest are plays that were read and that PIU Scores did not record.
+///     copy (D36), and the free-form detail stays in the note beside the frame and in the log. The first seven
+///     are screens that could not be read — four result screens, three song lists (D47, D49); the rest are
+///     plays that were read and that PIU Scores did not record. Notes store the name, never the number.
 /// </summary>
 public enum KeptBecause
 {
@@ -38,6 +39,9 @@ public enum KeptBecause
     NumbersNotShown,
     NumbersDisagree,
     TitleUnreadable,
+    ListUnreadable,
+    GradeDisagrees,
+    TitleUnmatched,
     Refused,
     SongUnknown,
     TokenRejected,
@@ -50,6 +54,10 @@ public static class Kept
 {
     /// <summary>A play that was read and not recorded, as opposed to a screen that could not be read.</summary>
     public static bool WasRead(this KeptBecause because) => because >= KeptBecause.Refused;
+
+    /// <summary>A song list kept during a bulk capture, as opposed to a result screen.</summary>
+    public static bool IsSongList(this KeptBecause because) => because is KeptBecause.ListUnreadable or KeptBecause.GradeDisagrees
+        or KeptBecause.TitleUnmatched;
 
     /// <summary>Why a play the site did not record was kept.</summary>
     public static KeptBecause Because(PostOutcome outcome) => outcome switch

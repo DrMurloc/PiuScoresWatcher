@@ -6,10 +6,25 @@ namespace PiuScoresWatcher.Tests.CaptureTests;
 public sealed class KeptBecauseTests
 {
     [Theory]
+    [InlineData(KeptBecause.ListUnreadable, true)]
+    [InlineData(KeptBecause.GradeDisagrees, true)]
+    [InlineData(KeptBecause.TitleUnmatched, true)]
+    [InlineData(KeptBecause.NumbersUnreadable, false)]
+    [InlineData(KeptBecause.TitleUnreadable, false)]
+    [InlineData(KeptBecause.Refused, false)]
+    public void ASongListKeptDuringABulkCaptureIsToldApartFromAResultScreen(KeptBecause because, bool isSongList)
+    {
+        Assert.Equal(isSongList, because.IsSongList());
+    }
+
+    [Theory]
     [InlineData(KeptBecause.NumbersUnreadable, false)]
     [InlineData(KeptBecause.NumbersNotShown, false)]
     [InlineData(KeptBecause.NumbersDisagree, false)]
     [InlineData(KeptBecause.TitleUnreadable, false)]
+    [InlineData(KeptBecause.ListUnreadable, false)]
+    [InlineData(KeptBecause.GradeDisagrees, false)]
+    [InlineData(KeptBecause.TitleUnmatched, false)]
     [InlineData(KeptBecause.Refused, true)]
     [InlineData(KeptBecause.SongUnknown, true)]
     [InlineData(KeptBecause.TokenRejected, true)]
