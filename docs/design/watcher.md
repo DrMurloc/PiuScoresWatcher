@@ -37,9 +37,11 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   frame, anti-cheat-adjacent, fragile across patches) and not a transparent always-on-top window (borderless
   only). Feedback is a toast, a sound, and the site. A tiny always-on-top status *pill* — a plain window in a
   corner — is a later option for people who want in-game confirmation; it is not an overlay.
-- **D4 (owner, 2026-09-22). Signed with Azure Trusted Signing.** The release workflow signs when the
-  account's variables exist and releases unsigned until then (HOW-TO-RUN §Signing). The account is the
-  owner's to create.
+- **D4 (owner, 2026-09-22). Signed with Azure Artifact Signing** (Trusted Signing until Microsoft renamed
+  it). The release workflow signs when the account's variables exist and releases unsigned until then
+  (HOW-TO-RUN §Signing); it runs in the `release` environment, the one exact subject the Azure sign-in
+  trusts. The account is the owner's: an individual validation, US and Canada only, with his legal name on
+  the certificate; he lifted the Azure read-only rule for the setup on 2026-09-24.
 - **D5. Two modes, both on by default.** Game-window and F12; a screen seen by both is one play (D11).
   Low-power machines use F12 alone.
 - **D6. A tray app that starts with Windows** — default on, shown on the first-run screen, a toggle in
@@ -353,7 +355,7 @@ session — a Warm Up result, an Arcade Station result, F12 on one, one left up 
 convenient, and a dozen Arcade Station plays for the missing `5` (§9) — then check the site's journal. HOW-TO-TEST's
 checklist is the script. Anything it turns up is fixed on #8.
 
-**Then** merge, tag `v0.1.0`, and the release workflow publishes the installer — signed once the Trusted Signing
+**Then** merge, tag `v0.1.0`, and the release workflow publishes the installer — signed once the Artifact Signing
 variables exist (D4).
 
 **After the MVP**, each on its own schedule: the site's download card (§7, the owner's copy), the alpha with two

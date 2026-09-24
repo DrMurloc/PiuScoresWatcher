@@ -95,15 +95,30 @@ git push origin v0.1.0
 
 [`release.yml`](../.github/workflows/release.yml) builds, tests, publishes, packages with Velopack (the installer, the full package and a delta from the previous release) and publishes the GitHub release. Installed copies download it in the background on their next launch and apply it on the one after. The download URL never changes: `https://github.com/DrMurloc/PiuScoresWatcher/releases/latest/download/PiuScoresWatcher-win-Setup.exe`.
 
-### Signing (Azure Trusted Signing)
+### Signing (Azure Artifact Signing)
 
-Releases are unsigned until four **repository variables** exist, and signed from then on — no workflow edit:
+Artifact Signing is what Microsoft called Trusted Signing until 2026; the variable names and Velopack's
+`--azureTrustedSignFile` keep the old name. Releases are unsigned until six **repository variables** exist,
+and signed from then on — no workflow edit:
 
 | Variable | Value |
 |---|---|
-| `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | a Microsoft Entra app registration with a **federated credential** for this repository (`repo:DrMurloc/PiuScoresWatcher:ref:refs/tags/*`), granted the *Trusted Signing Certificate Profile Signer* role on the account |
-| `TRUSTED_SIGNING_ENDPOINT` | the account's regional endpoint, e.g. `https://eus.codesigning.azure.net` |
-| `TRUSTED_SIGNING_ACCOUNT` | the Trusted Signing account name |
+| `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | a Microsoft Entra app registration with a **federated credential** for the release environment (`repo:DrMurloc/PiuScoresWatcher:environment:release`), granted the *Artifact Signing Certificate Profile Signer* role on the certificate profile |
+| `TRUSTED_SIGNING_ENDPOINT` | the account's regional endpoint, e.g. `https://cus.codesigning.azure.net` for Central US |
+| `TRUSTED_SIGNING_ACCOUNT` | the Artifact Signing account name |
 | `TRUSTED_SIGNING_PROFILE` | the certificate profile name (a *Public Trust* profile) |
 
-None of them is a secret: the identity has no password, GitHub's OIDC token is the credential. Setting up the account is a one-time job in the Azure portal — create a Trusted Signing account, complete identity validation (an individual developer's takes a form and a review), create a Public Trust certificate profile — and it is the owner's.
+None of them is a secret: the identity has no password, GitHub's OIDC token is the credential. The release
+job runs in the `release` environment because a federated credential trusts one exact token subject — a
+pattern such as `ref:refs/tags/*` is refused — and the environment gives every tag the same subject.
+
+Setting it up is a one-time job and the owner's, since the account is billed and the certificate carries his
+legal name. Everything but the identity check has an Azure CLI command (`az extension add --name
+artifact-signing`): register the `Microsoft.CodeSigning` provider, create the account (`az artifact-signing
+create --sku Basic`), give yourself the *Artifact Signing Identity Verifier* role on it, then — in the portal
+only — complete an **individual** identity validation (the name and address come from the Azure billing
+account and must match a government ID; the check runs on a phone through AU10TIX and Microsoft
+Authenticator), then create the Public Trust certificate profile (`az artifact-signing certificate-profile
+create --profile-type PublicTrust --identity-validation-id …`), the app registration and its federated
+credential, and the role assignment. Signing does not make SmartScreen's warning disappear on day one: the
+reputation builds as signed downloads accumulate.

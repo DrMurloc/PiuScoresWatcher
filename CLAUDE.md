@@ -30,7 +30,7 @@ Run from the repo root.
 - **Test**: `dotnet test tests/PiuScoresWatcher.Tests/PiuScoresWatcher.Tests.csproj` — unit tests over Core and the architecture ratchets. No Windows API, no game, no network.
 - **Run**: `dotnet run --project src/PiuScoresWatcher.App` — the tray icon, against the local site (`https://localhost:7144`, the launch profile's default; `--launch-profile Production` for the real one). Dev switches: `--replay <screenshot>` (one file through the pipeline, no game) with `--dry-run` (never post), and `--base-url <url>` or the `PIUSCORESWATCHER_BASE_URL` variable (a local PIU Scores instead of production). See [docs/HOW-TO-RUN.md](docs/HOW-TO-RUN.md).
 - **Package locally**: `dotnet tool restore`, then the publish + `dotnet vpk pack` lines in HOW-TO-RUN §Packaging. Output in `Releases/` (ignored).
-- **Release**: push a tag `vX.Y.Z`; `.github/workflows/release.yml` builds, tests, packages, signs when the Trusted Signing variables exist, and publishes the GitHub release. Never hand-upload a release.
+- **Release**: push a tag `vX.Y.Z`; `.github/workflows/release.yml` builds, tests, packages, signs when the Artifact Signing variables exist, and publishes the GitHub release. Never hand-upload a release.
 - **Lint/static analysis**: none locally. CodeQL default setup on GitHub; Dependabot opens one combined pull request a month (NuGet and actions together).
 
 CI: GitHub Actions (`.github/workflows/ci.yml`), `windows-latest` because WPF builds only there. Every PR and push to `main` builds Release and runs the test project.
