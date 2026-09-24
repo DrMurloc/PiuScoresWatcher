@@ -216,10 +216,22 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
 - **D51. A run starts from the tray or settings, through a window** that explains the keys every time and says
   how many bests PIU Scores already has. It ends when the song list has been gone for thirty seconds (a song
   started), when a result screen appears, when RISE closes, when the list never shows in ten minutes, or from the
-  tray or settings.
+  tray or settings. A run looks at the game window whatever the watching mode, and overrides a pause while it is on:
+  starting one is the player asking for exactly that.
 - **D52. A capture's `source` is `watcher-songlist`**, so the journal and the Undo page name it; it is dated when
   it is read, like a first import. F12 works during a run too: a Steam screenshot of the song list is read the same
   way, without the half-second wait — a file is already still.
+
+**Reading titles** — found by the bulk capture smoke, 2026-09-23: Morrighan's title on the song list read as nothing.
+
+- **D53. Windows OCR reads the title from a soft white-and-colourless mask at its 1080p size** (`TitleInk`). A
+  title is white wherever it sits — the yellow bar, the Arcade Station's blue band, a jacket on the song list — so
+  a pixel's ink is how bright it is times how colourless, graded rather than cut, and the region is scaled to what
+  it measures on a 1080p screen. The old preparation (anything brighter than 200 is ink, then doubled) let bright
+  colours in the art through, and at double size Windows OCR returned nothing for short titles (4NT, 86, 1948,
+  KUGUTSU) even on a clean page. Over the fixtures, through `--replay` (`tools/reader-lab/titles.py`): 13 of 38
+  titles read exactly and 26 of 38 matched the chart list before; 33 and 36 after. Cynical and one Aragami still
+  read as nothing and go to review.
 
 ## 3. The pipeline
 
@@ -236,8 +248,9 @@ aggregate; the WorldMax summary, the title screen, the song wheel and a loading 
 they taught. Other resolutions come from the alpha testers, and every screen the reader cannot read becomes a
 fixture before the fix.
 
-The title alone is OCR'd: the App's `WindowsOcrTitleReader` turns the title bar into black text on white,
-doubles it, and hands it to Windows; PIU Scores resolves the name and answers 404 for one it does not know.
+The title alone is OCR'd: Core's `TitleInk` turns the title's region into dark letters on white at its 1080p
+size (D53), and the App's `WindowsOcrTitleReader` hands that to Windows. The name is matched against the chart
+list when it is loaded (D49); PIU Scores resolves what is posted and answers 404 for a song it does not know.
 
 ## 4. The API
 
@@ -292,7 +305,8 @@ on the site with nothing else to do.
 | First run, settings, the tray menu, notifications, the review dialog | built — iteration 1 of the mocks, with the arrow icon and switchable notifications (D34–D38, D43); smoke-tested on dropped F12 screenshots, not yet with the game |
 | Start with Windows; a second launch opens the running one's settings | built (D39, D40); the second launch smoke-tested, the Run key waits for an installed copy |
 | Every player-facing string | the mocks' placeholder copy, all in `App/Copy.cs` until the owner rewrites it (D36) |
-| Bulk capture from Warm Up's song list | built to the iteration-2 mocks (D45–D52); posting waits on the site making judgments optional, and one card per run on the site's sittings — both ship before the watcher's first release |
+| Bulk capture from Warm Up's song list | built to the iteration-2 mocks (D45–D52) and smoke-tested end to end on the fixtures against a stand-in site (start window, sounds, counts, Stop, the summary, Recent); posting to PIU Scores waits on the site making judgments optional, and one card per run on the site's sittings — both ship before the watcher's first release |
+| Reading titles | a soft white-and-colourless mask at the 1080p size (D53): 33 of 38 fixture titles exact, 36 matched |
 
 **The one loop.** The UI is in. Install the build made on the owner's PC, paste a token, and play one
 session — a Warm Up result, an Arcade Station result, F12 on one, one left up for a minute, a Division result if

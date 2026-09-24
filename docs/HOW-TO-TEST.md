@@ -34,10 +34,15 @@ No Windows API, no game, no network; it runs wherever the SDK does. This is the 
 | `empty` | `NumbersNotShown` — the grade sticker is up, the number bars are still blank |
 | `aggregate` | `NotAPlay` — a Challenge result, four songs summed under a division badge where the song title goes |
 | `none` | not detected at all — WorldMax's mission summary, the title screen, the song wheel, a loading frame |
+| `songlist` | Warm Up's song list: the lit tab, the lit level, the best score, and a grade badge that agrees with it (D47) |
+| `songlist-empty` | Warm Up's song list on a chart with no best: nothing to capture |
+| `arcadelist` | the Arcade Station's song list: not read in v1 (D45) |
 
 Adding a screen is a lab job, not a hand edit: [tools/reader-lab/README.md](../tools/reader-lab/README.md) labels it, masks it, writes `expected.json` and regenerates the templates when a glyph is new. A player's screen is added only with their ok; the Arcade Station is the thin side of the set (four distinct results), so an Arcade result that fails to read is the first thing to ask for.
 
 Fixtures are decoded with SkiaSharp, a test-only dependency; Core never decodes a file.
+
+The song title is the one part the suite cannot read: Windows OCR is an App adapter. `python tools/reader-lab/titles.py` replays every labeled screen through the built watcher and scores the titles it reads, exactly and as the chart list would match them — the check after touching `TitleInk` (D53).
 
 ## The checklist with the game
 

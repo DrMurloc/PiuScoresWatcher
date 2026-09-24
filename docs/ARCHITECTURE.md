@@ -60,12 +60,18 @@ PiuScoresWatcher.sln
 │   ├── Exceptions/                  WatcherException and its kinds (player-showable messages)
 │   ├── Recognition/                 ScreenImage, Layouts (both screens as fractions of the frame),
 │   │                                ResultScreenDetector, ResultScreenReader → ResultScreenReading,
+│   │                                SongListDetector + SongListReader (Warm Up's song list, D45–D48),
+│   │                                GradeBadges + grades.json (the nine grade sprites' features),
 │   │                                the mask/segmenter/template machinery, templates.json (generated),
-│   │                                ITitleReader
+│   │                                ITitleReader, TitleInk (the title as dark letters on white, D53)
 │   ├── Scoring/                     PhoenixScoring (the formula, copied from PIU Scores), PlayChecksum
 │   ├── Api/                         ObservedPlay, CaptureSource, PostOutcome/IdentityCheck, IPlaysClient,
-│   │                                ITokenStore, PiuScoresClient (the wire shape, over the App's HttpClient)
+│   │                                ITokenStore, PiuScoresClient (the wire shape, over the App's HttpClient;
+│   │                                the chart list and the player's bests, page by page), SiteResult
+│   ├── Catalog/                     SongCatalog (a read title → the chart list's spelling, D49), ISongCatalogs
+│   ├── Sounds/                      Tones (the chime, the tick and the low tone, synthesized to WAV, D50)
 │   └── Capture/                     CapturePipeline (one frame → one outcome), Deduplicator + PlayKey,
+│                                    BulkCaptureRun (a bulk capture: the wait, the match, the bests, D48–D52),
 │                                    the ports IScreenSource / IGameSession / IFailedScreenStore / INotifier,
 │                                    WatcherNotice, SteamScreenshotFolders
 ├── src/PiuScoresWatcher.App         net10.0-windows10.0.19041.0 — WPF + adapters
@@ -73,33 +79,43 @@ PiuScoresWatcher.sln
 │   │                                the single instance (a second launch opens the running one's settings) → WPF
 │   ├── App.xaml(.cs)                the generic host, the tray icon and its menu, first run or tray at start-up
 │   ├── Copy.cs                      every string a player reads (the owner's copy; placeholders until then)
-│   ├── Views/                       FirstRunWindow, SettingsWindow, ReviewWindow
-│   ├── Status/                      WatcherStatus (connection, pause, recent plays, what the tray and settings show)
+│   ├── Views/                       FirstRunWindow, SettingsWindow, ReviewWindow, BulkCaptureWindow (D51)
+│   ├── Status/                      WatcherStatus (connection, pause, a run's count, recent plays and runs —
+│   │                                what the tray and settings show)
 │   ├── Startup/                     StartupRegistration (the Run key, installed copies only), SingleInstance
 │   ├── Storage/                     AppPaths (%APPDATA%\PiuScoresWatcher), JsonSettingsStore, FailedScreenStore
 │   ├── Time/                        SystemClock
 │   ├── Updates/                     UpdateService (GitHub Releases, applied on next launch)
-│   ├── Replay/                      ReplayRunner (a file through the pipeline, posted when a token is there), WpfScreenDecoder
-│   ├── Ocr/                         WindowsOcrTitleReader (Windows.Media.Ocr over the title bar)
-│   ├── Api/                         PiuScoresHttp — the HttpClient (site address, User-Agent, timeout)
+│   ├── Replay/                      ReplayRunner (a file through the pipeline, posted when a token is there;
+│   │                                a song list read and reported, never posted), WpfScreenDecoder
+│   ├── Ocr/                         WindowsOcrTitleReader (Windows.Media.Ocr over TitleInk's page)
+│   ├── Api/                         PiuScoresHttp — the HttpClient (site address, User-Agent, timeout);
+│   │                                SongCatalogs (each mix's chart list, loaded at start and before a run)
+│   ├── Sounds/                      CaptureSounds (plays the Tones through Windows, D50)
 │   ├── Security/                    DpapiTokenStore, EnvironmentOrStoredToken (the dev seam)
 │   ├── Capture/                     RiseProcessWatch (is the game running, which window), WindowCaptureSource
 │   │                                (PrintWindow once a second), SteamScreenshotSource + SteamPaths (the F12
-│   │                                folders), CaptureService (runs the sources, feeds the pipeline, logs)
-│   ├── Notifications/               ToastNotifier (Windows notifications, each kind switchable) + the log
+│   │                                folders), CaptureService (runs the sources, feeds a bulk capture first
+│   │                                and the pipeline after, logs), BulkCaptureService (prepares, runs and
+│   │                                ends a bulk capture; the sounds and its summary)
+│   ├── Notifications/               WatcherNotifier (Windows notifications, each kind switchable) + the log
 │   └── Assets/                      app.ico (placeholder art)
 ├── tests/PiuScoresWatcher.Tests     xUnit + Moq (+ SkiaSharp to decode fixtures), references Core only
 │   ├── StartupTests/                LaunchOptionsTests
 │   ├── ArchitectureTests/           CoreStaysHeadlessTests, ClockSeamTests
-│   ├── RecognitionTests/            every fixture screen through the detector, the reader and the checksum
+│   ├── RecognitionTests/            every fixture screen through the detector, the reader and the checksum;
+│   │                                SongListReaderTests, TitleInkTests
 │   ├── ApiTests/                    PiuScoresClientTests (the wire shape over a stub handler), ObservedPlayTests
 │   ├── CaptureTests/                CapturePipelineTests (fixture frames through the real reader, doubles around it),
-│   │                                DeduplicatorTests, SteamScreenshotFoldersTests
+│   │                                BulkCaptureRunTests, DeduplicatorTests, SteamScreenshotFoldersTests, KeptBecauseTests
+│   ├── CatalogTests/                SongCatalogTests
+│   ├── SoundTests/                  TonesTests
 │   ├── ScoringTests/                PhoenixScoringTests, PlayChecksumTests
 │   ├── DomainTests/                 JudgmentsTests
 │   ├── TestHelpers/                 RepositoryFiles, FixtureScreens
 │   └── Fixtures/screens/            the owner's result screens (player card masked) + expected.json
-├── tools/reader-lab                 the Python prototype: labels, leave-one-out, sprite export, the template generator
+├── tools/reader-lab                 the Python prototype: labels, leave-one-out, sprite export, the template generator,
+│                                    the song list, and titles.py (scores the OCR'd titles through --replay)
 ├── .github/workflows                ci.yml (PR gate), release.yml (tag → signed GitHub release)
 └── docs/                            this set; design/watcher.md is the design of record
 ```
@@ -117,7 +133,7 @@ Everything the watcher writes lives under `%APPDATA%\PiuScoresWatcher\` — neve
 
 A run pointed at any other site — a developer's local PIU Scores — keeps the same four under `dev\<host>-<port>\` beneath that folder and takes its own one-copy lock (D44), so it runs beside an installed copy and never reads or replaces its token.
 
-No telemetry. What leaves the machine is exactly one HTTP request per play, described in [PRIVACY.md](PRIVACY.md).
+No telemetry. What leaves the machine is one HTTP request per play, and a bulk capture's reads of the chart list and the player's bests, described in [PRIVACY.md](PRIVACY.md).
 
 ### Deliberately absent
 
