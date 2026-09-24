@@ -99,6 +99,20 @@ EXPECTED["20260921204006"] = ("dance", "Solve My Hurt", "S", 22, 1168, 41, 6, 1,
 EXPECTED["20260921205925"] = ("dance", "PRiMA MATERiA", "S", 18, 1085, 14, 2, 0, 5, 398, 985823, "98.89", False)
 # the owner's test loop, 09-23: the first Arcade Station 5 in the judgment font (max combo 0500, read as 600)
 EXPECTED["20260923214956"] = ("arcade", "VANISH", "S", 20, 1188, 23, 2, 1, 8, 500, 981005, "98.38", False)
+# the second evening of the loop: short titles Windows OCR drops (VANISH, D, 8 6), a title it garbles (%X), a
+# stepball it misread both ways (8 6 is 12, %X is 18 — the note counts settle it), and VECTOR, one point above
+# the integer formula (the game's own arithmetic; PIU Scores allows the point too)
+EXPECTED["20260923221151"] = ("dance", "VANISH", "S", 20, 1167, 39, 5, 2, 9, 563, 972550, "97.51", False)
+EXPECTED["20260923221410"] = ("dance", "The Quick Brown Fox Jumps Over The Lazy Dog", "S", 19, 1051, 32, 6, 4, 13, 306, 965615, "96.90", False)
+EXPECTED["20260923221640"] = ("dance", "D", "S", 18, 758, 23, 3, 1, 2, 585, 980384, "98.15", False)
+EXPECTED["20260923221920"] = ("dance", "Mission Possible -Blow Back-", "S", 19, 969, 17, 2, 1, 2, 774, 987559, "98.85", False)
+EXPECTED["20260923222133"] = ("dance", "K.O.A : Alice In Wonderworld", "S", 17, 851, 16, 2, 0, 25, 285, 959865, "96.30", True)
+EXPECTED["20260923222448"] = ("dance", "CO5M1C R4ILR0AD", "S", 21, 1085, 40, 10, 6, 15, 206, 957674, "96.15", False)
+EXPECTED["20260923222734"] = ("dance", "Halloween Party ~Multiverse~", "S", 20, 961, 41, 8, 4, 17, 266, 954405, "95.79", False)
+EXPECTED["20260923223001"] = ("dance", "VECTOR", "HD", 15, 528, 44, 13, 2, 29, 122, 901013, "90.45", True)
+EXPECTED["20260923223505"] = ("arcade", "ERRORCODE: 0", "S", 19, 1468, 18, 5, 0, 9, 879, 984530, "98.65", False)
+EXPECTED["20260923224312"] = ("arcade", "8 6", "S", 12, 538, 12, 0, 0, 0, 550, 991316, "99.12", False)
+EXPECTED["20260923224808"] = ("arcade", "%X (Percent X)", "S", 18, 1141, 16, 5, 3, 4, 758, 983687, "98.53", False)
 
 def shot_path(name):
     for candidate in (name + ".jpg", name + "_1.jpg"):

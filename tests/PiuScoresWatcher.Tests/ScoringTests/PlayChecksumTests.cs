@@ -32,6 +32,15 @@ public sealed class PlayChecksumTests
     }
 
     [Fact]
+    public void AScoreOnePointFromTheFormulaReconcilesAndTwoDoNot()
+    {
+        // D57: the game's arithmetic lands a point off the integer formula now and then; PIU Scores allows it too
+        Assert.True(PlayChecksum.Verify(Reading(945404, "9493")).Reconciles);
+        Assert.True(PlayChecksum.Verify(Reading(945402, "9493")).Reconciles);
+        Assert.False(PlayChecksum.Verify(Reading(945405, "9493")).Reconciles);
+    }
+
+    [Fact]
     public void AnAccuracyThatDoesNotBeginWithTheJudgmentsDigitsIsRefused()
     {
         Assert.False(PlayChecksum.Verify(Reading(945403, "9498")).Reconciles);

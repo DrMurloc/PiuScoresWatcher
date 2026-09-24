@@ -9,12 +9,18 @@ public sealed record ChecksumVerdict(bool Reconciles, int ExpectedScore, string 
 
 /// <summary>
 ///     The local half of the two checksums: the five judgments and max combo must recompute to the
-///     score on screen, and the accuracy the screen shows must begin with the digits they make. A
-///     misread digit almost never survives both, so a bad read is refused here and never posted;
-///     the server runs the same arithmetic again and is the authority.
+///     score on screen, within a point, and the accuracy the screen shows must begin with the digits they
+///     make. A misread count moves the score by far more than a point, so a bad read is refused here and
+///     never posted; the server runs the same arithmetic again and is the authority.
 /// </summary>
 public static class PlayChecksum
 {
+    /// <summary>
+    ///     The game's own arithmetic is not quite the integer formula: VECTOR's 528/44/13/2/29 with a combo of
+    ///     122 makes 901,012.99 and the screen prints 901,013. PIU Scores allows the same point (D57).
+    /// </summary>
+    public const int ScoreTolerance = 1;
+
     public static ChecksumVerdict Verify(ResultScreenReading reading)
     {
         if (reading.Status != ReadingStatus.Complete || reading.Judgments is not { } judgments
@@ -32,7 +38,7 @@ public static class PlayChecksum
         }
 
         var accuracy = PhoenixScoring.AccuracyShown(judgments);
-        if (score != expected)
+        if (Math.Abs(score - expected) > ScoreTolerance)
             return new ChecksumVerdict(false, expected, accuracy, $"the judgments make {expected}, the screen shows {score}");
 
         if (!AccuracyAgrees(reading.AccuracyDigits, accuracy))
