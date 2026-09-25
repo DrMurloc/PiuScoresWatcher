@@ -387,6 +387,11 @@ two left are The Quick Brown Fox caught mid-scroll in both places, which is what
 35 the list lacks now say so; the nine that don't are Festival of Death Moon, a song the Rise list has no chart of at
 all. `titles.py` over the fixtures: 49 of 62 titles read exactly at the first attempt, all 62 match the chart list.
 
+**The second tester** (2026-09-25, 1920×1080): 807 bests sent and 45 song lists kept, every one the title again. D66–D70
+make 26 of the 30 whose chart the list has name it, none another; the other four are The Quick Brown Fox mid-scroll
+(D69). The other 15 are the same Rise list errors as the first tester's, which the SQL covers. Between them the two
+testers sent 2,338 bests and not one half-double: §9.
+
 ## 3. The pipeline
 
 `IScreenSource` (one adapter per mode) → `ResultScreenDetector` (pixel anchors; which station) →
@@ -505,6 +510,12 @@ beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14)
   evening added four more Arcade results, but held out of training the stepball still misreads (18 as 12, 17 as
   18, 19 as 12) and so, once, does the score. The checksum catches the numbers; D56 catches the level wherever
   PIU Scores knows the chart's note count. More Arcade results with F12 keep making both sturdier.
+- **6K DOUBLE on the song list isn't recognized.** Neither tester's bulk capture caught a half-double: the first sent
+  1,531 bests, all 5K SINGLE, and the second's run on 6K DOUBLE lasted two and a half minutes and did nothing at all.
+  `SongListDetector` knows only the 5K SINGLE panel, a tab lit orange, and on 6K DOUBLE it sees no song list, so
+  nothing is captured and nothing is kept (the reader failing silent, against D13). The game's art tints 6K
+  DOUBLE's tab blue where 5K SINGLE's is orange, which would explain it; the fix waits on F12s of the song list with
+  6K DOUBLE lit, which become fixtures first. Live half-double results read and post as they always have.
 - ~~**One-letter titles.**~~ Read since D67, off a page of the title three times over.
 - **Titles longer than the list's row.** The Quick Brown Fox Jumps Over The Lazy Dog and Vanish 2 - Roar of the
   invisible dragon scroll in both places a title is read, so they depend on the ticker showing their start while
