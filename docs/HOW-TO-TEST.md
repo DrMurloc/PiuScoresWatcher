@@ -25,7 +25,7 @@ No Windows API, no game, no network; it runs wherever the SDK does. This is the 
 
 ## Fixtures
 
-`tests/PiuScoresWatcher.Tests/Fixtures/screens/` (copied to the test output): the owner's Steam screenshots with the player card blacked out, and `expected.json` saying what each one is. Every screen is one of five kinds:
+`tests/PiuScoresWatcher.Tests/Fixtures/screens/` (copied to the test output): the owner's Steam screenshots and the first tester's kept song lists (4K, from his `failed\` folder, with his ok), each with the player card blacked out, and `expected.json` saying what each one is. Every screen is one of five kinds:
 
 | Kind | What the reader must do with it |
 |---|---|
@@ -42,7 +42,7 @@ Adding a screen is a lab job, not a hand edit: [tools/reader-lab/README.md](../t
 
 Fixtures are decoded with SkiaSharp, a test-only dependency; Core never decodes a file.
 
-The song title is the one part the suite cannot read: Windows OCR is an App adapter. `python tools/reader-lab/titles.py` replays every labeled screen through the built watcher and scores the titles it reads, exactly and as the chart list would match them — the check after touching `TitleInk` (D53).
+The song title is the one part the suite cannot read: Windows OCR is an App adapter. `python tools/reader-lab/titles.py` replays every labeled screen through the built watcher and scores the titles it reads, exactly and as the chart list would match them — the check after touching `TitleInk` (D53). On a song list it scores the first place that names the song, the lit row or the panel (D66). What the suite does pin is everything around the OCR: which boxes a title is read from and in what order, the pages, a title that runs off its box (D68), and the chart list's answer to the readings the tester's screens gave.
 
 ## The checklist with the game
 
@@ -74,6 +74,9 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] Move through a dozen charts on Warm Up's song list, some 6K DOUBLE via TAB → a chime for each best above the site's, a tick for the rest, and the site shows the chimed ones as plays.
 - [ ] Flip quickly between two charts → neither is captured with the other's score.
 - [ ] Two songs in a row showing the same level and score (two 1,000,000s at one level) → both chime.
+- [ ] Titles the panel scrolls (wanna go to the moon palace, Conflict -NOMA CONCEiVER REMiX-) and short ones (B2, D, N, Dr. M, 8 6) → each chimes or ticks within two seconds; none is kept (D66–D69).
+- [ ] The Quick Brown Fox Jumps Over The Lazy Dog, the one title that scrolls in the list too → captured if you wait on it for two seconds; kept at most once if you don't.
+- [ ] A chart PIU Scores doesn't list → the low tone, and the review window says PIU Scores doesn't list this chart (D70).
 - [ ] RISE at 1280×720: F12 a handful of Warm Up song lists with bests on them → they become the 720p fixtures, and the reader is fixed against them before the tag (watcher.md §9).
 - [ ] Start a song → the run ends; one summary notification; one line in Recent.
 - [ ] Run it again over the same charts → ticks only, nothing sent.

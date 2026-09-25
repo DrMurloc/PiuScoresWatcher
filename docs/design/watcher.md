@@ -1,10 +1,10 @@
 # PIU Scores Watcher — the capture app for PUMP IT UP RISE
 
-Status: **the MVP, on one pull request — #8** (2026-09-23, D33). Built so far: the reader reads every one of the
-owner's result screens and reconciles them; the client posts; the tray app captures the game window once a
-second while RISE runs and reads every F12 screenshot Steam writes, posting each reconciled play once. Iteration 1 of
-the UI is being built on the same PR (§6, D34–D42). Not yet tried
-against the running game — that is the one loop at the end. Phase 2 of PIU
+Status: **the MVP shipped as v0.1.0 from one pull request, #8** (merged 2026-09-24, D33). The reader reads every
+one of the owner's result screens and reconciles them; the client posts; the tray app captures the game window once
+a second while RISE runs and reads every F12 screenshot Steam writes, posting each reconciled play once; bulk
+capture reads Warm Up's song list. The first tester's evening (2026-09-24/25) is D66–D70, on their own pull request.
+Phase 2 of PIU
 Scores' RISE plan
 ([rise.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/design/rise.md) §8): phase 1 added
 RISE as two mixes with the v2 plays write this app posts to; phase 3 (boards and PUMBILITY) is the site's.
@@ -346,6 +346,41 @@ works' … how it's designed for simplicity"; mock https://claude.ai/artifact/Nb
   "Set it up" turns the page to the three steps (D39). The mock's words are the copy. The page shows whenever first
   run does, and nowhere else.
 
+**The first tester** (2026-09-24/25; owner's go on the plan, 2026-09-25): two evenings of bulk capture at
+3840×2160 sent 1,531 bests and kept 169 song lists. Every level, score and grade read at 4K; 168 of the kept screens
+were the title, and one a connection that dropped (its chart went up on the next pass). None of the sent bests looks
+filed on the wrong chart.
+
+- **D66 (owner's go, 2026-09-25). The title is read from the lit row in the list first, then from the panel.**
+  The panel's title is a ticker: a title too long for the panel — about 24 characters, 28 of Rise's 421 songs —
+  scrolls out to the left and comes back in from the right, and the reader saw windows of it ("wanna go to the
+  moon pali", "he Lazy Dog"): 102 of the kept screens. The lit row's title box holds about 37 characters in smaller
+  type, and only two titles are longer (The Quick Brown Fox Jumps Over The Lazy Dog; Vanish 2 - Roar of the
+  invisible dragon), so every other title sits still there. The row keeps the lit song in its fourth place like the
+  jacket (D48), on all 169 of the tester's screens. The panel stays the second place to look, its box now short of
+  the card's white edge, which Windows OCR took for a letter: 8 6 reads on the panel since.
+- **D67 (owner's go, 2026-09-25). A short title is also tried as its own ink three times over.** Windows OCR returns
+  nothing for B2, D, N and Dr. M on every page D55 tries, and reads them off a page of the title repeated ("B2 B2
+  B2"), at two spacings because one of them reads B2 as 82; such a reading counts only as one word three times. A
+  title under four letters matches the chart list exactly or not at all: one letter off is every other short title,
+  D for N. This closes §9's one-letter titles.
+- **D68 (owner's go, 2026-09-25). A title that runs into the right edge of its box is the start of a longer one.**
+  A scrolling title at rest, or coming back in from the right, is cut at the box's edge, so it names a chart only
+  as the beginning of a longer title — never as a whole title it happens to spell: "Love is a Danger Zone(Cr" is the
+  Cranky Mix and never Love is a Danger Zone, and both have an S17. The tail of a title scrolling out to the left
+  does end where the title ends, so a reading that could be the tail of a title long enough to scroll in that box
+  names nothing: "Pumping up" is the end of The People didn't know "Pumping up" as much as it is Pumping Up.
+- **D69 (owner's go, 2026-09-25). While the panel holds, a title that names nothing is read again**, frame by frame,
+  for up to two seconds before the chart is kept — the ticker shows another window each time. A chart kept once in a
+  run is not kept again: the tester's `failed\` folder reached 790 MB of 4K frames in an evening, one chart kept
+  eight times. A chart the list is left on while its title still names nothing is kept as the run last saw it.
+- **D70 (owner's go, 2026-09-25). A title that names a song on PIU Scores' list, just not at the lit chart, has its
+  own reason**: "PIU Scores doesn't list this chart, so nothing was sent." The site's list is what is wrong there.
+  35 of the kept screens were seven songs the community sheet behind the Rise catalog has at other levels than the
+  game (Elysium, Pavane, Annihilator Method, L (PIU Edit), The De[i]fied, Can I friend you on Bassbook? lol) or not
+  at all (Festival of Death Moon); the correction is a hand-run SQL script for the site, like the catalog itself
+  (rise.md §11.3).
+
 ## 3. The pipeline
 
 `IScreenSource` (one adapter per mode) → `ResultScreenDetector` (pixel anchors; which station) →
@@ -353,7 +388,8 @@ works' … how it's designed for simplicity"; mock https://claude.ai/artifact/Nb
 the title by Windows OCR) → `PlayChecksum` (D10) → `Deduplicator` (D11) → `IPlaysClient` → `INotifier`.
 ARCHITECTURE.md draws it. A bulk capture run (D45–D52) branches off the same sources: `SongListDetector` →
 `SongListReader` (the lit tab, the lit level box, the best score, the grade badge) → `BulkCaptureRun` (the
-half-second wait, the chart-list match, the stored bests) → `IPlaysClient`, with sounds instead of notifications.
+half-second wait, the chart-list match, the title read again while the panel holds, the stored bests) →
+`IPlaysClient`, with sounds instead of notifications.
 
 The reader was built on the owner's 81 screenshots of 2026-09-21/22 (39 kept as fixtures: 30 results across
 both layouts, coloured and grey, 1080p and 720p; one mid-count frame; two blank-number frames; a Challenge
@@ -363,7 +399,9 @@ fixture before the fix.
 
 The title alone is OCR'd: Core's `TitleInk` turns the title's region into dark letters on white with paper
 around them (D53), in up to four pages the App's `WindowsOcrTitleReader` hands to Windows one at a time until a
-reading names a chart (D55). The name is matched against the chart list when it is loaded (D49) — on the Arcade
+reading names a chart (D55), and two more for a short title (D67). A result screen has one title; Warm Up's song
+list has two, the lit row's and then the panel's (D66), and one cut off at its box's edge is only ever the start of
+a longer title (D68). The name is matched against the chart list when it is loaded (D49) — on the Arcade
 Station at the level the chart's note count says was played (D56); PIU Scores resolves what is posted and answers
 404 for a song it does not know.
 
@@ -461,8 +499,11 @@ beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14)
   evening added four more Arcade results, but held out of training the stepball still misreads (18 as 12, 17 as
   18, 19 as 12) and so, once, does the score. The checksum catches the numbers; D56 catches the level wherever
   PIU Scores knows the chart's note count. More Arcade results with F12 keep making both sturdier.
-- **One-letter titles.** No attempt reads **D** (D55). A Warm Up note count on PIU Scores would let the chart be
-  found by its notes the way the Arcade Station's are (D56); until then such a play goes to review.
+- ~~**One-letter titles.**~~ Read since D67, off a page of the title three times over.
+- **Titles longer than the list's row.** The Quick Brown Fox Jumps Over The Lazy Dog and Vanish 2 - Roar of the
+  invisible dragon scroll in both places a title is read, so they depend on the ticker showing their start while
+  the panel holds (D68, D69). A Warm Up note count on PIU Scores would settle them by their notes, the way the Arcade
+  Station's charts are (D56).
 - **Steam Deck.** RISE runs on Deck; the watcher is Windows-only and F12 screenshots on a Deck stay on the
   Deck. Park until a Deck player asks; Avalonia is the route (D7).
 - **The name.** "PIU Scores Watcher" is a placeholder; the owner names it before v0.1.0 (the icon is settled,
@@ -476,4 +517,5 @@ beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14)
     D22's "a score that counts up" and D47's "no one play can score" were both read off this screen. The owner wants
     to understand it better and see whether more turn up in testing before anything changes (2026-09-24).
   - *Bulk capture at 720p.* Downscaled to 1280×720, Vacuum Cleaner's 956,984 reads 956,934, still an S, and would
-    be sent. Every song-list fixture is 1080p; the owner's test loop takes the 720p song lists (2026-09-24).
+    be sent. Every song-list fixture is 1080p or the first tester's 4K; the owner's test loop takes the 720p song
+    lists (2026-09-24).

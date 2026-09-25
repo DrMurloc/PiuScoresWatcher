@@ -64,18 +64,23 @@ PiuScoresWatcher.sln
 │   │                                SongListDetector + SongListReader (Warm Up's song list, D45–D48),
 │   │                                GradeBadges + grades.json (the nine grade sprites' features),
 │   │                                the mask/segmenter/template machinery, templates.json (generated),
-│   │                                ITitleReader, TitleInk (the title as dark letters on white, in the
-│   │                                pages it is tried in, D53, D55)
+│   │                                ITitleReader, TitleBox (where a title is read: the result screen's, or
+│   │                                the song list's lit row and then its panel, D66), TitleInk (the title as
+│   │                                dark letters on white, in the pages it is tried in, a short one three
+│   │                                times over, and whether it runs off its box, D53, D55, D67, D68)
 │   ├── Scoring/                     PhoenixScoring (the formula, copied from PIU Scores), PlayChecksum
 │   ├── Api/                         ObservedPlay, CaptureSource, PostOutcome/IdentityCheck, IPlaysClient,
 │   │                                ITokenStore, PiuScoresClient (the wire shape, over the App's HttpClient;
 │   │                                the chart list and the player's bests, page by page), SiteResult
 │   ├── Catalog/                     SongCatalog (a read title → the chart list's spelling, D49, and on the
-│   │                                Arcade Station the chart its note count fits, D56), ISongCatalogs, Titles
-│   │                                (the title attempts until one names a chart)
+│   │                                Arcade Station the chart its note count fits, D56; a title cut off at
+│   │                                its box's edge only as the start of a longer one, D68; a song listed at
+│   │                                other charts, D70), ISongCatalogs, Titles (the title attempts, box by box,
+│   │                                until one names a chart)
 │   ├── Sounds/                      Tones (the chime, the tick and the low tone, synthesized to WAV, D50)
 │   └── Capture/                     CapturePipeline (one frame → one outcome), Deduplicator + PlayKey,
-│                                    BulkCaptureRun (a bulk capture: the wait, the match, the bests, D48–D52),
+│                                    BulkCaptureRun (a bulk capture: the wait, the match, the bests, D48–D52;
+│                                    the title read again while the panel holds, a chart kept once, D69),
 │                                    the ports IScreenSource / IGameSession / IFailedScreenStore / INotifier,
 │                                    WatcherNotice, SteamScreenshotFolders
 ├── src/PiuScoresWatcher.App         net10.0-windows10.0.19041.0 — WPF + adapters
@@ -129,7 +134,8 @@ PiuScoresWatcher.sln
 │   ├── ScoringTests/                PhoenixScoringTests, PlayChecksumTests
 │   ├── DomainTests/                 JudgmentsTests
 │   ├── TestHelpers/                 RepositoryFiles, FixtureScreens
-│   └── Fixtures/screens/            the owner's result screens (player card masked) + expected.json
+│   └── Fixtures/screens/            the owner's screens and the first tester's 4K song lists (player card
+│                                    masked) + expected.json
 ├── tools/reader-lab                 the Python prototype: labels, leave-one-out, sprite export, the template generator,
 │                                    the song list, and titles.py (scores the OCR'd titles through --replay)
 ├── .github/workflows                ci.yml (PR gate), release.yml (tag → signed GitHub release)
