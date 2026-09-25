@@ -381,6 +381,12 @@ filed on the wrong chart.
   at all (Festival of Death Moon); the correction is a hand-run SQL script for the site, like the catalog itself
   (rise.md §11.3).
 
+What D66–D70 make of the tester's 168 kept song lists, through Windows OCR and PIU Scores' Rise list as it stood, on
+the one frame each was kept from: 131 of the 133 whose chart the list has now name it, and none names another; the
+two left are The Quick Brown Fox caught mid-scroll in both places, which is what D69's second look is for. 26 of the
+35 the list lacks now say so; the nine that don't are Festival of Death Moon, a song the Rise list has no chart of at
+all. `titles.py` over the fixtures: 49 of 62 titles read exactly at the first attempt, all 62 match the chart list.
+
 ## 3. The pipeline
 
 `IScreenSource` (one adapter per mode) → `ResultScreenDetector` (pixel anchors; which station) →
