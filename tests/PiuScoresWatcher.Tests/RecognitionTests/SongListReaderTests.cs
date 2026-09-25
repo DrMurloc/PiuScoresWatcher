@@ -99,6 +99,44 @@ public sealed class SongListReaderTests
     }
 
     [Fact]
+    public void TheTitleIsReadInTheListsLitRowAndThenOnThePanel()
+    {
+        var titles = Reader.Read(FixtureScreens.Load("20260923193118"))!.Titles;
+
+        Assert.Equal(["list", "panel"], titles.Select(box => box.Name));
+        Assert.False(titles[0].Heavy);
+        Assert.True(titles[1].Heavy);
+        Assert.All(titles, box => Assert.NotNull(box.ScrollsPast));
+    }
+
+    [Theory]
+    [MemberData(nameof(Bests))]
+    public void EveryBestsTitleIsInTheListsLitRow(string name)
+    {
+        // the list keeps the lit song in its fourth row, as it does its jacket (D48, D66): a title is there, from B2 up
+        var image = FixtureScreens.Load(name);
+
+        var page = TitleInk.Render(image, Reader.Read(image)!.Titles[0].Region);
+
+        Assert.InRange(page.Pixels.Count(shade => shade < 128) / (double)page.Pixels.Length, 0.005, 0.5);
+    }
+
+    [Fact]
+    public void ATitleScrolledOffThePanelIsStillWholeInTheList()
+    {
+        // Blaze emotion (Band version): the panel's ticker between two passes of the title
+        var image = FixtureScreens.Load("20260924234156");
+        var titles = Reader.Read(image)!.Titles;
+
+        var panel = TitleInk.Render(image, titles[1].Region);
+        var row = TitleInk.Render(image, titles[0].Region);
+
+        Assert.True(panel.Pixels.Count(shade => shade < 128) < 0.002 * panel.Pixels.Length);
+        Assert.True(row.Pixels.Count(shade => shade < 128) > 0.05 * row.Pixels.Length);
+        Assert.False(TitleInk.RunsOffRight(image, titles[0].Region));
+    }
+
+    [Fact]
     public void TheFixturesCoverEveryCase()
     {
         Assert.NotEmpty(FixtureScreens.OfKind("songlist"));

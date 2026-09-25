@@ -18,7 +18,10 @@ BOX_X0, BOX_STRIDE, BOX_W, BOX_Y0, BOX_Y1, BOXES = 83, 90, 76, 562, 630, 6
 SCORE = P.R(320, 636, 452, 668)
 COMBO = P.R(320, 716, 452, 748)
 BADGE = P.R(470, 640, 600, 750)
-TITLE = P.R(80, 388, 632, 440)
+# the lit song's title, where the game cuts it off: the list's lit row first, then the panel short of the card's
+# white edge (watcher.md D66, D68)
+ROW_TITLE = P.R(872, 576, 1433, 618)
+TITLE = P.R(80, 388, 606, 440)
 
 def box(i):
     x0 = BOX_X0 + BOX_STRIDE * i

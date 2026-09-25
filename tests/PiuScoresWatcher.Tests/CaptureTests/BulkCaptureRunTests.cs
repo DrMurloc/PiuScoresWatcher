@@ -48,7 +48,7 @@ public sealed class BulkCaptureRunTests
 
     private void TitleIs(string title)
     {
-        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>())).Returns(() => TitleReads.Of(title));
+        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<TitleBox>(), It.IsAny<CancellationToken>())).Returns(() => TitleReads.Of(title));
     }
 
     private BulkCaptureRun Run(params StoredBest[] bests)
@@ -209,7 +209,7 @@ public sealed class BulkCaptureRunTests
 
         Assert.IsType<BulkOutcome.NoBest>(await SettleAsync(run, NoBestHere));
 
-        _titles.Verify(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()), Times.Never);
+        _titles.Verify(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<TitleBox>(), It.IsAny<CancellationToken>()), Times.Never);
         Assert.Equal(BulkTally.None, run.Tally);
     }
 

@@ -15,13 +15,39 @@ internal static class SongListLayout
     public static readonly FractionRect HalfDoubleTab = FractionRect.At1080p(398, 492, 607, 540);
     public static readonly FractionRect Score = FractionRect.At1080p(320, 636, 452, 668);
     public static readonly FractionRect Badge = FractionRect.At1080p(470, 640, 600, 750);
-    public static readonly FractionRect Title = FractionRect.At1080p(80, 388, 632, 440);
+
+    /// <summary>
+    ///     The lit row's title in the list, as far as the game shows it: about 37 characters of a smaller type, so all but
+    ///     two of Rise's titles hold still here, where the panel scrolls 28 of them (D66).
+    /// </summary>
+    public static readonly FractionRect RowTitle = FractionRect.At1080p(872, 576, 1433, 618);
+
+    /// <summary>
+    ///     The panel's title, over the song's video, as far as the game shows it — short of the card's white edge, which
+    ///     Windows OCR took for a letter (D66). A title longer than about 24 characters scrolls through it.
+    /// </summary>
+    public static readonly FractionRect PanelTitle = FractionRect.At1080p(80, 388, 606, 440);
+
+    /// <summary>A title longer than this may scroll in the row, or on the panel: kept short of each box's measure (D68).</summary>
+    public const int RowScrollsPast = 30;
+
+    public const int PanelScrollsPast = 20;
 
     /// <summary>
     ///     The lit song's jacket in the list on the right, which keeps the lit song in its fourth row on every one of the
-    ///     owner's screens. The panel's title sits over the song's video; the jacket holds still.
+    ///     owner's screens and the first tester's. The panel's title sits over the song's video; the jacket holds still.
     /// </summary>
     public static readonly FractionRect LitJacket = FractionRect.At1080p(792, 572, 858, 648);
+
+    /// <summary>The two places the lit song's title is read, in the order they are tried (D66).</summary>
+    public static IReadOnlyList<TitleBox> Titles(ScreenImage image)
+    {
+        return
+        [
+            new TitleBox("list", RowTitle.On(image), false, RowScrollsPast),
+            new TitleBox("panel", PanelTitle.On(image), true, PanelScrollsPast)
+        ];
+    }
 
     /// <summary>A level box's yellow area: the lit one is the selected chart.</summary>
     public static FractionRect Box(int i)
@@ -54,9 +80,9 @@ public enum SongListStatus
 }
 
 /// <summary>
-///     What the song-list reader made of one frame. The title is read by an adapter from <see cref="TitleRegion" />;
-///     <see cref="Jacket" /> is a print of the lit song's jacket, which tells two songs apart when their panels read the
-///     same.
+///     What the song-list reader made of one frame. The title is read by an adapter from <see cref="Titles" />, the lit
+///     row's and then the panel's (D66); <see cref="Jacket" /> is a print of the lit song's jacket, which tells two songs
+///     apart when their panels read the same.
 /// </summary>
 [ExcludeFromCodeCoverage]
 public sealed record SongListReading(
@@ -66,7 +92,7 @@ public sealed record SongListReading(
     int? Level,
     int? Score,
     string? Grade,
-    PixelRect TitleRegion,
+    IReadOnlyList<TitleBox> Titles,
     ulong Jacket);
 
 /// <summary>
@@ -117,7 +143,7 @@ public sealed class SongListReader
     {
         if (_detector.Detect(image) is not { } lit)
             return null;
-        var title = SongListLayout.Title.On(image);
+        var title = SongListLayout.Titles(image);
         var jacket = Colors.LuminancePrint(image, SongListLayout.LitJacket.On(image));
         var level = NumberFieldReader.Read(image, SongListLayout.BoxDigits(lit.LitBox).On(image), MaskKind.Light, TemplateFamilies.ListLevel, _templates);
         var score = NumberFieldReader.Read(image, SongListLayout.Score.On(image), MaskKind.Light, TemplateFamilies.ListValue, _templates);

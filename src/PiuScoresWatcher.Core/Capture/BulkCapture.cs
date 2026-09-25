@@ -126,10 +126,10 @@ public sealed class BulkCaptureRun
     {
         var level = reading.Level!.Value;
         var score = reading.Score!.Value;
-        var choice = await _titles.ChooseAsync(frame.Image, reading.TitleRegion, _catalog, reading.ChartType, level, null, cancellationToken);
+        var choice = await _titles.ChooseAsync(frame.Image, reading.Titles, _catalog, reading.ChartType, level, null, cancellationToken);
         if (choice.Match is not CatalogMatch.Found { Chart: var chart })
             return Keep(frame, KeptBecause.TitleUnmatched,
-                $"the title read as '{choice.Read}' names no {reading.ChartType} {level} on PIU Scores");
+                $"the title read as {choice.Described} names no {reading.ChartType} {level} on PIU Scores");
 
         if (_bests.TryGetValue(chart.Id, out var stored) && stored is { IsBroken: false, Score: { } storedScore } && storedScore >= score)
         {

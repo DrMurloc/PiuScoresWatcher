@@ -128,7 +128,7 @@ public sealed class CapturePipeline(
         var level = reading.Level!.Value;
         // a broken play may not add up to the chart's notes, so only a clear one is checked against them
         int? notes = reading.IsBroken ? null : reading.Judgments!.Value.Notes;
-        var choice = await titles.ChooseAsync(frame.Image, reading.TitleRegion, catalogs.For(reading.Mix), type, level, notes, cancellationToken);
+        var choice = await titles.ChooseAsync(frame.Image, reading.Titles, catalogs.For(reading.Mix), type, level, notes, cancellationToken);
         if (choice.Read is null)
             return Keep(frame, KeptBecause.TitleUnreadable, "the song title could not be read", reading);
         if (choice.Match is CatalogMatch.Contradicted contradicted)
