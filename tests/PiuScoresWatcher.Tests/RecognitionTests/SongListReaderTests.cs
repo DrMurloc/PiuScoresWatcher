@@ -88,15 +88,14 @@ public sealed class SongListReaderTests
     [Fact]
     public void TheLitSongsJacketTellsSongsApartAndHoldsWhileTheLevelChanges()
     {
-        // Aragami's S19 and, two seconds later, its S17; the other five are five other songs
-        Assert.Equal(Reader.Read(FixtureScreens.Load("20260923193118"))!.Jacket, Reader.Read(FixtureScreens.Load("20260923193120"))!.Jacket);
-
-        var songs = FixtureScreens.OfKind("songlist").Concat(FixtureScreens.OfKind("songlist-empty"))
-            .Where(name => name != "20260923193120")
-            .Select(name => Reader.Read(FixtureScreens.Load(name))!.Jacket)
+        // Aragami's S19 and, two seconds later, its S17; the tester's Quick Brown Fox at S11 and S19, from two sorts of
+        // the list; every other screen is another song
+        var jackets = FixtureScreens.OfKind("songlist").Concat(FixtureScreens.OfKind("songlist-empty"))
+            .Select(name => (FixtureScreens.Expected[name].Title, Reader.Read(FixtureScreens.Load(name))!.Jacket))
             .ToList();
-        Assert.Equal(6, songs.Count);
-        Assert.Equal(songs.Count, songs.Distinct().Count());
+
+        Assert.All(jackets.GroupBy(screen => screen.Title), song => Assert.Single(song.Select(screen => screen.Jacket).Distinct()));
+        Assert.Equal(jackets.Select(screen => screen.Title).Distinct().Count(), jackets.Select(screen => screen.Jacket).Distinct().Count());
     }
 
     [Fact]

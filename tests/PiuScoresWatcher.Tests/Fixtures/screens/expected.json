@@ -843,5 +843,137 @@
     "score": 983687,
     "accuracy": "98.53",
     "broken": false
+  },
+  "20260924233850": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "wanna go to the moon palace",
+    "chartType": "Single",
+    "level": 21,
+    "score": 995844,
+    "maxCombo": 1111,
+    "grade": "SSS",
+    "note": "the panel shows the start of the title cut off at its edge; the list's row holds all of it (D66, D68)"
+  },
+  "20260924233951": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "B2",
+    "chartType": "Single",
+    "level": 7,
+    "score": 1000000,
+    "maxCombo": 514,
+    "grade": "SSS",
+    "note": "a short title Windows OCR reads only three times over (D67)"
+  },
+  "20260924234156": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "Blaze emotion (Band version)",
+    "chartType": "Single",
+    "level": 9,
+    "score": 1000000,
+    "maxCombo": 465,
+    "grade": "SSS",
+    "note": "the title has scrolled off the panel entirely; the row holds it (D66)"
+  },
+  "20260924235245": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "Conflict -NOMA CONCEiVER REMiX-",
+    "chartType": "Single",
+    "level": 16,
+    "score": 996047,
+    "maxCombo": 886,
+    "grade": "SSS",
+    "note": "the panel shows 'Conflict -', the start of the title and another song's whole name (D68)"
+  },
+  "20260924235401": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "D",
+    "chartType": "Single",
+    "level": 4,
+    "score": 1000000,
+    "maxCombo": 185,
+    "grade": "SSS",
+    "note": "a one-letter title (D67)"
+  },
+  "20260924235732": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "Dr. M",
+    "chartType": "Single",
+    "level": 6,
+    "score": 1000000,
+    "maxCombo": 298,
+    "grade": "SSS",
+    "note": "a short title (D67)"
+  },
+  "20260925000000": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "Elysium",
+    "chartType": "Single",
+    "level": 4,
+    "score": 1000000,
+    "maxCombo": 272,
+    "grade": "SSS",
+    "note": "a title that reads, at a level PIU Scores' Rise list had wrong (D70)"
+  },
+  "20260925002550": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "N",
+    "chartType": "Single",
+    "level": 16,
+    "score": 954989,
+    "maxCombo": 289,
+    "grade": "S",
+    "note": "a one-letter title (D67)"
+  },
+  "20260925002824": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "8 6",
+    "chartType": "Single",
+    "level": 12,
+    "score": 1000000,
+    "maxCombo": 550,
+    "grade": "SSS",
+    "note": "the panel's box used to take in the card's white edge, and 8 6 read as nothing (D66)"
+  },
+  "20260925003645": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "The Quick Brown Fox Jumps Over The Lazy Dog",
+    "chartType": "Single",
+    "level": 11,
+    "score": 1000000,
+    "maxCombo": 586,
+    "grade": "SSS",
+    "note": "too long for the row as well: both places show its start, cut off at the edge (D68)"
+  },
+  "20260925003656": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "The People didn't know \"Pumping up\"",
+    "chartType": "Single",
+    "level": 8,
+    "score": 1000000,
+    "maxCombo": 546,
+    "grade": "SSS",
+    "note": "the panel shows only the tail, 'Pumping up', which is another song's whole title (D68)"
+  },
+  "20260925003727": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "The Quick Brown Fox Jumps Over The Lazy Dog",
+    "chartType": "Single",
+    "level": 19,
+    "score": 995422,
+    "maxCombo": 591,
+    "grade": "SSS",
+    "note": "the row shows the tail scrolling out, the panel the start coming back in (D68, D69)"
   }
 }
