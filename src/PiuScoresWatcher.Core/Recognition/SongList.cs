@@ -143,30 +143,30 @@ public sealed class SongListReader
     {
         if (_detector.Detect(image) is not { } lit)
             return null;
-        var title = SongListLayout.Titles(image);
+        var titles = SongListLayout.Titles(image);
         var jacket = Colors.LuminancePrint(image, SongListLayout.LitJacket.On(image));
         var level = NumberFieldReader.Read(image, SongListLayout.BoxDigits(lit.LitBox).On(image), MaskKind.Light, TemplateFamilies.ListLevel, _templates);
         var score = NumberFieldReader.Read(image, SongListLayout.Score.On(image), MaskKind.Light, TemplateFamilies.ListValue, _templates);
 
         if (score.IsEmpty)
-            return new SongListReading(SongListStatus.NoBest, null, lit.ChartType, level.Value, null, null, title, jacket);
+            return new SongListReading(SongListStatus.NoBest, null, lit.ChartType, level.Value, null, null, titles, jacket);
         if (!level.IsClean || level.Value is not (>= 1 and <= 29))
-            return new SongListReading(SongListStatus.Unreadable, $"level read as '{level.Text}'", lit.ChartType, null, score.Value, null, title,
+            return new SongListReading(SongListStatus.Unreadable, $"level read as '{level.Text}'", lit.ChartType, null, score.Value, null, titles,
                 jacket);
         if (!score.IsClean || score.Value is not (>= 0 and <= 1_000_000))
             return new SongListReading(SongListStatus.Unreadable, $"best score read as '{score.Text}'", lit.ChartType, level.Value, null, null,
-                title, jacket);
+                titles, jacket);
 
         var grade = _grades.Classify(image, SongListLayout.Badge.On(image));
         if (!grade.IsConfident)
             return new SongListReading(SongListStatus.Unreadable,
                 $"the grade badge matched no grade clearly ({grade.Grade} at {grade.Similarity:0.00}, ahead by {grade.Margin:0.00})",
-                lit.ChartType, level.Value, score.Value, null, title, jacket);
+                lit.ChartType, level.Value, score.Value, null, titles, jacket);
 
         var earned = Grades.Of(RiseMix.Rise, score.Value.Value);
         return earned == grade.Grade
-            ? new SongListReading(SongListStatus.Best, null, lit.ChartType, level.Value, score.Value, grade.Grade, title, jacket)
+            ? new SongListReading(SongListStatus.Best, null, lit.ChartType, level.Value, score.Value, grade.Grade, titles, jacket)
             : new SongListReading(SongListStatus.GradeDisagrees, $"the badge shows {grade.Grade}, {score.Value} earns {earned}",
-                lit.ChartType, level.Value, score.Value, grade.Grade, title, jacket);
+                lit.ChartType, level.Value, score.Value, grade.Grade, titles, jacket);
     }
 }
