@@ -48,6 +48,10 @@ public enum KeptBecause
 
     Refused,
     SongUnknown,
+
+    /// <summary>A best read off the song list whose title names a song PIU Scores lists only at other charts: not sent (D70).</summary>
+    ChartUnlisted,
+
     TokenRejected,
     NotConnected,
     RateLimited,
@@ -61,7 +65,7 @@ public static class Kept
 
     /// <summary>A song list kept during a bulk capture, as opposed to a result screen.</summary>
     public static bool IsSongList(this KeptBecause because) => because is KeptBecause.ListUnreadable or KeptBecause.GradeDisagrees
-        or KeptBecause.TitleUnmatched;
+        or KeptBecause.TitleUnmatched or KeptBecause.ChartUnlisted;
 
     /// <summary>Why a play the site did not record was kept.</summary>
     public static KeptBecause Because(PostOutcome outcome) => outcome switch

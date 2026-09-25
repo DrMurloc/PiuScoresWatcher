@@ -9,6 +9,7 @@ public sealed class KeptBecauseTests
     [InlineData(KeptBecause.ListUnreadable, true)]
     [InlineData(KeptBecause.GradeDisagrees, true)]
     [InlineData(KeptBecause.TitleUnmatched, true)]
+    [InlineData(KeptBecause.ChartUnlisted, true)]
     [InlineData(KeptBecause.ChartDisagrees, false)]
     [InlineData(KeptBecause.NumbersUnreadable, false)]
     [InlineData(KeptBecause.TitleUnreadable, false)]
@@ -29,6 +30,7 @@ public sealed class KeptBecauseTests
     [InlineData(KeptBecause.ChartDisagrees, false)]
     [InlineData(KeptBecause.Refused, true)]
     [InlineData(KeptBecause.SongUnknown, true)]
+    [InlineData(KeptBecause.ChartUnlisted, true)] // read fine: it is the list that lacks the chart (D70)
     [InlineData(KeptBecause.TokenRejected, true)]
     [InlineData(KeptBecause.NotConnected, true)]
     [InlineData(KeptBecause.RateLimited, true)]

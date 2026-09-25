@@ -273,6 +273,9 @@
   <data name="PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread." xml:space="preserve">
     <value>PIU Scores ne connaît pas cette chanson dans ce Mix, elle n'a donc pas été enregistrée. Le titre a sans doute été mal lu.</value>
   </data>
+  <data name="PIU Scores doesn't list this chart, so nothing was sent." xml:space="preserve">
+    <value>PIU Scores ne répertorie pas cette chart, rien n'a donc été envoyé.</value>
+  </data>
   <data name="PIU Scores has {0} of your Warm Up bests. Only higher ones are sent." xml:space="preserve">
     <value>PIU Scores a {0} de vos meilleurs scores de Warm Up. Seuls les meilleurs sont envoyés.</value>
   </data>

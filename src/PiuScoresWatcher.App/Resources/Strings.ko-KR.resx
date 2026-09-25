@@ -273,6 +273,9 @@
   <data name="PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread." xml:space="preserve">
     <value>PIU Scores가 이 시리즈에서 그 노래를 몰라 기록되지 않았습니다. 제목을 잘못 읽었을 가능성이 높습니다.</value>
   </data>
+  <data name="PIU Scores doesn't list this chart, so nothing was sent." xml:space="preserve">
+    <value>PIU Scores에 이 채보가 등록되어 있지 않아서 아무것도 전송되지 않았습니다.</value>
+  </data>
   <data name="PIU Scores has {0} of your Warm Up bests. Only higher ones are sent." xml:space="preserve">
     <value>PIU Scores에 Warm Up 최고 기록이 {0}개 있습니다. 더 높은 기록만 전송됩니다.</value>
   </data>

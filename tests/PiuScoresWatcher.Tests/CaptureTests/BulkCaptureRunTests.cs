@@ -166,18 +166,149 @@ public sealed class BulkCaptureRunTests
         Assert.IsType<BulkOutcome.Sent>(await SettleAsync(run, Aragami));
     }
 
+    /// <summary>The same window frame after <paramref name="elapsed" />: the panel holds while its title is read again (D69).</summary>
+    private async Task<BulkOutcome> AgainAsync(BulkCaptureRun run, string fixture, TimeSpan elapsed)
+    {
+        _clock.Advance(elapsed);
+        return await run.HandleAsync(Window(fixture), CancellationToken.None);
+    }
+
     [Fact]
-    public async Task ATitleThatNamesNoChartIsKeptNotSent()
+    public async Task ATitleThatNamesNoChartIsReadAgainWhileThePanelHoldsAndThenKeptNotSent()
     {
         TitleIs("Something Else");
         var run = Run();
 
-        var kept = Assert.IsType<BulkOutcome.Unreadable>(await SettleAsync(run, Aragami));
+        Assert.IsType<BulkOutcome.Waiting>(await SettleAsync(run, Aragami));
+        Assert.IsType<BulkOutcome.Waiting>(await AgainAsync(run, Aragami, TimeSpan.FromSeconds(1)));
+        var kept = Assert.IsType<BulkOutcome.Unreadable>(await AgainAsync(run, Aragami, TimeSpan.FromSeconds(1)));
 
         Assert.Equal(KeptBecause.TitleUnmatched, kept.Because);
+        Assert.Contains("'Something Else' (list)", kept.Reason);
         _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.TitleUnmatched, It.IsAny<string>(), null), Times.Once);
         _site.Verify(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         Assert.Equal(1, run.Tally.NotSent);
+        // three tries, each in the list's row and then on the panel
+        _titles.Verify(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<TitleBox>(), It.IsAny<CancellationToken>()), Times.Exactly(6));
+    }
+
+    [Fact]
+    public async Task ATitleThatNamesTheChartOnALaterFrameIsSent()
+    {
+        // the ticker showed a piece that named nothing, then the start of the title
+        TitleIs("wanna go to t");
+        var run = Run();
+        Assert.IsType<BulkOutcome.Waiting>(await SettleAsync(run, Aragami));
+
+        TitleIs("Aragami");
+        var sent = Assert.IsType<BulkOutcome.Sent>(await AgainAsync(run, Aragami, TimeSpan.FromMilliseconds(200)));
+
+        Assert.Equal("Aragami", sent.Play.SongName);
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), It.IsAny<KeptBecause>(), It.IsAny<string>(), It.IsAny<ResultScreenReading?>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task APanelLeftWhileItsTitleNamesNothingIsKeptAsItWasLastSeen()
+    {
+        TitleIs("Something Else");
+        var run = Run();
+        Assert.IsType<BulkOutcome.Waiting>(await SettleAsync(run, Aragami));
+
+        TitleIs("Morrighan");
+        var kept = Assert.IsType<BulkOutcome.Unreadable>(await AgainAsync(run, Morrighan, TimeSpan.FromMilliseconds(200)));
+
+        Assert.Equal(KeptBecause.TitleUnmatched, kept.Because);
+        Assert.Contains("Single 19", kept.Reason); // Aragami's panel, not Morrighan's
+        // and the new panel's half second has begun
+        Assert.IsType<BulkOutcome.Waiting>(await AgainAsync(run, Morrighan, TimeSpan.FromMilliseconds(250)));
+        Assert.IsType<BulkOutcome.Sent>(await AgainAsync(run, Morrighan, TimeSpan.FromMilliseconds(250)));
+    }
+
+    [Fact]
+    public async Task TheListLeftWhileATitleNamesNothingKeepsItAndLetsTheFrameThrough()
+    {
+        TitleIs("Something Else");
+        var run = Run();
+        Assert.IsType<BulkOutcome.Waiting>(await SettleAsync(run, Aragami));
+
+        var notTheList = Assert.IsType<BulkOutcome.NotTheList>(await AgainAsync(run, AResultScreen, TimeSpan.FromMilliseconds(200)));
+
+        Assert.Equal(KeptBecause.TitleUnmatched, Assert.IsType<BulkOutcome.Unreadable>(notTheList.Kept).Because);
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.TitleUnmatched, It.IsAny<string>(), null), Times.Once);
+        Assert.Null((await run.HandleAsync(Window(AResultScreen), CancellationToken.None) as BulkOutcome.NotTheList)!.Kept);
+    }
+
+    [Fact]
+    public async Task TheRunEndingWhileATitleNamesNothingKeepsIt()
+    {
+        TitleIs("Something Else");
+        var run = Run();
+        Assert.IsType<BulkOutcome.Waiting>(await SettleAsync(run, Aragami));
+
+        var kept = run.End();
+
+        Assert.Equal(KeptBecause.TitleUnmatched, kept!.Because);
+        Assert.Equal(1, run.Tally.Unreadable);
+        Assert.Null(run.End());
+    }
+
+    [Fact]
+    public async Task AChartIsKeptOnceInARunHoweverOftenItIsComeBackTo()
+    {
+        TitleIs("Something Else");
+        var run = Run();
+        Assert.IsType<BulkOutcome.Waiting>(await SettleAsync(run, Aragami));
+        Assert.IsType<BulkOutcome.Unreadable>(await AgainAsync(run, Aragami, TimeSpan.FromSeconds(2)));
+        TitleIs("Morrighan");
+        Assert.IsType<BulkOutcome.Sent>(await SettleAsync(run, Morrighan));
+
+        TitleIs("Something Else");
+        Assert.IsType<BulkOutcome.Waiting>(await SettleAsync(run, Aragami));
+        var again = Assert.IsType<BulkOutcome.Unreadable>(await AgainAsync(run, Aragami, TimeSpan.FromSeconds(2)));
+
+        Assert.Null(again.SavedTo); // heard, not kept twice
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.TitleUnmatched, It.IsAny<string>(), null), Times.Once);
+        Assert.Equal(new BulkTally(1, 0, 1, 0), run.Tally);
+    }
+
+    [Fact]
+    public async Task ASongTheListHasOnlyAtOtherChartsIsKeptForThatReason()
+    {
+        // the game's Elysium S4 is PIU Scores' S3: here, Aragami's S19 is missing from the list
+        TitleIs("Aragami");
+        var run = new BulkCaptureRun(new SongListReader(), _titles.Object, _site.Object, _failed.Object, _clock,
+            new SongCatalog([new CatalogChart(Guid.NewGuid(), "Aragami", ChartType.Single, 17)]), []);
+
+        Assert.IsType<BulkOutcome.Waiting>(await SettleAsync(run, Aragami));
+        var kept = Assert.IsType<BulkOutcome.Unreadable>(await AgainAsync(run, Aragami, TimeSpan.FromSeconds(2)));
+
+        Assert.Equal(KeptBecause.ChartUnlisted, kept.Because);
+        Assert.Contains("names Aragami, which PIU Scores doesn't list at Single 19", kept.Reason);
+    }
+
+    [Fact]
+    public async Task AScreenshotWhoseTitleNamesNothingIsKeptAtOnce()
+    {
+        TitleIs("Something Else");
+        var run = Run();
+
+        Assert.IsType<BulkOutcome.Unreadable>(await run.HandleAsync(Screenshot(Aragami), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task AScreenshotLeavesTheWindowsRetryAlone()
+    {
+        TitleIs("Something Else");
+        var run = Run();
+        Assert.IsType<BulkOutcome.Waiting>(await SettleAsync(run, Aragami));
+
+        TitleIs("Morrighan");
+        Assert.IsType<BulkOutcome.Sent>(await run.HandleAsync(Screenshot(Morrighan), CancellationToken.None));
+
+        TitleIs("Something Else");
+        Assert.IsType<BulkOutcome.Unreadable>(await AgainAsync(run, Aragami, TimeSpan.FromSeconds(2)));
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.TitleUnmatched, It.IsAny<string>(), null), Times.Once);
     }
 
     [Fact]

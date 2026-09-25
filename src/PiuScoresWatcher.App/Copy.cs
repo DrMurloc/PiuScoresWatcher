@@ -371,6 +371,7 @@ public static class Copy
         KeptBecause.ChartDisagrees => L("The chart it read has a different number of notes than the judgments add up to, so nothing was recorded."),
         KeptBecause.Refused => L("PIU Scores refused the play, so it wasn't recorded."),
         KeptBecause.SongUnknown => L("PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread."),
+        KeptBecause.ChartUnlisted => L("PIU Scores doesn't list this chart, so nothing was sent."),
         KeptBecause.TokenRejected => L("The token wasn't accepted, so it wasn't recorded."),
         KeptBecause.NotConnected => L("The watcher wasn't connected to PIU Scores, so it wasn't recorded."),
         KeptBecause.RateLimited => L("PIU Scores asked the watcher to slow down, so it wasn't recorded."),
