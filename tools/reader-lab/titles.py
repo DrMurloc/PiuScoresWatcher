@@ -1,7 +1,9 @@
 """How well the watcher reads song titles: every labeled screen with a title goes through the built
 watcher's --replay (Windows OCR included, nothing posted) and the title it read is scored against the
 label — the first attempt exactly, and any attempt the way the chart list would still match it
-(SongCatalog: folded letters, a few edits allowed, a piece missing or extra). Run after changing TitleInk or anything the title passes through; Windows only.
+(SongCatalog: folded letters, a few edits allowed, a piece missing or extra; a song list's attempts in its lit row
+and then on its panel, and what ran off its box as the start of the title, D66, D68). Run after changing TitleInk or
+anything the title passes through; Windows only.
 
     python titles.py [path to PiuScoresWatcher.exe]
 
@@ -38,12 +40,22 @@ def distance(a, b):
     return previous[-1]
 
 
-def fits(read, title):
-    """SongCatalog's rules against the right title only: the same key, a near miss, or a piece missing or extra."""
+def fits(read, title, runs_off=False):
+    """SongCatalog's rules against the right title only: the same key, a near miss, or a piece missing or extra; and for
+    a reading that ran off its box's edge (D68), the start of the title, less the last letter the edge may have cut."""
     a, b = key(read), key(title)
     if not a:
         return False
-    if a == b or distance(a, b) <= max(1, len(a) // 8):
+    if runs_off:
+        shown = a[:-1]
+        allowed = max(1, len(shown) // 8)
+        return len(shown) >= 6 and len(b) > len(a) and min(
+            distance(b[:n], shown) for n in (len(shown) - 1, len(shown), len(shown) + 1) if 0 < n <= len(b)) <= allowed
+    if a == b:
+        return True
+    if len(a) < 4:  # a title under four letters matches exactly or not at all (D67)
+        return False
+    if distance(a, b) <= max(1, len(a) // 8):
         return True
     shorter, longer = (a, b) if len(a) <= len(b) else (b, a)
     return len(shorter) >= 4 and len(shorter) >= 0.6 * len(longer) and shorter in longer
@@ -65,10 +77,12 @@ def main():
                              capture_output=True, text=True, encoding="utf-8", env=env, timeout=120)
         report = json.loads(run.stdout) if run.stdout.strip() else {}
         attempts = report.get("titleAttempts") or ([report["title"]] if report.get("title") else [])
+        # a song list reads its lit row, then its panel (D66), each reading as it sat in its box
+        boxes = report.get("titleBoxes") or [{"attempts": attempts, "runsOffRight": False}]
         read = attempts[0] if attempts else ""
         total += 1
         is_exact = read == title
-        is_matched = any(fits(attempt, title) for attempt in attempts)
+        is_matched = any(fits(attempt, title, box.get("runsOffRight", False)) for box in boxes for attempt in box["attempts"])
         exact += is_exact
         matched += is_matched
         if not is_exact:

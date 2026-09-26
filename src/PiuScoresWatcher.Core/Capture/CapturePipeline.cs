@@ -42,7 +42,8 @@ public abstract record FrameOutcome
 ///     The title is read only for a play not seen before — the window shows the same screen once a
 ///     second, and OCR is the expensive step — attempt by attempt until one names a chart (D55), and
 ///     posted in the catalog's own spelling whenever the mix's chart list is loaded and names the song
-///     (D49), at the level the chart's note count says was played (D56).
+///     (D49), at the level the chart's note count says was played (D56). A song the list has at other charts only is
+///     still posted, and PIU Scores' 404 for it is the chart it doesn't list, not a song it doesn't know (D73).
 /// </summary>
 public sealed class CapturePipeline(
     ResultScreenDetector detector,
@@ -128,7 +129,7 @@ public sealed class CapturePipeline(
         var level = reading.Level!.Value;
         // a broken play may not add up to the chart's notes, so only a clear one is checked against them
         int? notes = reading.IsBroken ? null : reading.Judgments!.Value.Notes;
-        var choice = await titles.ChooseAsync(frame.Image, reading.TitleRegion, catalogs.For(reading.Mix), type, level, notes, cancellationToken);
+        var choice = await titles.ChooseAsync(frame.Image, reading.Titles, catalogs.For(reading.Mix), type, level, notes, cancellationToken);
         if (choice.Read is null)
             return Keep(frame, KeptBecause.TitleUnreadable, "the song title could not be read", reading);
         if (choice.Match is CatalogMatch.Contradicted contradicted)
@@ -137,9 +138,17 @@ public sealed class CapturePipeline(
                 reading);
 
         var play = ObservedPlay.From(reading, choice.Read, frame.SeenAt);
-        if (choice.Match is CatalogMatch.Found found)
-            play = play with { SongName = found.Chart.SongName, Level = found.Chart.Level };
+        play = choice.Match switch
+        {
+            CatalogMatch.Found found => play with { SongName = found.Chart.SongName, Level = found.Chart.Level },
+            // a song the list has at other charts is still sent: the list may have been corrected since it was loaded (D73)
+            CatalogMatch.Unlisted unlisted => play with { SongName = unlisted.SongName },
+            _ => play
+        };
         var outcome = await site.PostAsync(play, frame.Source.Token(), cancellationToken);
+        // PIU Scores answers 404 alike for a song it doesn't know and for a chart it doesn't list: the list says which
+        if (outcome is PostOutcome.SongUnknown unknown && choice.Match is CatalogMatch.Unlisted)
+            outcome = new PostOutcome.ChartUnknown(play.SongName, unknown.Detail);
         Remember(frame, key);
         if (outcome is PostOutcome.Recorded recorded)
         {

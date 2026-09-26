@@ -18,7 +18,7 @@ public enum ReadingStatus
     Unreadable
 }
 
-/// <summary>Everything the reader made of one frame. The title is not here: an adapter reads it from <see cref="TitleRegion" />.</summary>
+/// <summary>Everything the reader made of one frame. The title is not here: an adapter reads it from <see cref="Titles" />.</summary>
 [ExcludeFromCodeCoverage]
 public sealed record ResultScreenReading(
     ReadingStatus Status,
@@ -33,7 +33,11 @@ public sealed record ResultScreenReading(
     string? AccuracyDigits,
     bool IsBroken,
     PixelRect TitleRegion,
-    double LowestGlyphScore);
+    double LowestGlyphScore)
+{
+    /// <summary>The title's one place on a result screen, which never scrolls.</summary>
+    public IReadOnlyList<TitleBox> Titles => [TitleBox.ResultTitle(TitleRegion)];
+}
 
 /// <summary>
 ///     Reads a result screen whose layout the detector named: the chart type from the badge's

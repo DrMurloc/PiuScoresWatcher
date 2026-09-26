@@ -273,6 +273,15 @@
   <data name="PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread." xml:space="preserve">
     <value>PIU Scores no conoce esa canción en esta versión, así que no se registró. Probablemente se leyó mal el título.</value>
   </data>
+  <data name="PIU Scores doesn't list this chart, so it wasn't recorded." xml:space="preserve">
+    <value>PIU Scores no tiene este chart en su lista, así que no se registró.</value>
+  </data>
+  <data name="PIU Scores doesn't list this chart, so nothing was sent." xml:space="preserve">
+    <value>PIU Scores no tiene este chart en su lista, así que no se envió nada.</value>
+  </data>
+  <data name="PIU Scores doesn't list this chart. Not recorded." xml:space="preserve">
+    <value>PIU Scores no tiene este chart en su lista. No se registró.</value>
+  </data>
   <data name="PIU Scores has {0} of your Warm Up bests. Only higher ones are sent." xml:space="preserve">
     <value>PIU Scores tiene {0} de sus mejores puntajes de Warm Up. Solo se envían los más altos.</value>
   </data>
@@ -446,6 +455,9 @@
   </data>
   <data name="The token wasn't accepted. Not recorded." xml:space="preserve">
     <value>El token no fue aceptado. No se registró.</value>
+  </data>
+  <data name="The watcher couldn't tell which chart was selected, so nothing was sent." xml:space="preserve">
+    <value>La app no pudo saber qué chart estaba seleccionado, así que no se envió nada.</value>
   </data>
   <data name="The watcher isn't connected" xml:space="preserve">
     <value>La app no está conectada</value>
