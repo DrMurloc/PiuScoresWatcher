@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using PiuScoresWatcher.Core.Recognition;
 using SkiaSharp;
@@ -6,12 +7,24 @@ namespace PiuScoresWatcher.Tests.TestHelpers;
 
 /// <summary>
 ///     What one fixture screen is expected to read as. <c>Kind</c> is result, unsettled, empty, aggregate or
-///     none for the result screens; songlist, songlist-empty or arcadelist for the song lists (D45).
+///     none for the result screens; songlist, songlist-empty or arcadelist for the song lists (D45). A song list's
+///     <c>Rows</c> are its seven rows from the top as the lab labels them (D74): each chart's level and lit bars
+///     (<c>"7:3 10:3 17:2"</c>), null for the lit row.
 /// </summary>
 internal sealed record ExpectedScreen(
     string Kind, string? Layout, string? Mix, string? Title, string? ChartType, int? Level,
     int? Perfects, int? Greats, int? Goods, int? Bads, int? Misses, int? MaxCombo, int? Score, string? Accuracy, bool? Broken,
-    string? Grade = null);
+    string? Grade = null, string?[]? Rows = null)
+{
+    /// <summary>A labeled row's charts, left to right: the level, and how many of its bars are lit.</summary>
+    public static IReadOnlyList<(int Level, int Lit)> Charts(string row)
+    {
+        return row.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(chart => chart.Split(':'))
+            .Select(parts => (int.Parse(parts[0], CultureInfo.InvariantCulture), int.Parse(parts[1], CultureInfo.InvariantCulture)))
+            .ToList();
+    }
+}
 
 /// <summary>The owner's RISE screens under Fixtures/screens, player card blacked out, with their expected readings.</summary>
 internal static class FixtureScreens

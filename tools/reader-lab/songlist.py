@@ -42,7 +42,7 @@ def box_digits(i):
 # inside of each bar clear of its dark edges.
 ROWS, LIT_ROW = 7, 4
 ROW_BARS_Y, ROW_PITCH = 300.8, 108.36
-SLOT_X0, SLOT_PITCH, SLOTS = 1454, 62, 6
+PLACE_X0, PLACE_PITCH, PLACES = 1454, 62, 6
 BARS = ((1, 11), (15, 25), (29, 40))
 BAR_HALF = 1.5
 # a bar lit gold, a bar unlit grey (a colourless dark grey: the row behind is navy), and the lit row's yellow, which
@@ -52,32 +52,32 @@ BAR_UNLIT_SAT, BAR_UNLIT_VAL = 0.3, (0.18, 0.45)
 ROW_LIT = (30, 60, 0.6, 0.7)
 BAR_SHARE, ROW_LIT_SHARE = 0.6, 0.1
 
-def bars_y(place):
-    return ROW_BARS_Y + ROW_PITCH * (place - 1)
+def bars_y(row):
+    return ROW_BARS_Y + ROW_PITCH * (row - 1)
 
-def bar(place, slot, i):
-    x0 = SLOT_X0 + SLOT_PITCH * slot
-    y = bars_y(place)
+def bar(row, place, i):
+    x0 = PLACE_X0 + PLACE_PITCH * place
+    y = bars_y(row)
     return P.R(x0 + BARS[i][0], y - BAR_HALF, x0 + BARS[i][1], y + BAR_HALF)
 
-def row_digits(place, slot):
+def row_digits(row, place):
     """A place's level, above its bars; the H stamp sits over its top left, as it does on the panel's boxes."""
-    x0 = SLOT_X0 + SLOT_PITCH * slot
-    y = bars_y(place)
+    x0 = PLACE_X0 + PLACE_PITCH * place
+    y = bars_y(row)
     return P.R(x0 - 6, y - 40, x0 + 48, y - 6)
 
-def row_lit_patch(place):
-    """Right of the rightmost place, where nothing but the row itself is drawn: yellow on the lit row, navy on the rest."""
-    y = bars_y(place)
+def row_lit_patch(row):
+    """Right of the row's last place, where nothing but the row itself is drawn: yellow on the lit row, navy on the rest."""
+    y = bars_y(row)
     return P.R(1812, y - 14, 1880, y + 14)
 
-def row_title(place):
+def row_title(row):
     """The lit row's title box (ROW_TITLE), moved to the row."""
-    dy = bars_y(place) - bars_y(LIT_ROW)
+    dy = bars_y(row) - bars_y(LIT_ROW)
     return P.R(872, 576 + dy, 1433, 618 + dy)
 
-def row_jacket(place):
-    dy = bars_y(place) - bars_y(LIT_ROW)
+def row_jacket(row):
+    dy = bars_y(row) - bars_y(LIT_ROW)
     return P.R(792, 572 + dy, 858, 648 + dy)
 
 def bar_state(img, r):
@@ -91,16 +91,16 @@ def bar_state(img, r):
     return "."
 
 def read_rows(img, templates):
-    """Every row but the lit one, as the watcher reads it (D75): per place, None for a lit row, '?' for one that can't be
+    """Every row but the lit one, as the watcher reads it (D75): per row, None for the lit row, '?' for one that can't be
     read on this frame, else [(level or None, lit bars)] left to right — the level read only where all three are lit."""
     out = {}
-    for place in range(1, ROWS + 1):
-        if share(img, row_lit_patch(place), *ROW_LIT) >= ROW_LIT_SHARE:
-            out[place] = None
+    for row in range(1, ROWS + 1):
+        if share(img, row_lit_patch(row), *ROW_LIT) >= ROW_LIT_SHARE:
+            out[row] = None
             continue
         charts, seen_chart, readable = [], False, True
-        for slot in range(SLOTS):
-            states = "".join(bar_state(img, bar(place, slot, i)) for i in range(3))
+        for place in range(PLACES):
+            states = "".join(bar_state(img, bar(row, place, i)) for i in range(3))
             if states == "...":
                 if seen_chart:  # a chart, then an empty place: nothing right-aligned looks like that
                     readable = False
@@ -112,21 +112,21 @@ def read_rows(img, templates):
             lit = states.count("L")
             level = None
             if lit == 3:
-                gl, _ = P.read_field(P.crop(img, row_digits(place, slot)), light_mask, "wllevel", templates, keep_dots=False)
+                gl, _ = P.read_field(P.crop(img, row_digits(row, place)), light_mask, "wllevel", templates, keep_dots=False)
                 text = "".join(c or "?" for c, s, g in gl)
                 level = int(text) if text.isdigit() else None
                 readable = readable and level is not None
             charts.append((level, lit))
-        out[place] = charts if readable and charts else "?"
+        out[row] = charts if readable else "?"
     return out
 
 def describe_rows(rows):
-    """The label's form: each chart's level (or '-' where it isn't read) and lit bars, per place."""
+    """The label's form: each chart's level (or '-' where it isn't read) and lit bars, per row."""
     def one(charts):
         if charts is None or charts == "?":
             return charts
         return " ".join(f"{'-' if level is None else level}:{lit}" for level, lit in charts)
-    return [one(rows[place]) for place in range(1, ROWS + 1)]
+    return [one(rows[row]) for row in range(1, ROWS + 1)]
 
 # name -> (kind, title, type, level, best, max combo, grade); arcade-list screens must never read as Warm Up
 EXPECTED_LIST = {
@@ -189,9 +189,10 @@ EXPECTED_LIST.update({name: exp for name, (exp, _, _) in (TESTER | SIX_K).items(
 BOX_LEVELS.update({name: boxes for name, (_, boxes, _) in (TESTER | SIX_K).items()})
 NOTES = {name: note for name, (_, _, note) in (TESTER | SIX_K).items()}
 # every row but the lit one, per place 1-7, as the owner's and the testers' screens show them, read by eye (D74): each
-# chart's level and lit bars; None for the lit row, '?' for a row the lab's player-card mask covers
+# chart's level and lit bars; None for the lit row, and "" for one with no chart (the bottom row under the lab's old
+# player-card mask)
 ROW_LABELS = {
-    "20260922072011": ["11:0 14:0 17:0 20:0 22:0", "15:0 19:0 22:0 24:0", "7:0 11:0 16:0 18:0 22:0", None, "7:0 13:0 18:0 22:0", "12:0 18:0 20:0 22:0", "?"],
+    "20260922072011": ["11:0 14:0 17:0 20:0 22:0", "15:0 19:0 22:0 24:0", "7:0 11:0 16:0 18:0 22:0", None, "7:0 13:0 18:0 22:0", "12:0 18:0 20:0 22:0", ""],
     "20260923193118": ["15:0 18:0 20:0 23:0", "7:0 13:0 18:0 22:0", "12:0 18:0 20:0 22:0", None, "14:0 17:0 20:0 23:0", "12:0 16:0 18:0 20:0 22:0", "11:0 14:0 17:0 19:0 21:0 23:0"],
     "20260923193120": ["15:0 18:0 20:0 23:0", "7:0 13:0 18:0 22:0", "12:0 18:0 20:0 22:0", None, "14:0 17:0 20:0 23:0", "12:0 16:0 18:0 20:0 22:0", "11:0 14:0 17:0 19:0 21:0 23:0"],
     "20260923193123": ["15:0 19:0 22:0 24:0", "7:0 11:0 16:0 18:0 22:0", "15:0 18:0 20:0 23:0", None, "12:0 18:0 20:0 22:0", "15:0 17:0 19:0 22:0 24:0", "14:0 17:0 20:0 23:0"],
@@ -365,16 +366,16 @@ def rows_report(templates):
             continue
         rows = read_rows(load(name), templates)
         label = ROW_LABELS[name]
-        for place in range(1, ROWS + 1):
-            got = rows[place]
+        for row in range(1, ROWS + 1):
+            got = rows[row]
             if got == "?":
                 unread += 1
             elif got is not None:
                 charts += len(got)
                 perfect += sum(1 for _, lit in got if lit == 3)
-            if not rows_agree(label[place - 1], got):
+            if not rows_agree(label[row - 1], got):
                 bad += 1
-                print(f"  {name} row {place}: read {describe_rows(rows)[place - 1]!r}, labeled {label[place - 1]!r}")
+                print(f"  {name} row {row}: read {describe_rows(rows)[row - 1]!r}, labeled {label[row - 1]!r}")
     print(f"rows: {charts} charts, {perfect} Perfect Games, {unread} rows not read, {bad} disagree with their labels")
 
 FIXTURES = os.path.join(P.REPO, "tests", "PiuScoresWatcher.Tests", "Fixtures", "screens")

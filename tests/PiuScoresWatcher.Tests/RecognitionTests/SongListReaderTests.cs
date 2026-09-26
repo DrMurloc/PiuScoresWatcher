@@ -92,6 +92,7 @@ public sealed class SongListReaderTests
         Assert.Equal("the song list with no tab lit (5K SINGLE orange, 6K DOUBLE blue) and level box 1 lit", reading.Reason);
         Assert.Null(reading.ChartType);
         Assert.Empty(reading.Titles);
+        Assert.Empty(reading.Rows);
     }
 
     [Theory]
@@ -150,6 +151,96 @@ public sealed class SongListReaderTests
         Assert.True(panel.Pixels.Count(shade => shade < 128) < 0.002 * panel.Pixels.Length);
         Assert.True(row.Pixels.Count(shade => shade < 128) > 0.05 * row.Pixels.Length);
         Assert.False(TitleInk.RunsOffRight(image, titles[0].Region));
+    }
+
+    public static TheoryData<string> WarmUpLists()
+    {
+        return new TheoryData<string>(FixtureScreens.OfKind("songlist").Concat(FixtureScreens.OfKind("songlist-empty")));
+    }
+
+    /// <summary>
+    ///     Every row but the lit one, as the lab labels it by eye (D74, D75): each chart's lit bars, left to right, and the
+    ///     level of each Perfect Game. The owner's own rows carry no mark at all; the testers' carry 118 Perfect Games.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(WarmUpLists))]
+    public void EveryRowButTheLitOneReadsItsMarksAndItsPerfectGames(string name)
+    {
+        var labels = FixtureScreens.Expected[name].Rows!;
+
+        var rows = Reader.Read(FixtureScreens.Load(name))!.Rows;
+
+        Assert.Equal(Enumerable.Range(1, 7).Where(row => labels[row - 1] is not null), rows.Select(row => row.Row));
+        Assert.All(rows, row =>
+        {
+            var charts = ExpectedScreen.Charts(labels[row.Row - 1]!);
+            Assert.Equal(charts.Select(chart => chart.Lit), row.Marks);
+            Assert.Equal(charts.Where(chart => chart.Lit == 3).Select(chart => chart.Level), row.PerfectGames);
+        });
+    }
+
+    [Fact]
+    public void TheRowsHoldPlentyOfPerfectGamesAndTheLitRowIsNeverOne()
+    {
+        var rows = WarmUpListNames().SelectMany(name => Reader.Read(FixtureScreens.Load(name))!.Rows).ToList();
+
+        Assert.Equal(118, rows.Sum(row => row.PerfectGames.Count));
+        Assert.Equal(473, rows.Sum(row => row.Marks!.Count));
+        Assert.DoesNotContain(rows, row => row.Row == 4);
+    }
+
+    [Fact]
+    public void ASongScrollingThroughTheRowsKeepsItsJacket()
+    {
+        // The People didn't know "Pumping up" at S8, then the list one song on at The Quick Brown Fox's S19: the four songs
+        // both show sit a row higher on the second, and print the same within a bit; different songs differ in well over a
+        // dozen (18 or more on the owner's lists, D48)
+        var before = Reader.Read(FixtureScreens.Load("20260925003656"))!.Rows.ToDictionary(row => row.Row);
+        var after = Reader.Read(FixtureScreens.Load("20260925003727"))!.Rows.ToDictionary(row => row.Row);
+
+        Assert.All(new[] { 2, 3, 6, 7 }, row => Assert.InRange(Bits(before[row].Jacket ^ after[row - 1].Jacket), 0, 1));
+        Assert.All(new[] { 1, 2, 5, 6 }, row => Assert.InRange(Bits(before[row].Jacket ^ after[row].Jacket), 16, 64));
+    }
+
+    [Fact]
+    public void ARowWithABarNeitherLitNorUnlitIsNotReadOnThatFrame()
+    {
+        // B2's list: the navy of an empty place pasted over the middle bar of B.P Classic Remix's S14, a Perfect Game, in the
+        // second row (the fifth of its six places)
+        var image = FixtureScreens.LoadWithCopy("20260924233951", FractionRect.At1080p(1469, 407, 1479, 411), FractionRect.At1080p(1717, 407, 1727, 411));
+
+        var rows = Reader.Read(image)!.Rows.ToDictionary(row => row.Row);
+
+        Assert.Null(rows[2].Marks);
+        Assert.Empty(rows[2].PerfectGames);
+        Assert.Equal([7, 10, 14], rows[1].PerfectGames);
+    }
+
+    [Theory]
+    [MemberData(nameof(WarmUpLists))]
+    public void EveryRowWithAPerfectGameHasItsTitleInItsOwnBox(string name)
+    {
+        var image = FixtureScreens.Load(name);
+
+        var rows = Reader.Read(image)!.Rows.Where(row => row.PerfectGames.Count > 0).ToList();
+
+        Assert.All(rows, row =>
+        {
+            Assert.Equal($"row {row.Row}", row.Title.Name);
+            Assert.False(row.Title.Heavy);
+            var page = TitleInk.Render(image, row.Title.Region);
+            Assert.InRange(page.Pixels.Count(shade => shade < 128) / (double)page.Pixels.Length, 0.005, 0.5);
+        });
+    }
+
+    private static IEnumerable<string> WarmUpListNames()
+    {
+        return FixtureScreens.OfKind("songlist").Concat(FixtureScreens.OfKind("songlist-empty"));
+    }
+
+    private static int Bits(ulong print)
+    {
+        return System.Numerics.BitOperations.PopCount(print);
     }
 
     [Fact]
