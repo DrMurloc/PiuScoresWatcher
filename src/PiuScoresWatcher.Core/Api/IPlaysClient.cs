@@ -3,8 +3,9 @@ using PiuScoresWatcher.Core.Domain;
 namespace PiuScoresWatcher.Core.Api;
 
 /// <summary>
-///     PIU Scores, as far as the watcher needs it: who the token is, one play at a time, and — for a
-///     bulk capture and for matching titles — a mix's chart list and the player's own bests.
+///     PIU Scores, as far as the watcher needs it: who the token is, one play at a time, the end of a
+///     session, and — for a bulk capture and for matching titles — a mix's chart list and the player's
+///     own bests.
 /// </summary>
 public interface IPlaysClient
 {
@@ -12,6 +13,9 @@ public interface IPlaysClient
 
     /// <summary>Posts one play; <paramref name="source" /> is the API's <c>source</c>, as <see cref="CaptureSources" /> names it.</summary>
     Task<PostOutcome> PostAsync(ObservedPlay play, string source, CancellationToken cancellationToken);
+
+    /// <summary>Ends the player's session on the mix, every sitting open on it, so its card posts now (D74).</summary>
+    Task<CloseOutcome> CloseSittingsAsync(RiseMix mix, CancellationToken cancellationToken);
 
     /// <summary>Every chart of the mix, page by page.</summary>
     Task<SiteResult<IReadOnlyList<CatalogChart>>> GetChartsAsync(RiseMix mix, CancellationToken cancellationToken);

@@ -14,6 +14,7 @@ namespace PiuScoresWatcher.Core.Settings;
 /// <param name="BulkCaptureSounds">Whether a bulk capture plays its chime, tick and low tone; on unless switched off (D50).</param>
 /// <param name="Language">The language the player picked (<see cref="Languages" />); null is Machine Default, which follows Windows (D59).</param>
 /// <param name="PlaySounds">Whether each play makes its sound — the chime, the low tone or the tick; on unless switched off (D63).</param>
+/// <param name="Sessions">When a session ends (D75); null (a settings file from before the switches existed) means when RISE closes.</param>
 public sealed record WatcherSettings(
     CaptureMode Mode,
     bool StartWithWindows,
@@ -22,10 +23,14 @@ public sealed record WatcherSettings(
     string? LastSeenVersion = null,
     bool BulkCaptureSounds = true,
     string? Language = null,
-    bool PlaySounds = true)
+    bool PlaySounds = true,
+    SessionSettings? Sessions = null)
 {
     public static WatcherSettings Default => new(CaptureMode.Both, StartWithWindows: true, SteamScreenshotsFolder: null);
 
     [JsonIgnore]
     public NotificationSettings EffectiveNotifications => Notifications ?? NotificationSettings.Default;
+
+    [JsonIgnore]
+    public SessionSettings EffectiveSessions => Sessions ?? SessionSettings.Default;
 }

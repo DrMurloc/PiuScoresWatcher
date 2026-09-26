@@ -4,7 +4,7 @@
 
 The same rule as PIU Scores: **use the lowest-level test that would catch the regression**, and move up a rung only when the lower one would mock away the thing that might break. The watcher has three rungs, and the top one is a person with the game open — no automation drives RISE.
 
-1. **Unit tests** (`tests/PiuScoresWatcher.Tests/StartupTests/`, `RecognitionTests/`, `ScoringTests/`, `DomainTests/`) — Core's pure logic. The launch-option parser; the detector and the reader over **fixture screenshots** (a JPEG in, a `ResultScreenReading` out, compared field by field against `expected.json`, then the checksum); the Phoenix formula and the checksum against the owner's verified screens. Real objects, no mocks where avoidable, no clock calls (`FakeClock` once `IClock` has a consumer).
+1. **Unit tests** (`tests/PiuScoresWatcher.Tests/StartupTests/`, `RecognitionTests/`, `ScoringTests/`, `DomainTests/`, `SessionTests/`) — Core's pure logic. The launch-option parser; the session keeper against a stub site and a store double; the detector and the reader over **fixture screenshots** (a JPEG in, a `ResultScreenReading` out, compared field by field against `expected.json`, then the checksum); the Phoenix formula and the checksum against the owner's verified screens. Real objects, no mocks where avoidable, no clock calls (`FakeClock` once `IClock` has a consumer).
 2. **Architecture ratchets** (`ArchitectureTests/`) — Core stays headless (no OS target, no UI/Windows/Velopack reference); the wall clock is read only in `SystemClock.cs`; nothing is written into Velopack's install folder; no window or text property spells its own words (they live in `Copy.cs`). Rules are added, never removed. A third arrives with the first player-facing error string: no raw exception text reaches a toast or a window.
 3. **The checklist with the game** — for what only RISE can show. App's adapters (capture, the folder watcher, toasts, the token store) are thin by design and are exercised here, not mocked into meaninglessness.
 
@@ -60,6 +60,14 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] A screen that can't be trusted (F12 in Steam-screenshot mode before the numbers finish counting) → refused locally, saved under `failed\`, surfaced, not posted. Covering the screen with another window does nothing: both modes read the game's own frame, never what's on top of it.
 - [ ] Wrong token → the settings window says so; nothing posts.
 - [ ] Quit RISE → the watcher sleeps (no capture, no CPU); start RISE → it wakes.
+- [ ] A few plays, then close RISE → the session card posts on PIU Scores within a minute (D74; the site's change has to be live — before it, the log says the close answered 404).
+- [ ] Twenty minutes with RISE open and no play, then another play, then close RISE → one session, one card.
+- [ ] Settings → Sessions → After 10 minutes on → ten minutes without a play ends the session with RISE still open; the next play starts a new one. Only the minutes on → closing RISE doesn't end it; the minutes still do.
+- [ ] Both Sessions switches off → no card until four hours after the last play.
+- [ ] Warm Up and Arcade Station plays in one sitting, then close RISE → two cards.
+- [ ] A bulk capture in the middle of a session → the session's card posts as the run starts, the run's when it ends.
+- [ ] Quit the watcher with RISE open after a play → the card posts.
+- [ ] Network off as RISE closes, back on a minute later → the log shows the close owed, then sent.
 - [ ] Install fresh → the first-run window opens on How it works; Set it up → the three steps; a bad token says so; a good one says who it is.
 - [ ] Notifications all off → no notification for a recorded play, and the settings window still lists it; one kind off → only that kind goes quiet.
 - [ ] A recorded play → the chime, and its notification makes no sound of its own; F12 before the score finishes counting → the low tone; a play with the token disconnected → the tick; Sounds while playing off → silence.

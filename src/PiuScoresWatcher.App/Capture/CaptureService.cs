@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PiuScoresWatcher.App.Status;
+using PiuScoresWatcher.Core.Api;
 using PiuScoresWatcher.Core.Capture;
+using PiuScoresWatcher.Core.Sessions;
 using PiuScoresWatcher.Core.Settings;
 
 namespace PiuScoresWatcher.App.Capture;
@@ -16,6 +18,8 @@ namespace PiuScoresWatcher.App.Capture;
 ///     A frame already being handled when a round ends is finished, not dropped: an F12 screenshot is read once, so
 ///     a post cut off by a pause would lose its play. A source that fails is started again after a wait, and so is a
 ///     round that fails — nothing short of quitting stops the watching.
+///     A frame takes its turn at the <see cref="PlayGate" /> with a session's close, so neither overtakes the other
+///     (D79), and a play or a capture PIU Scores recorded opens its mix's session (D77).
 /// </summary>
 public sealed class CaptureService(
     ISettingsStore settings,
@@ -24,6 +28,8 @@ public sealed class CaptureService(
     BulkCaptureService bulk,
     WindowCaptureSource window,
     Func<SteamScreenshotSource> steamScreenshots,
+    PlayGate gate,
+    SessionKeeper sessions,
     ILogger<CaptureService> log) : BackgroundService
 {
     /// <summary>The first wait before a failed source or round starts again; it doubles while the failures repeat.</summary>
@@ -31,7 +37,6 @@ public sealed class CaptureService(
 
     private static readonly TimeSpan LongestRetry = TimeSpan.FromMinutes(5);
 
-    private readonly SemaphoreSlim _oneFrameAtATime = new(1, 1);
     private CancellationTokenSource? _round;
     private (CaptureMode Mode, string? Folder)? _watching;
 
@@ -152,14 +157,21 @@ public sealed class CaptureService(
 
     private async Task HandleAsync(CapturedFrame frame, CancellationToken cancellationToken)
     {
-        await _oneFrameAtATime.WaitAsync(cancellationToken);
+        await gate.Turn.WaitAsync(cancellationToken);
         try
         {
             var bulkOutcome = await bulk.HandleAsync(frame, cancellationToken);
+            if (bulkOutcome is BulkOutcome.Sent sent)
+                sessions.Recorded(sent.Play.Mix);
+            // the rows' Perfect Games ride on whatever the frame did to the lit chart, the list gone included (D85)
+            if (bulkOutcome?.PerfectGames.OfType<PerfectGameOutcome.Sent>().FirstOrDefault() is { } perfectGame)
+                sessions.Recorded(perfectGame.Play.Mix);
             if (bulkOutcome is not null and not BulkOutcome.NotTheList)
                 return; // Warm Up's song list: nothing for the result pipeline
 
             var outcome = await pipeline.HandleAsync(frame, cancellationToken);
+            if (outcome is FrameOutcome.Posted { Outcome: PostOutcome.Recorded } recorded)
+                sessions.Recorded(recorded.Play.Mix);
             if (bulkOutcome is BulkOutcome.NotTheList && outcome is not FrameOutcome.NotAResult)
                 bulk.Stop("a result screen appeared");
             switch (outcome)
@@ -189,7 +201,7 @@ public sealed class CaptureService(
         }
         finally
         {
-            _oneFrameAtATime.Release();
+            gate.Turn.Release();
         }
     }
 }

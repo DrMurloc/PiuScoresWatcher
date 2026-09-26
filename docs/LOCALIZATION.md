@@ -62,6 +62,7 @@ sentence is the app, not a brand, so it becomes each language's word for an app.
 | review | 검토 | 確認 | revisar | revisar | revisar | vérifier | controllare |
 | kept (for review) | 보관 | 保存 | guardar | guardar | guardar | conserver | conservare |
 | song list | 노래 목록 | 曲リスト | lista de canciones | lista de canciones | lista de músicas | liste des chansons | lista delle canzoni |
+| session card (the site's Discord card) | 세션 카드 | セッションカード | tarjeta de la sesión | tarjeta de la sesión | cartão da sessão | carte de la session | scheda della sessione |
 | judgments | 판정 | 判定 | juicios | juicios | julgamentos | jugements | giudizi |
 | the four sounds: chime · level up · tick · low tone | 차임 · 레벨 업 · 틱 · 낮은 음 | チャイム · レベルアップ · カチッ · 低い音 | Campanilla · Subida de nivel · Tic · Tono grave | Campanita · Subida de nivel · Tic · Tono grave | Sino · Subida de nível · Tique · Tom grave | Carillon · Montée de niveau · Tic · Son grave | Campanella · Salita di livello · Tic · Tono basso |
 

@@ -42,6 +42,12 @@
   <data name="Account" xml:space="preserve">
     <value>계정</value>
   </data>
+  <data name="After 4 hours without a play, PIU Scores ends a session and posts its card by itself, whatever is checked here." xml:space="preserve">
+    <value>플레이 없이 4시간이 지나면 여기서 무엇을 선택했든 PIU Scores가 직접 세션을 끝내고 카드를 게시합니다.</value>
+  </data>
+  <data name="After {0} minutes without a play" xml:space="preserve">
+    <value>{0}분 동안 플레이가 없을 때</value>
+  </data>
   <data name="Both" xml:space="preserve">
     <value>둘 다</value>
   </data>
@@ -116,6 +122,9 @@
   </data>
   <data name="Each best on Warm Up's song list becomes a play on PIU Scores: the song, the chart and the score, no judgments." xml:space="preserve">
     <value>Warm Up 노래 목록의 최고 기록이 각각 PIU Scores의 플레이가 됩니다. 노래, 채보, 점수만 가져오며 판정은 없습니다.</value>
+  </data>
+  <data name="Even with RISE still open." xml:space="preserve">
+    <value>RISE가 열려 있어도 적용됩니다.</value>
   </data>
   <data name="Every recorded play" xml:space="preserve">
     <value>기록된 모든 플레이</value>
@@ -294,6 +303,9 @@
   <data name="PIU Scores has {0} of your Warm Up bests. Only higher ones are sent." xml:space="preserve">
     <value>PIU Scores에 Warm Up 최고 기록이 {0}개 있습니다. 더 높은 기록만 전송됩니다.</value>
   </data>
+  <data name="PIU Scores posts the session card when a session ends." xml:space="preserve">
+    <value>세션이 끝나면 PIU Scores가 세션 카드를 게시합니다.</value>
+  </data>
   <data name="PIU Scores refused it. Not recorded." xml:space="preserve">
     <value>PIU Scores가 거부했습니다. 기록되지 않았습니다.</value>
   </data>
@@ -350,6 +362,9 @@
   </data>
   <data name="Sent to PIU Scores." xml:space="preserve">
     <value>PIU Scores로 전송했습니다.</value>
+  </data>
+  <data name="Sessions" xml:space="preserve">
+    <value>세션</value>
   </data>
   <data name="Set it up" xml:space="preserve">
     <value>설정하기</value>
@@ -536,6 +551,9 @@
   </data>
   <data name="When a bulk capture finishes" xml:space="preserve">
     <value>일괄 캡처가 끝날 때</value>
+  </data>
+  <data name="When RISE closes" xml:space="preserve">
+    <value>RISE를 닫을 때</value>
   </data>
   <data name="When the token stops working" xml:space="preserve">
     <value>토큰이 더 이상 작동하지 않을 때</value>

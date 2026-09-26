@@ -17,7 +17,7 @@ Core never knows it is inside a tray app; App never reads a pixel.
 
 ### Ports and adapters
 
-Every boundary is a port defined in Core and an adapter in App: `IClock` → `SystemClock`, `ISettingsStore` → `JsonSettingsStore`, and, as the pipeline lands, `IScreenSource` (one adapter per capture mode), `IResultScreenReader`, `IPlaysClient`, `ITokenStore`, `INotifier`, `IStartupRegistration`. One implementation per port, wired explicitly in the generic host — no reflection scan, there are a dozen services.
+Every boundary is a port defined in Core and an adapter in App: `IClock` → `SystemClock`, `ISettingsStore` → `JsonSettingsStore`, and, as the pipeline lands, `IScreenSource` (one adapter per capture mode), `IResultScreenReader`, `IPlaysClient`, `ITokenStore`, `ISessionStore`, `INotifier`, `IStartupRegistration`. One implementation per port, wired explicitly in the generic host — no reflection scan, there are a dozen services.
 
 ### The pipeline
 
@@ -55,7 +55,8 @@ PiuScoresWatcher.sln
 ├── src/PiuScoresWatcher.Core        net10.0 — headless
 │   ├── Startup/                     LaunchOptions (--replay, --dry-run, --base-url)
 │   ├── Settings/                    WatcherSettings, CaptureMode, ISettingsStore, Languages (the eight the
-│   │                                watcher speaks, and how Windows' languages place onto them, D58, D59)
+│   │                                watcher speaks, and how Windows' languages place onto them, D58, D59),
+│   │                                SessionSettings (the two switches that end a session, and the minutes, D75)
 │   ├── Time/                        IClock
 │   ├── Domain/                      RiseMix, ChartType, Judgments
 │   ├── Exceptions/                  WatcherException and its kinds (player-showable messages)
@@ -73,7 +74,11 @@ PiuScoresWatcher.sln
 │   ├── Scoring/                     PhoenixScoring (the formula, copied from PIU Scores), PlayChecksum
 │   ├── Api/                         ObservedPlay, CaptureSource, PostOutcome/IdentityCheck, IPlaysClient,
 │   │                                ITokenStore, PiuScoresClient (the wire shape, over the App's HttpClient;
-│   │                                the chart list and the player's bests, page by page), SiteResult
+│   │                                the chart list and the player's bests, page by page; a mix's sittings
+│   │                                closed, D74), CloseOutcome, SiteResult
+│   ├── Sessions/                    SessionKeeper (the mixes posted to since the last close; a close written
+│   │                                down before it is sent, and sent again until it lands or lapses, D77, D82),
+│   │                                SessionState, ISessionStore
 │   ├── Catalog/                     SongCatalog (a read title → the chart list's spelling, D49, and on the
 │   │                                Arcade Station the chart its note count fits, D56; a title cut off at
 │   │                                its box's edge only as the start of a longer one, D68; a song listed at
@@ -103,7 +108,8 @@ PiuScoresWatcher.sln
 │   ├── Status/                      WatcherStatus (connection, pause, a run's count, recent plays and runs —
 │   │                                what the tray and settings show)
 │   ├── Startup/                     StartupRegistration (the Run key, installed copies only), SingleInstance
-│   ├── Storage/                     AppPaths (%APPDATA%\PiuScoresWatcher), JsonSettingsStore, FailedScreenStore
+│   ├── Storage/                     AppPaths (%APPDATA%\PiuScoresWatcher), JsonSettingsStore, FailedScreenStore,
+│   │                                JsonSessionStore
 │   ├── Time/                        SystemClock
 │   ├── Updates/                     UpdateService (GitHub Releases, applied on next launch)
 │   ├── Replay/                      ReplayRunner (a file through the pipeline, posted when a token is there;
@@ -120,7 +126,10 @@ PiuScoresWatcher.sln
 │   │                                folders), CaptureService (runs the sources, feeds a bulk capture first
 │   │                                and the pipeline after, logs; a source that fails starts again, and a
 │   │                                frame in hand outlives a pause), BulkCaptureService (prepares, runs and
-│   │                                ends a bulk capture; the sounds and its summary)
+│   │                                ends a bulk capture; the sounds and its summary), SessionService (ends a
+│   │                                session when RISE closes, after the minutes, around a bulk capture and on
+│   │                                quit, D78–D81), PlayGate (one request to the plays at a time: a frame's
+│   │                                post or a session's close, D79)
 │   ├── Notifications/               WatcherNotifier (Windows notifications, each kind switchable, a play's
 │   │                                sound) + the log
 │   └── Assets/                      app.ico (placeholder art)
@@ -128,7 +137,8 @@ PiuScoresWatcher.sln
 │   ├── StartupTests/                LaunchOptionsTests
 │   ├── ArchitectureTests/           CoreStaysHeadlessTests, ClockSeamTests, DataFolderTests,
 │   │                                CopyLivesInOneFileTests, TranslationTests
-│   ├── SettingsTests/               NotificationSettingsTests, LanguagesTests
+│   ├── SettingsTests/               NotificationSettingsTests, LanguagesTests, SessionSettingsTests
+│   ├── SessionTests/                SessionKeeperTests (a stub site and a store double)
 │   ├── RecognitionTests/            every fixture screen through the detector, the reader and the checksum;
 │   │                                SongListReaderTests, TitleInkTests
 │   ├── ApiTests/                    PiuScoresClientTests (the wire shape over a stub handler), ObservedPlayTests
@@ -157,10 +167,11 @@ Everything the watcher writes lives under `%APPDATA%\PiuScoresWatcher\` — neve
 | `token.bin` | the PIU Scores token, DPAPI-encrypted for the Windows account |
 | `logs\watcher-<date>.log` | rolling daily logs, seven kept |
 | `failed\` | result screens that could not become a play — a PNG and a JSON note each — for the review dialog |
+| `session.json` | the sessions the watcher has open on PIU Scores — which mixes, and when each last had a play — and any close still owed (D82) |
 
-A run pointed at any other site — a developer's local PIU Scores — keeps the same four under `dev\<host>-<port>\` beneath that folder and takes its own one-copy lock (D44), so it runs beside an installed copy and never reads or replaces its token.
+A run pointed at any other site — a developer's local PIU Scores — keeps the same files under `dev\<host>-<port>\` beneath that folder and takes its own one-copy lock (D44), so it runs beside an installed copy and never reads or replaces its token.
 
-No telemetry. What leaves the machine is one HTTP request per play, and a bulk capture's reads of the chart list and the player's bests, described in [PRIVACY.md](PRIVACY.md).
+No telemetry. What leaves the machine is one HTTP request per play, one per station when a session ends, and a bulk capture's reads of the chart list and the player's bests, described in [PRIVACY.md](PRIVACY.md).
 
 ### Deliberately absent
 
