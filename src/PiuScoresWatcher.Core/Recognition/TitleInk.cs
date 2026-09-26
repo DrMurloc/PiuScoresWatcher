@@ -3,6 +3,29 @@ namespace PiuScoresWatcher.Core.Recognition;
 /// <summary>A picture in 8-bit grey, row by row: 255 is white paper, 0 is full ink.</summary>
 public sealed record GrayImage(int Width, int Height, byte[] Pixels);
 
+/// <summary>One page for the OCR, and how many copies of the title it prints (D67).</summary>
+public sealed record TitlePage(GrayImage Image, int Repeats)
+{
+    /// <summary>
+    ///     What the OCR's reading of the page says the title is: the reading itself, or, on a page of copies, the one
+    ///     word they all read as — null when the copies disagree, which is a misread and not a title.
+    /// </summary>
+    public string? Reading(string text)
+    {
+        if (Repeats == 1)
+            return text;
+        var words = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length == 0 || words.Length % Repeats != 0)
+            return null;
+        var size = words.Length / Repeats;
+        var copies = Enumerable.Range(0, Repeats)
+            .Select(copy => string.Join(' ', words.Skip(copy * size).Take(size)))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        return copies.Count == 1 ? copies[0] : null;
+    }
+}
+
 /// <summary>
 ///     Turns a song title's region into what Windows OCR reads best: dark letters on white paper, at the
 ///     size the title has on a 1080p screen, with a margin of paper around them. A title is white wherever it
@@ -13,8 +36,9 @@ public sealed record GrayImage(int Width, int Height, byte[] Pixels);
 ///     <para>
 ///         <see cref="Pages" /> is the order the title is tried in, and the reader stops at the first page whose
 ///         reading names a chart: the page at 1080p, then at twice the size, then with the wide gaps between
-///         letters closed up — "8 6" is two lone characters to Windows until it is one word — and last with the
-///         strokes thinned as well, which is what Warm Up's song list, in its heavy outlined type, needed.
+///         letters closed up — "8 6" is two lone characters to Windows until it is one word — then, for a title in
+///         heavy outlined type, with the strokes thinned as well, which is what the song list's panel needed; and
+///         last, for a short title, the title three times over, which is the only way Windows reads B2, D or N (D67).
 ///     </para>
 /// </summary>
 public static class TitleInk
@@ -25,18 +49,90 @@ public static class TitleInk
     /// <summary>The paper around the letters, at the 1080p size.</summary>
     public const int Margin = 40;
 
+    /// <summary>How near a scrolling box's right edge, at the 1080p size, a title's ink reaches when the game cut it off there (D68).</summary>
+    public const int EdgeWidth = 10;
+
     /// <summary>Anything darker than this in a column is ink when gaps are measured.</summary>
     private const byte InkShade = 160;
 
+    /// <summary>A title narrower than this many times its height is short, and tried three times over as well (D67).</summary>
+    private const double ShortTitle = 3.0;
+
+    /// <summary>The copies a short title's page prints.</summary>
+    private const int Copies = 3;
+
+    /// <summary>A column at the box's edge is title when this share of the box's height is ink.</summary>
+    private const double EdgeInk = 0.05;
+
+    /// <summary>The space between a short title's copies, as shares of its height: at the narrower one Windows reads B2, at the wider one D and N.</summary>
+    private static readonly double[] CopyGaps = [0.6, 1.2];
+
     /// <summary>The pages to try, in order.</summary>
-    public static IEnumerable<GrayImage> Pages(ScreenImage image, PixelRect region)
+    public static IEnumerable<TitlePage> Pages(ScreenImage image, TitleBox box)
     {
-        var page = Render(image, region);
-        yield return Pad(page, Margin);
-        yield return Pad(Render(image, region, 2), Margin * 2);
+        var page = Render(image, box.Region);
+        yield return new TitlePage(Pad(page, Margin), 1);
+        yield return new TitlePage(Pad(Render(image, box.Region, 2), Margin * 2), 1);
         var closed = CloseGaps(page);
-        yield return Pad(closed, Margin);
-        yield return Pad(Thin(closed), Margin);
+        yield return new TitlePage(Pad(closed, Margin), 1);
+        if (box.Heavy)
+            yield return new TitlePage(Pad(Thin(closed), Margin), 1);
+        if (Trim(page) is not { } word || word.Width >= ShortTitle * word.Height)
+            yield break;
+        foreach (var gap in CopyGaps)
+            yield return new TitlePage(Pad(Repeat(word, Copies, gap), Margin), Copies);
+    }
+
+    /// <summary>
+    ///     Whether the title reaches the right edge of its box, where the game cuts off a title too long to fit: what shows
+    ///     is then the start of a longer title, never the whole of one (D68).
+    /// </summary>
+    public static bool RunsOffRight(ScreenImage image, PixelRect region)
+    {
+        var edge = Math.Max(1, (int)Math.Round(EdgeWidth * image.Height / (double)ReferenceHeight));
+        for (var x = Math.Max(region.X0, region.X1 - edge); x < region.X1; x++)
+        {
+            var ink = 0.0;
+            for (var y = region.Y0; y < region.Y1; y++)
+                ink += Ink(image.Red(x, y), image.Green(x, y), image.Blue(x, y));
+            if (ink >= EdgeInk * region.Height)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>The page cut down to its ink with a little paper around it; null when there is no ink on it.</summary>
+    public static GrayImage? Trim(GrayImage page)
+    {
+        int left = page.Width, right = -1, top = page.Height, bottom = -1;
+        for (var y = 0; y < page.Height; y++)
+        for (var x = 0; x < page.Width; x++)
+            if (page.Pixels[y * page.Width + x] < InkShade)
+                (left, right, top, bottom) = (Math.Min(left, x), Math.Max(right, x), Math.Min(top, y), Math.Max(bottom, y));
+        if (right < 0)
+            return null;
+
+        const int paper = 4;
+        var (x0, y0) = (Math.Max(0, left - paper), Math.Max(0, top - paper));
+        var (x1, y1) = (Math.Min(page.Width, right + 1 + paper), Math.Min(page.Height, bottom + 1 + paper));
+        var pixels = new byte[(x1 - x0) * (y1 - y0)];
+        for (var y = y0; y < y1; y++)
+            Array.Copy(page.Pixels, y * page.Width + x0, pixels, (y - y0) * (x1 - x0), x1 - x0);
+        return new GrayImage(x1 - x0, y1 - y0, pixels);
+    }
+
+    /// <summary><paramref name="times" /> copies of the word side by side, <paramref name="gap" /> of its height apart.</summary>
+    public static GrayImage Repeat(GrayImage word, int times, double gap)
+    {
+        var space = Math.Max(1, (int)(word.Height * gap));
+        var width = word.Width * times + space * (times - 1);
+        var pixels = new byte[width * word.Height];
+        Array.Fill(pixels, (byte)255);
+        for (var copy = 0; copy < times; copy++)
+        for (var y = 0; y < word.Height; y++)
+            Array.Copy(word.Pixels, y * word.Width, pixels, y * width + copy * (word.Width + space), word.Width);
+        return new GrayImage(width, word.Height, pixels);
     }
 
     /// <summary>The region as dark letters on white, at <paramref name="size" /> times the size it has on a 1080p screen.</summary>

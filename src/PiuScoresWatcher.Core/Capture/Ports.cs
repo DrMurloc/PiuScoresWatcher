@@ -29,9 +29,9 @@ public interface IGameSession
 
 /// <summary>
 ///     Why a frame was kept for review, as a closed list: the words a player reads for each live in the app's
-///     copy (D36), and the free-form detail stays in the note beside the frame and in the log. The first seven
-///     are screens that could not be read — four result screens, three song lists (D47, D49); the rest are
-///     plays that were read and that PIU Scores did not record. Notes store the name, never the number.
+///     copy (D36), and the free-form detail stays in the note beside the frame and in the log. Those before
+///     <see cref="Refused" /> are screens that could not be read, result screens and song lists alike (D47, D49);
+///     the rest were read, and PIU Scores did not or would not record them. Notes store the name, never the number.
 /// </summary>
 public enum KeptBecause
 {
@@ -43,11 +43,24 @@ public enum KeptBecause
     GradeDisagrees,
     TitleUnmatched,
 
+    /// <summary>Warm Up's song list with a chart lit that can't be placed: no tab or no level box lit, or two (D72).</summary>
+    ChartUnplaced,
+
     /// <summary>The title names a chart whose note count is not what the judgments add up to (D56).</summary>
     ChartDisagrees,
 
     Refused,
     SongUnknown,
+
+    /// <summary>
+    ///     A play PIU Scores answered 404 for whose song the chart list has, at other charts only: the chart isn't listed
+    ///     (D73). Its song-list twin, never sent, is <see cref="ChartUnlisted" />.
+    /// </summary>
+    ChartUnknown,
+
+    /// <summary>A best read off the song list whose title names a song PIU Scores lists only at other charts: not sent (D70).</summary>
+    ChartUnlisted,
+
     TokenRejected,
     NotConnected,
     RateLimited,
@@ -61,13 +74,14 @@ public static class Kept
 
     /// <summary>A song list kept during a bulk capture, as opposed to a result screen.</summary>
     public static bool IsSongList(this KeptBecause because) => because is KeptBecause.ListUnreadable or KeptBecause.GradeDisagrees
-        or KeptBecause.TitleUnmatched;
+        or KeptBecause.TitleUnmatched or KeptBecause.ChartUnplaced or KeptBecause.ChartUnlisted;
 
     /// <summary>Why a play the site did not record was kept.</summary>
     public static KeptBecause Because(PostOutcome outcome) => outcome switch
     {
         PostOutcome.Refused => KeptBecause.Refused,
         PostOutcome.SongUnknown => KeptBecause.SongUnknown,
+        PostOutcome.ChartUnknown => KeptBecause.ChartUnknown,
         PostOutcome.Unauthorized => KeptBecause.TokenRejected,
         PostOutcome.NotConnected => KeptBecause.NotConnected,
         PostOutcome.RateLimited => KeptBecause.RateLimited,

@@ -11,11 +11,12 @@ namespace PiuScoresWatcher.App.Ocr;
 /// <summary>
 ///     Reads the song title with the OCR built into Windows, page by page as <see cref="TitleInk.Pages" />
 ///     lays them out — dark letters on white with paper around them, at the 1080p size, then larger, then with
-///     the gaps closed — handing on each new reading until the caller has the one it wants (D53, D55).
+///     the gaps closed, and a short title three times over — handing on each new reading until the caller has the
+///     one it wants (D53, D55, D67).
 /// </summary>
 public sealed class WindowsOcrTitleReader(ILogger<WindowsOcrTitleReader> log) : ITitleReader
 {
-    public async IAsyncEnumerable<string> ReadAsync(ScreenImage image, PixelRect region, [EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<string> ReadAsync(ScreenImage image, TitleBox box, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var engine = OcrEngine.TryCreateFromLanguage(new Language("en-US")) ?? OcrEngine.TryCreateFromUserProfileLanguages();
         if (engine is null)
@@ -25,12 +26,13 @@ public sealed class WindowsOcrTitleReader(ILogger<WindowsOcrTitleReader> log) : 
         }
 
         var seen = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var page in TitleInk.Pages(image, region))
+        foreach (var page in TitleInk.Pages(image, box))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var text = await ReadPageAsync(engine, page);
-            if (!string.IsNullOrWhiteSpace(text) && seen.Add(text))
-                yield return text;
+            var text = await ReadPageAsync(engine, page.Image);
+            var reading = string.IsNullOrWhiteSpace(text) ? null : page.Reading(text);
+            if (reading is not null && seen.Add(reading))
+                yield return reading;
         }
     }
 

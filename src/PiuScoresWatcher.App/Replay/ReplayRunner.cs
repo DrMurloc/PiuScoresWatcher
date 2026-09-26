@@ -65,7 +65,7 @@ internal static partial class ReplayRunner
         var reading = new ResultScreenReader().Read(image, layout.Value);
         var verdict = reading.Status == ReadingStatus.Complete ? PlayChecksum.Verify(reading) : null;
         var titles = reading.Status is ReadingStatus.Complete or ReadingStatus.Unreadable
-            ? await ReadTitlesAsync(image, reading.TitleRegion)
+            ? await ReadTitlesAsync(image, reading.Titles[0])
             : [];
         var title = titles.FirstOrDefault();
 
@@ -126,8 +126,8 @@ internal static partial class ReplayRunner
 
     /// <summary>
     ///     What a bulk capture would read from Warm Up's song list (D47), the title included even when the
-    ///     chart has no best. Never posted: a replay has neither the chart list nor the player's bests to
-    ///     check a best against.
+    ///     chart has no best — every attempt in the lit row and on the panel, and whether each runs off its box (D66,
+    ///     D68). Never posted: a replay has neither the chart list nor the player's bests to check a best against.
     /// </summary>
     private static async Task<(object Report, int ExitCode)> SongListAsync(string file, ScreenImage image)
     {
@@ -135,7 +135,15 @@ internal static partial class ReplayRunner
         if (reading is null)
             return (new { file, image.Width, image.Height, result = "neither a result screen nor Warm Up's song list" }, 3);
 
-        var titles = await ReadTitlesAsync(image, reading.TitleRegion);
+        var boxes = new List<object>();
+        var titles = new List<string>();
+        foreach (var box in reading.Titles)
+        {
+            var attempts = await ReadTitlesAsync(image, box);
+            titles.AddRange(attempts);
+            boxes.Add(new { box = box.Name, runsOffRight = TitleInk.RunsOffRight(image, box.Region), attempts });
+        }
+
         var title = titles.FirstOrDefault();
         var report = new
         {
@@ -149,6 +157,7 @@ internal static partial class ReplayRunner
             reading.Level,
             title,
             titleAttempts = titles,
+            titleBoxes = boxes,
             reading.Score,
             reading.Grade,
             note = "a song list is reported, never posted: only a bulk capture checks a best against yours"
@@ -156,11 +165,11 @@ internal static partial class ReplayRunner
         return (report, reading.Status == SongListStatus.Best && title is not null ? 0 : 1);
     }
 
-    /// <summary>Every attempt's reading of the title, in order (D55); the first is what a play without a chart list posts.</summary>
-    private static async Task<List<string>> ReadTitlesAsync(ScreenImage image, PixelRect region)
+    /// <summary>Every attempt's reading of the title in one box, in order (D55); the first is what a play without a chart list posts.</summary>
+    private static async Task<List<string>> ReadTitlesAsync(ScreenImage image, TitleBox box)
     {
         var reads = new List<string>();
-        await foreach (var read in new WindowsOcrTitleReader(NullLogger<WindowsOcrTitleReader>.Instance).ReadAsync(image, region, CancellationToken.None))
+        await foreach (var read in new WindowsOcrTitleReader(NullLogger<WindowsOcrTitleReader>.Instance).ReadAsync(image, box, CancellationToken.None))
             reads.Add(read);
         return reads;
     }

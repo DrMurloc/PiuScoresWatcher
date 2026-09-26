@@ -14,11 +14,17 @@ FEATURE = 16                                     # the badge is compared as 16x1
 # 1080p rectangles; the reader keeps them as fractions
 BANNER = P.R(140, 30, 630, 110)                  # the yellow WARM UP banner
 TABS = {"S": P.R(174, 492, 383, 540), "HD": P.R(398, 492, 607, 540)}   # 5K SINGLE, 6K DOUBLE
+# the lit tab's border and caption, as (hue lo, hue hi, saturation, value): 5K SINGLE's orange (hue about 23),
+# 6K DOUBLE's blue (about 201); an unlit tab is grey (watcher.md D71)
+TAB_LIT = {"S": (15, 40, 0.6, 0.6), "HD": (185, 230, 0.6, 0.6)}
 BOX_X0, BOX_STRIDE, BOX_W, BOX_Y0, BOX_Y1, BOXES = 83, 90, 76, 562, 630, 6
 SCORE = P.R(320, 636, 452, 668)
 COMBO = P.R(320, 716, 452, 748)
 BADGE = P.R(470, 640, 600, 750)
-TITLE = P.R(80, 388, 632, 440)
+# the lit song's title, where the game cuts it off: the list's lit row first, then the panel short of the card's
+# white edge (watcher.md D66, D68)
+ROW_TITLE = P.R(872, 576, 1433, 618)
+TITLE = P.R(80, 388, 606, 440)
 
 def box(i):
     x0 = BOX_X0 + BOX_STRIDE * i
@@ -48,7 +54,64 @@ BOX_LEVELS = {
     "20260923193123": [7, 13, 18, 22], "20260923193126": [10, 17, 21, 24],
     "20260923193144": [16, 20, 25], "20260923193156": [16, 18, 20, 22], "20260922072011": [15, 18, 20, 23],
 }
-AVAILABLE = {n: e for n, e in EXPECTED_LIST.items() if P.shot_path(n)}
+
+# The first tester's song lists (watcher.md D66-D70): 3840x2160, kept by his watcher on 2026-09-24/25, added with his
+# ok. Each name is its failed\ file's stamp without the dash; the note says what the screen pins.
+TESTER = {
+    "20260924233850": (("warmup", "wanna go to the moon palace", "S", 21, 995844, 1111, "SSS"), [21],
+                       "the panel shows the start of the title cut off at its edge; the list's row holds all of it (D66, D68)"),
+    "20260925003656": (("warmup", "The People didn't know \"Pumping up\"", "S", 8, 1000000, 546, "SSS"), [8],
+                       "the panel shows only the tail, 'Pumping up', which is another song's whole title (D68)"),
+    "20260924234156": (("warmup", "Blaze emotion (Band version)", "S", 9, 1000000, 465, "SSS"), [2, 9, 17],
+                       "the title has scrolled off the panel entirely; the row holds it (D66)"),
+    "20260924235245": (("warmup", "Conflict -NOMA CONCEiVER REMiX-", "S", 16, 996047, 886, "SSS"), [7, 11, 16, 18, 22],
+                       "the panel shows 'Conflict -', the start of the title and another song's whole name (D68)"),
+    "20260925003645": (("warmup", "The Quick Brown Fox Jumps Over The Lazy Dog", "S", 11, 1000000, 586, "SSS"), [11],
+                       "too long for the row as well: both places show its start, cut off at the edge (D68)"),
+    "20260925003727": (("warmup", "The Quick Brown Fox Jumps Over The Lazy Dog", "S", 19, 995422, 591, "SSS"), [11, 16, 19, 23],
+                       "the row shows the tail scrolling out, the panel the start coming back in (D68, D69)"),
+    "20260924233951": (("warmup", "B2", "S", 7, 1000000, 514, "SSS"), [4, 7, 10, 16, 18],
+                       "a short title Windows OCR reads only three times over (D67)"),
+    "20260924235401": (("warmup", "D", "S", 4, 1000000, 185, "SSS"), [4, 7, 11, 18],
+                       "a one-letter title (D67)"),
+    "20260925002550": (("warmup", "N", "S", 16, 954989, 289, "S"), [5, 16],
+                       "a one-letter title (D67)"),
+    "20260924235732": (("warmup", "Dr. M", "S", 6, 1000000, 298, "SSS"), [3, 6, 9, 11, 14, 16],
+                       "a short title (D67)"),
+    "20260925002824": (("warmup", "8 6", "S", 12, 1000000, 550, "SSS"), [12],
+                       "the panel's box used to take in the card's white edge, and 8 6 read as nothing (D66)"),
+    "20260925000000": (("warmup", "Elysium", "S", 4, 1000000, 272, "SSS"), [4, 9, 14],
+                       "a title that reads, at a level PIU Scores' Rise list had wrong (D70)"),
+}
+# The owner's F12s of the list with 6K DOUBLE lit (watcher.md D71): the tab is blue, not orange
+SIX_K = {
+    "20260926111534": (("warmup", "Curiosity Overdrive", "HD", 16, 972054, 200, "SS"), [16, 21, 24],
+                       "6K DOUBLE lit: its tab is blue where 5K SINGLE's is orange (D71)"),
+    "20260926111537": (("warmup-empty", "SONIC BOOM", "HD", 14, None, None, None), [14, 18, 23, 25],
+                       "6K DOUBLE lit, a chart with no best (D71)"),
+    "20260926111606": (("warmup-empty", "ULTRA SYNERGY MATRIX", "HD", 20, None, None, None), [12, 20, 23],
+                       "6K DOUBLE lit, caught as the highlight reached the second box: its digits still grey (D71)"),
+}
+EXPECTED_LIST.update({name: exp for name, (exp, _, _) in (TESTER | SIX_K).items()})
+BOX_LEVELS.update({name: boxes for name, (_, boxes, _) in (TESTER | SIX_K).items()})
+NOTES = {name: note for name, (_, _, note) in (TESTER | SIX_K).items()}
+KEPT = None  # a watcher's failed\ folder the tester's screens are copied from (--fixtures <folder>)
+
+
+def source(name):
+    """The screenshot, the fixture already made from it, or a kept screen named the watcher's way
+    (20260924-233850-watcher-grab.png) — a tester's screen is in no Steam folder of the owner's."""
+    fixture = os.path.join(P.REPO, "tests", "PiuScoresWatcher.Tests", "Fixtures", "screens", name + ".jpg")
+    kept = os.path.join(KEPT, f"{name[:8]}-{name[8:]}-watcher-grab.png") if KEPT else None
+    return (P.shot_path(name) or (fixture if os.path.exists(fixture) else None)
+            or (kept if kept and os.path.exists(kept) else None))
+
+
+def load(name):
+    return np.asarray(Image.open(source(name)).convert("RGB")).astype(np.int16)
+
+
+AVAILABLE = {n: e for n, e in EXPECTED_LIST.items() if source(n)}
 
 def share(img, r, lo, hi, smin, vmin):
     h, s, v = P.hsv(P.crop(img, r))
@@ -68,7 +131,7 @@ def detect(img):
     """(chart type, lit box) on a Warm Up song list, else None."""
     if share(img, BANNER, 35, 60, 0.6, 0.7) < 0.2:
         return None
-    lit_tabs = [t for t, r in TABS.items() if share(img, r, 15, 40, 0.6, 0.6) >= 0.08]
+    lit_tabs = [t for t, r in TABS.items() if share(img, r, *TAB_LIT[t]) >= 0.08]
     lit_boxes = [i for i in range(BOXES) if share(img, box(i), 40, 60, 0.6, 0.7) >= 0.3]
     if len(lit_tabs) != 1 or len(lit_boxes) != 1:
         return None
@@ -114,7 +177,7 @@ def train(templates):
     for name, exp in AVAILABLE.items():
         if exp[0] not in ("warmup", "warmup-empty"):
             continue
-        img = P.load(name)
+        img = load(name)
         fields = [(box_digits(i), "wllevel", str(level)) for i, level in enumerate(BOX_LEVELS[name])]
         if exp[0] == "warmup":
             fields += [(SCORE, "wlvalue", str(exp[4])), (COMBO, "wlvalue", str(exp[5]))]
@@ -155,7 +218,7 @@ def main():
     feats = write_grades()
     bad = 0
     for name, exp in AVAILABLE.items():
-        got = read(P.load(name), templates, feats)
+        got = read(load(name), templates, feats)
         if exp[0] == "arcade-list":
             ok = got is None
             print(name, "arcade list ->", "not a Warm Up list" if ok else got)
@@ -180,7 +243,7 @@ def write_fixtures():
     for name, exp in sorted(AVAILABLE.items()):
         target = os.path.join(FIXTURES, name + ".jpg")
         if not os.path.exists(target):  # an existing fixture keeps its masking and its bytes
-            im = Image.open(P.shot_path(name)).convert("RGB")
+            im = Image.open(source(name)).convert("RGB")
             sx, sy = im.width / 1920, im.height / 1080
             x0, y0, x1, y1 = LIST_CARDS[exp[0]]
             ImageDraw.Draw(im).rectangle((x0 * sx, y0 * sy, x1 * sx, y1 * sy), fill=(0, 0, 0))
@@ -188,8 +251,12 @@ def write_fixtures():
         if exp[0] == "warmup":
             expected[name] = {"kind": "songlist", "mix": "rise", "title": exp[1], "chartType": TYPE_NAMES[exp[2]],
                               "level": exp[3], "score": exp[4], "maxCombo": exp[5], "grade": exp[6]}
+            if name in NOTES:
+                expected[name]["note"] = NOTES[name]
         elif exp[0] == "warmup-empty":
             expected[name] = {"kind": "songlist-empty", "mix": "rise", "title": exp[1], "chartType": TYPE_NAMES[exp[2]], "level": exp[3]}
+            if name in NOTES:
+                expected[name]["note"] = NOTES[name]
         else:
             expected[name] = {"kind": "arcadelist", "note": "the Arcade Station's song list: not read in v1 (D45)"}
     with open(path, "w") as f:
@@ -223,6 +290,10 @@ if __name__ == "__main__":
         merge_into_templates()
         write_grades()
     elif "--fixtures" in sys.argv:
+        at = sys.argv.index("--fixtures")
+        if len(sys.argv) > at + 1:  # a watcher's failed\ folder the tester's screens come from
+            KEPT = sys.argv[at + 1]
+            AVAILABLE = {n: e for n, e in EXPECTED_LIST.items() if source(n)}
         write_fixtures()
     else:
         main()

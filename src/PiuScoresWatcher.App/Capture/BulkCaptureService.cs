@@ -153,7 +153,10 @@ public sealed class BulkCaptureService : IDisposable
                 _log.LogInformation("Bulk capture: {Song} {Type} {Level} already on PIU Scores", already.SongName, already.ChartType, already.Level);
                 break;
             case BulkOutcome.Unreadable kept:
-                _log.LogWarning("Bulk capture kept a song list: {Because} — {Reason} ({Path})", kept.Because, kept.Reason, kept.SavedTo);
+                LogKept(kept, "");
+                break;
+            case BulkOutcome.NotTheList { Kept: { } kept }:
+                LogKept(kept, " as the list was left");
                 break;
             case BulkOutcome.NotRecorded notRecorded:
                 _log.LogWarning("Bulk capture: {Song} not recorded — {Why} ({Path})", notRecorded.Play.SongName, notRecorded.Outcome.Describe(),
@@ -162,9 +165,17 @@ public sealed class BulkCaptureService : IDisposable
         }
 
         // a run stopped while this frame was in flight has already given its summary
-        if (stillRunning && outcome is not (BulkOutcome.NotTheList or BulkOutcome.Waiting))
+        if (stillRunning && outcome is not (BulkOutcome.NotTheList { Kept: null } or BulkOutcome.Waiting))
             _status.BulkProgress(run.Tally);
         return outcome;
+    }
+
+    private void LogKept(BulkOutcome.Unreadable kept, string when)
+    {
+        if (kept.SavedTo is null)
+            _log.LogWarning("Bulk capture kept a song list{When}: {Because} — {Reason} (kept earlier in this run)", when, kept.Because, kept.Reason);
+        else
+            _log.LogWarning("Bulk capture kept a song list{When}: {Because} — {Reason} ({Path})", when, kept.Because, kept.Reason, kept.SavedTo);
     }
 
     /// <summary>Ends the run, if one is on, with its one summary (D50).</summary>
@@ -181,6 +192,9 @@ public sealed class BulkCaptureService : IDisposable
             return;
         _window.Fast = false;
         _watchdog.Change(Timeout.Infinite, Timeout.Infinite);
+        // a chart whose title was still being read again is kept as the run last saw it (D69)
+        if (run.End() is { } kept)
+            LogKept(kept, " as the run ended");
         _log.LogInformation("Bulk capture ended ({Why}): {Tally}", why, run.Tally);
         _status.BulkFinished(run.Tally);
         _notifier.Notify(new WatcherNotice.BulkCaptureFinished(run.Tally));

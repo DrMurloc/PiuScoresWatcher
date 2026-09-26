@@ -25,7 +25,7 @@ No Windows API, no game, no network; it runs wherever the SDK does. This is the 
 
 ## Fixtures
 
-`tests/PiuScoresWatcher.Tests/Fixtures/screens/` (copied to the test output): the owner's Steam screenshots with the player card blacked out, and `expected.json` saying what each one is. Every screen is one of five kinds:
+`tests/PiuScoresWatcher.Tests/Fixtures/screens/` (copied to the test output): the owner's Steam screenshots and the first tester's kept song lists (4K, from his `failed\` folder, with his ok), each with the player card blacked out, and `expected.json` saying what each one is. Every screen is one of five kinds:
 
 | Kind | What the reader must do with it |
 |---|---|
@@ -34,7 +34,7 @@ No Windows API, no game, no network; it runs wherever the SDK does. This is the 
 | `empty` | `NumbersNotShown` — the grade sticker is up, the number bars are still blank |
 | `aggregate` | `NotAPlay` — a Challenge result, four songs summed under a division badge where the song title goes |
 | `none` | not detected at all — WorldMax's mission summary, the title screen, the song wheel, a loading frame |
-| `songlist` | Warm Up's song list: the lit tab, the lit level, the best score, and a grade badge that agrees with it (D47) |
+| `songlist` | Warm Up's song list: the lit tab — 5K SINGLE lit orange, 6K DOUBLE lit blue (D71) — the lit level, the best score, and a grade badge that agrees with it (D47) |
 | `songlist-empty` | Warm Up's song list on a chart with no best: nothing to capture |
 | `arcadelist` | the Arcade Station's song list: not read in v1 (D45) |
 
@@ -42,7 +42,7 @@ Adding a screen is a lab job, not a hand edit: [tools/reader-lab/README.md](../t
 
 Fixtures are decoded with SkiaSharp, a test-only dependency; Core never decodes a file.
 
-The song title is the one part the suite cannot read: Windows OCR is an App adapter. `python tools/reader-lab/titles.py` replays every labeled screen through the built watcher and scores the titles it reads, exactly and as the chart list would match them — the check after touching `TitleInk` (D53).
+The song title is the one part the suite cannot read: Windows OCR is an App adapter. `python tools/reader-lab/titles.py` replays every labeled screen through the built watcher and scores the titles it reads, exactly and as the chart list would match them — the check after touching `TitleInk` (D53). On a song list it scores the first place that names the song, the lit row or the panel (D66). What the suite does pin is everything around the OCR: which boxes a title is read from and in what order, the pages, a title that runs off its box (D68), and the chart list's answer to the readings the tester's screens gave.
 
 ## The checklist with the game
 
@@ -53,6 +53,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] A Challenge result (division badge in the header) → skipped, nothing posted, one log line.
 - [ ] A grey (broken) grade → `isBroken` true.
 - [ ] Sit on a result screen for a minute → one play, not sixty.
+- [ ] A result on a chart PIU Scores doesn't list (one of D70's, before the SQL runs) → the tick; the notification and the review window say PIU Scores doesn't list this chart, not that the title was misread (D73).
 - [ ] A play held for review whose screen reads right to you → keep its F12: another case like Aragami S19, whose score fits more notes than it judged (watcher.md §9).
 - [ ] F12 on a result screen with the game window mode off → the file is picked up and posted once.
 - [ ] Both modes on, F12 pressed on a screen the grab already read → still one play.
@@ -71,9 +72,12 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] F5 a dev build while the installed watcher runs → both run; the dev one's title and tooltip name the local site; connecting it leaves the installed one connected.
 - [ ] Sign out and back in → it is in the tray (Start with Windows); switched off → it isn't.
 - [ ] Bulk capture: start it from the tray → the window says how many Warm Up bests PIU Scores has; Start.
-- [ ] Move through a dozen charts on Warm Up's song list, some 6K DOUBLE via TAB → a chime for each best above the site's, a tick for the rest, and the site shows the chimed ones as plays.
+- [ ] Move through a dozen charts on Warm Up's song list, some 6K DOUBLE via TAB → a chime for each best above the site's, a tick for the rest, and the site shows the chimed ones as plays — the 6K DOUBLE ones as half-doubles (D71).
 - [ ] Flip quickly between two charts → neither is captured with the other's score.
 - [ ] Two songs in a row showing the same level and score (two 1,000,000s at one level) → both chime.
+- [ ] Titles the panel scrolls (wanna go to the moon palace, Conflict -NOMA CONCEiVER REMiX-) and short ones (B2, D, N, Dr. M, 8 6) → each chimes or ticks within two seconds; none is kept (D66–D69).
+- [ ] The Quick Brown Fox Jumps Over The Lazy Dog, the one title that scrolls in the list too → captured if you wait on it for two seconds; kept at most once if you don't.
+- [ ] A chart PIU Scores doesn't list → the low tone, and the review window says PIU Scores doesn't list this chart (D70).
 - [ ] RISE at 1280×720: F12 a handful of Warm Up song lists with bests on them → they become the 720p fixtures, and the reader is fixed against them before the tag (watcher.md §9).
 - [ ] Start a song → the run ends; one summary notification; one line in Recent.
 - [ ] Run it again over the same charts → ticks only, nothing sent.

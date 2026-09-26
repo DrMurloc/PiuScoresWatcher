@@ -21,8 +21,11 @@ internal readonly record struct ColorClass(double HueLo, double HueHi, double Mi
     /// <summary>The Warm Up song list's banner.</summary>
     public static readonly ColorClass BannerYellow = new(35, 60, 0.6, 0.7);
 
-    /// <summary>The lit tab's border and caption on the Warm Up song list: 5K SINGLE or 6K DOUBLE.</summary>
+    /// <summary>The lit 5K SINGLE tab's border and caption on the Warm Up song list.</summary>
     public static readonly ColorClass TabOrange = new(15, 40, 0.6, 0.6);
+
+    /// <summary>The lit 6K DOUBLE tab's border and caption on the Warm Up song list (D71).</summary>
+    public static readonly ColorClass TabBlue = new(185, 230, 0.6, 0.6);
 
     /// <summary>The lit level box on the Warm Up song list.</summary>
     public static readonly ColorClass BoxYellow = new(40, 60, 0.6, 0.7);

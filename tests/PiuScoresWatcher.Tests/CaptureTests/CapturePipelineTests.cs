@@ -26,7 +26,7 @@ public sealed class CapturePipelineTests
 
     public CapturePipelineTests()
     {
-        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
+        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<TitleBox>(), It.IsAny<CancellationToken>()))
             .Returns(() => TitleReads.Of("Morrighan"));
         _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PostOutcome.Recorded(1, "Rise"));
@@ -69,7 +69,7 @@ public sealed class CapturePipelineTests
 
     private void TitleIs(params string[] reads)
     {
-        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
+        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<TitleBox>(), It.IsAny<CancellationToken>()))
             .Returns(() => TitleReads.Of(reads));
     }
 
@@ -89,7 +89,7 @@ public sealed class CapturePipelineTests
     [Fact]
     public async Task ATitleTheOcrSlippedOnIsPostedInTheCatalogsSpelling()
     {
-        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
+        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<TitleBox>(), It.IsAny<CancellationToken>()))
             .Returns(() => TitleReads.Of("Morrlghan"));
         _catalogs.Setup(c => c.For(RiseMix.Rise))
             .Returns(new SongCatalog([new CatalogChart(Guid.NewGuid(), "Morrighan", ChartType.Single, 20)]));
@@ -154,7 +154,7 @@ public sealed class CapturePipelineTests
     [Fact]
     public async Task AScreenWhoseTitleCannotBeReadIsKept()
     {
-        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()))
+        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<TitleBox>(), It.IsAny<CancellationToken>()))
             .Returns(() => TitleReads.Of());
 
         Assert.IsType<FrameOutcome.Kept>(await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None));
@@ -184,6 +184,39 @@ public sealed class CapturePipelineTests
         await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None);
 
         _notifier.Verify(n => n.Notify(It.Is<WatcherNotice.NotRecorded>(x => x.Outcome is PostOutcome.SongUnknown && x.SavedTo == @"C:\failed\frame.png")), Times.Once);
+    }
+
+    [Fact]
+    public async Task ASongTheListHasAtOtherChartsOnlyIsSentInItsSpellingAndItsNotFoundIsTheChart()
+    {
+        // the chart list has Morrighan at S18 only; the screen is its S20, the title read with a slip (D73)
+        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<TitleBox>(), It.IsAny<CancellationToken>()))
+            .Returns(() => TitleReads.Of("Morrlghan"));
+        _catalogs.Setup(c => c.For(RiseMix.Rise))
+            .Returns(new SongCatalog([new CatalogChart(Guid.NewGuid(), "Morrighan", ChartType.Single, 18)]));
+        _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PostOutcome.SongUnknown("Play 0: no chart matches on Rise."));
+
+        var posted = Assert.IsType<FrameOutcome.Posted>(await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None));
+
+        Assert.Equal(("Morrighan", 20), (posted.Play.SongName, posted.Play.Level));
+        Assert.Equal("Morrighan", Assert.IsType<PostOutcome.ChartUnknown>(posted.Outcome).SongName);
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), KeptBecause.ChartUnknown, It.IsAny<string>(), It.IsAny<ResultScreenReading?>()),
+            Times.Once);
+        _notifier.Verify(n => n.Notify(It.Is<WatcherNotice.NotRecorded>(x => x.Outcome is PostOutcome.ChartUnknown)), Times.Once);
+    }
+
+    [Fact]
+    public async Task ASongTheListHasAtOtherChartsOnlyIsRecordedWhenTheSiteListsTheChartByNow()
+    {
+        _catalogs.Setup(c => c.For(RiseMix.Rise))
+            .Returns(new SongCatalog([new CatalogChart(Guid.NewGuid(), "Morrighan", ChartType.Single, 18)]));
+
+        var posted = Assert.IsType<FrameOutcome.Posted>(await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None));
+
+        Assert.IsType<PostOutcome.Recorded>(posted.Outcome);
+        _failed.Verify(f => f.Save(It.IsAny<CapturedFrame>(), It.IsAny<KeptBecause>(), It.IsAny<string>(), It.IsAny<ResultScreenReading?>()),
+            Times.Never);
     }
 
     [Fact]
@@ -341,7 +374,7 @@ public sealed class CapturePipelineTests
         var posted = Assert.IsType<FrameOutcome.Posted>(await Pipeline().HandleAsync(Frame("20260921201328"), CancellationToken.None));
 
         Assert.Equal("Morrlghan", posted.Play.SongName);
-        _titles.Verify(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<PixelRect>(), It.IsAny<CancellationToken>()), Times.Once);
+        _titles.Verify(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.IsAny<TitleBox>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

@@ -3,31 +3,57 @@ using PiuScoresWatcher.Core.Recognition;
 
 namespace PiuScoresWatcher.Core.Catalog;
 
-/// <summary>A title as read and what the chart list made of it; <see cref="Read" /> is the first reading, which stands when no chart fits.</summary>
+/// <summary>
+///     A title as read and what the chart list made of it. <see cref="Read" /> is the first reading, which stands when no
+///     chart fits; <see cref="Seen" /> is each box's first reading, for the log and the kept screen's note.
+/// </summary>
 [ExcludeFromCodeCoverage]
-public sealed record TitleChoice(string? Read, CatalogMatch Match);
+public sealed record TitleChoice(string? Read, CatalogMatch Match, IReadOnlyList<BoxReading> Seen)
+{
+    /// <summary>What was seen, for a note: <c>'wanna go to the moon palace' (list) / 'wanna go to the moon pali' (panel)</c>.</summary>
+    public string Described => Seen.Count == 0 ? "nothing" : string.Join(" / ", Seen.Select(seen => $"'{seen.Read}' ({seen.Box})"));
+}
+
+/// <summary>The first reading a box gave.</summary>
+[ExcludeFromCodeCoverage]
+public sealed record BoxReading(string Box, string Read);
 
 public static class Titles
 {
     /// <summary>
-    ///     Reads the title attempt by attempt until a reading names a chart in <paramref name="catalog" /> (D55);
-    ///     without a catalog the first reading stands. A null <see cref="TitleChoice.Read" /> means no attempt
-    ///     read anything at all.
+    ///     Reads the title box by box, attempt by attempt, until a reading names a chart in <paramref name="catalog" />
+    ///     (D55, D66), each reading taken as it sat in its box — cut off at the edge or whole (D68); without a catalog the
+    ///     first reading stands. A song the list has only at other charts does not stop the search, since a later reading
+    ///     may name the chart, but it is what the choice says when none does (D70). A null <see cref="TitleChoice.Read" />
+    ///     means no attempt read anything at all.
     /// </summary>
-    public static async Task<TitleChoice> ChooseAsync(this ITitleReader titles, ScreenImage image, PixelRect region, SongCatalog? catalog,
-        ChartType type, int level, int? notes, CancellationToken cancellationToken)
+    public static async Task<TitleChoice> ChooseAsync(this ITitleReader titles, ScreenImage image, IReadOnlyList<TitleBox> boxes,
+        SongCatalog? catalog, ChartType type, int level, int? notes, CancellationToken cancellationToken)
     {
         string? first = null;
-        await foreach (var read in titles.ReadAsync(image, region, cancellationToken))
+        CatalogMatch.Unlisted? unlisted = null;
+        var seen = new List<BoxReading>();
+        foreach (var box in boxes)
         {
-            first ??= read;
-            if (catalog is null)
-                break;
-            var match = catalog.Match(read, type, level, notes);
-            if (match is not CatalogMatch.NotFound)
-                return new TitleChoice(read, match);
+            var shape = box.ScrollsPast is { } past ? new TitleShape(TitleInk.RunsOffRight(image, box.Region), past) : TitleShape.Whole;
+            await foreach (var read in titles.ReadAsync(image, box, cancellationToken))
+            {
+                first ??= read;
+                if (seen.Count == 0 || seen[^1].Box != box.Name)
+                    seen.Add(new BoxReading(box.Name, read));
+                if (catalog is null)
+                    return new TitleChoice(first, new CatalogMatch.NotFound(), seen);
+                switch (catalog.Match(read, type, level, notes, shape))
+                {
+                    case (CatalogMatch.Found or CatalogMatch.Contradicted) and var match:
+                        return new TitleChoice(read, match, seen);
+                    case CatalogMatch.Unlisted listed:
+                        unlisted ??= listed;
+                        break;
+                }
+            }
         }
 
-        return new TitleChoice(first, new CatalogMatch.NotFound());
+        return new TitleChoice(first, unlisted ?? (CatalogMatch)new CatalogMatch.NotFound(), seen);
     }
 }

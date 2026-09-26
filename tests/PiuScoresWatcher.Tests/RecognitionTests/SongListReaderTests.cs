@@ -78,6 +78,22 @@ public sealed class SongListReaderTests
         Assert.Null(new SongListDetector().Detect(FixtureScreens.Load(name)));
     }
 
+    [Fact]
+    public void AListWithALitBoxAndNoTabItKnowsIsSeenAndNotPlaced()
+    {
+        // 6K DOUBLE's list with that tab taken from a 5K SINGLE screen, where it is unlit: the banner and a lit box, and
+        // no tab the detector knows — how it saw 6K DOUBLE before D71 (D72)
+        var image = FixtureScreens.LoadWithRegionOf("20260926111534", "20260923193118", FractionRect.At1080p(398, 492, 607, 540));
+
+        var reading = Reader.Read(image);
+
+        Assert.NotNull(reading);
+        Assert.Equal(SongListStatus.Unplaced, reading.Status);
+        Assert.Equal("the song list with no tab lit (5K SINGLE orange, 6K DOUBLE blue) and level box 1 lit", reading.Reason);
+        Assert.Null(reading.ChartType);
+        Assert.Empty(reading.Titles);
+    }
+
     [Theory]
     [MemberData(nameof(SongLists))]
     public void NoSongListIsAResultScreen(string name)
@@ -88,15 +104,52 @@ public sealed class SongListReaderTests
     [Fact]
     public void TheLitSongsJacketTellsSongsApartAndHoldsWhileTheLevelChanges()
     {
-        // Aragami's S19 and, two seconds later, its S17; the other five are five other songs
-        Assert.Equal(Reader.Read(FixtureScreens.Load("20260923193118"))!.Jacket, Reader.Read(FixtureScreens.Load("20260923193120"))!.Jacket);
-
-        var songs = FixtureScreens.OfKind("songlist").Concat(FixtureScreens.OfKind("songlist-empty"))
-            .Where(name => name != "20260923193120")
-            .Select(name => Reader.Read(FixtureScreens.Load(name))!.Jacket)
+        // Aragami's S19 and, two seconds later, its S17; the tester's Quick Brown Fox at S11 and S19, from two sorts of
+        // the list; every other screen is another song
+        var jackets = FixtureScreens.OfKind("songlist").Concat(FixtureScreens.OfKind("songlist-empty"))
+            .Select(name => (FixtureScreens.Expected[name].Title, Reader.Read(FixtureScreens.Load(name))!.Jacket))
             .ToList();
-        Assert.Equal(6, songs.Count);
-        Assert.Equal(songs.Count, songs.Distinct().Count());
+
+        Assert.All(jackets.GroupBy(screen => screen.Title), song => Assert.Single(song.Select(screen => screen.Jacket).Distinct()));
+        Assert.Equal(jackets.Select(screen => screen.Title).Distinct().Count(), jackets.Select(screen => screen.Jacket).Distinct().Count());
+    }
+
+    [Fact]
+    public void TheTitleIsReadInTheListsLitRowAndThenOnThePanel()
+    {
+        var titles = Reader.Read(FixtureScreens.Load("20260923193118"))!.Titles;
+
+        Assert.Equal(["list", "panel"], titles.Select(box => box.Name));
+        Assert.False(titles[0].Heavy);
+        Assert.True(titles[1].Heavy);
+        Assert.All(titles, box => Assert.NotNull(box.ScrollsPast));
+    }
+
+    [Theory]
+    [MemberData(nameof(Bests))]
+    public void EveryBestsTitleIsInTheListsLitRow(string name)
+    {
+        // the list keeps the lit song in its fourth row, as it does its jacket (D48, D66): a title is there, from B2 up
+        var image = FixtureScreens.Load(name);
+
+        var page = TitleInk.Render(image, Reader.Read(image)!.Titles[0].Region);
+
+        Assert.InRange(page.Pixels.Count(shade => shade < 128) / (double)page.Pixels.Length, 0.005, 0.5);
+    }
+
+    [Fact]
+    public void ATitleScrolledOffThePanelIsStillWholeInTheList()
+    {
+        // Blaze emotion (Band version): the panel's ticker between two passes of the title
+        var image = FixtureScreens.Load("20260924234156");
+        var titles = Reader.Read(image)!.Titles;
+
+        var panel = TitleInk.Render(image, titles[1].Region);
+        var row = TitleInk.Render(image, titles[0].Region);
+
+        Assert.True(panel.Pixels.Count(shade => shade < 128) < 0.002 * panel.Pixels.Length);
+        Assert.True(row.Pixels.Count(shade => shade < 128) > 0.05 * row.Pixels.Length);
+        Assert.False(TitleInk.RunsOffRight(image, titles[0].Region));
     }
 
     [Fact]
@@ -107,5 +160,8 @@ public sealed class SongListReaderTests
         Assert.NotEmpty(FixtureScreens.OfKind("arcadelist"));
         // two of the bests were taken while the panel faded in: grey digits, a dimmer badge
         Assert.Contains(FixtureScreens.OfKind("songlist"), n => FixtureScreens.Expected[n].Grade == "S");
+        // each tab lights in its own colour, 5K SINGLE orange and 6K DOUBLE blue (D71)
+        Assert.All(new[] { nameof(ChartType.Single), nameof(ChartType.HalfDouble) },
+            type => Assert.Contains(FixtureScreens.OfKind("songlist"), n => FixtureScreens.Expected[n].ChartType == type));
     }
 }
