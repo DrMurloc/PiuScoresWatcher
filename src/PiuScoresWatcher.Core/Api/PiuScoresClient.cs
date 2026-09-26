@@ -10,10 +10,11 @@ namespace PiuScoresWatcher.Core.Api;
 
 /// <summary>
 ///     The calls the watcher makes, on the wire shape PIU Scores' <c>docs/API.md</c> and Swagger
-///     publish: <c>GET api/v2/players/me</c>, <c>POST api/v2/players/me/plays</c>, and for a bulk
-///     capture <c>GET api/v2/charts</c> and <c>GET api/v2/players/{id}/scores</c>, with the personal
-///     token as the Basic password (the username is not read). The <see cref="HttpClient" /> is the
-///     App's — its base address is the site, production unless a dev switch says otherwise.
+///     publish: <c>GET api/v2/players/me</c>, <c>POST api/v2/players/me/plays</c>, <c>POST
+///     api/v2/players/me/sittings/close</c> when a session ends, and for a bulk capture <c>GET
+///     api/v2/charts</c> and <c>GET api/v2/players/{id}/scores</c>, with the personal token as the Basic
+///     password (the username is not read). The <see cref="HttpClient" /> is the App's — its base address
+///     is the site, production unless a dev switch says otherwise.
 /// </summary>
 public sealed class PiuScoresClient(HttpClient http, ITokenStore tokens) : IPlaysClient
 {
@@ -72,6 +73,41 @@ public sealed class PiuScoresClient(HttpClient http, ITokenStore tokens) : IPlay
         catch (Exception failure) when (failure is HttpRequestException or TaskCanceledException or JsonException)
         {
             return new PostOutcome.Failed(null, failure.Message);
+        }
+    }
+
+    public async Task<CloseOutcome> CloseSittingsAsync(RiseMix mix, CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "api/v2/players/me/sittings/close");
+        if (!Authorize(request))
+            return new CloseOutcome.NotConnected();
+        // the mix and nothing else, by its enum name as the site's contract spells it (the site reads it case-insensitively)
+        request.Content = JsonContent.Create(new CloseRequestJson(mix.ToString()), options: Json);
+        try
+        {
+            using var response = await http.SendAsync(request, cancellationToken);
+            if (response.IsSuccessStatusCode)
+                return new CloseOutcome.Closed();
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.BadRequest:
+                {
+                    var problem = await Problem(response, cancellationToken);
+                    return new CloseOutcome.Refused(problem?.Slug ?? "unknown", problem?.Detail ?? problem?.Title);
+                }
+                case HttpStatusCode.Unauthorized:
+                    return new CloseOutcome.Unauthorized();
+                case HttpStatusCode.NotFound:
+                    return new CloseOutcome.NotOffered();
+                case HttpStatusCode.TooManyRequests:
+                    return new CloseOutcome.RateLimited(response.Headers.RetryAfter?.Delta);
+                default:
+                    return new CloseOutcome.Failed((int)response.StatusCode, await ProblemSummary(response, cancellationToken));
+            }
+        }
+        catch (Exception failure) when (failure is HttpRequestException or TaskCanceledException or JsonException)
+        {
+            return new CloseOutcome.Failed(null, failure.Message);
         }
     }
 
@@ -221,6 +257,8 @@ public sealed class PiuScoresClient(HttpClient http, ITokenStore tokens) : IPlay
     private sealed record PlayJson(
         string SongName, string ChartType, int Level, int? Perfects, int? Greats, int? Goods, int? Bads, int? Misses,
         int? MaxCombo, int Score, bool IsBroken, DateTimeOffset PlayedAt);
+
+    private sealed record CloseRequestJson(string Mix);
 
     private sealed record RecordedJson(int Recorded, string? Mix, string? ScoringModel);
 
