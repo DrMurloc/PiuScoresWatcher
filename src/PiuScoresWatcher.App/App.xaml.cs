@@ -26,6 +26,7 @@ using PiuScoresWatcher.Core.Api;
 using PiuScoresWatcher.Core.Capture;
 using PiuScoresWatcher.Core.Catalog;
 using PiuScoresWatcher.Core.Recognition;
+using PiuScoresWatcher.Core.Sessions;
 using PiuScoresWatcher.Core.Settings;
 using PiuScoresWatcher.Core.Startup;
 using PiuScoresWatcher.Core.Time;
@@ -109,6 +110,8 @@ public partial class App : Application
         _tray?.Dispose();
         if (_host is not null)
         {
+            // quitting, or Windows ending: the session ends while the watcher can still say so (D81)
+            Services.GetRequiredService<SessionService>().EndOnExit(TimeSpan.FromSeconds(3));
             _host.StopAsync().GetAwaiter().GetResult();
             _host.Dispose();
         }
@@ -131,6 +134,9 @@ public partial class App : Application
         builder.Services.AddSingleton<DpapiTokenStore>();
         builder.Services.AddSingleton<ITokenStore>(services => new EnvironmentOrStoredToken(services.GetRequiredService<DpapiTokenStore>()));
         builder.Services.AddSingleton(services => PiuScoresHttp.Client(_options, services.GetRequiredService<ITokenStore>()));
+        builder.Services.AddSingleton<ISessionStore, JsonSessionStore>();
+        builder.Services.AddSingleton<SessionKeeper>();
+        builder.Services.AddSingleton<PlayGate>();
         builder.Services.AddSingleton<ResultScreenDetector>();
         builder.Services.AddSingleton<ResultScreenReader>();
         builder.Services.AddSingleton<ITitleReader, WindowsOcrTitleReader>();
@@ -159,6 +165,8 @@ public partial class App : Application
         builder.Services.AddSingleton<CaptureSounds>();
         builder.Services.AddSingleton<BulkCaptureService>();
         builder.Services.AddHostedService<CaptureService>();
+        builder.Services.AddSingleton<SessionService>();
+        builder.Services.AddHostedService(services => services.GetRequiredService<SessionService>());
         builder.Services.AddHostedService<UpdateService>();
         builder.Services.AddTransient<FirstRunWindow>();
         builder.Services.AddTransient<SettingsWindow>();

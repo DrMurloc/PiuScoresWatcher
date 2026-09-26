@@ -1,15 +1,18 @@
 using PiuScoresWatcher.App.Status;
 using PiuScoresWatcher.Core.Api;
 using PiuScoresWatcher.Core.Capture;
+using PiuScoresWatcher.Core.Sessions;
 using PiuScoresWatcher.Core.Startup;
 
 namespace PiuScoresWatcher.App.Api;
 
 /// <summary>
 ///     Connecting a token, checking the stored one, and letting it go. A pasted token is checked against
-///     PIU Scores before it is kept: only one the site accepts is stored.
+///     PIU Scores before it is kept: only one the site accepts is stored. Letting it go forgets the sessions
+///     it had open: they were its player's (D82).
 /// </summary>
-public sealed class Connection(LaunchOptions options, ITokenStore tokens, IPlaysClient site, WatcherStatus status, INotifier notifier)
+public sealed class Connection(
+    LaunchOptions options, ITokenStore tokens, IPlaysClient site, WatcherStatus status, INotifier notifier, SessionKeeper sessions)
 {
     /// <summary>
     ///     At start-up, and when settings open without a name: who the stored token belongs to. A token
@@ -51,6 +54,7 @@ public sealed class Connection(LaunchOptions options, ITokenStore tokens, IPlays
     public void Disconnect()
     {
         tokens.Clear();
+        sessions.Forget();
         status.Disconnected();
     }
 
