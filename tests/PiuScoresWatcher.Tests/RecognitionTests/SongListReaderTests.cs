@@ -144,5 +144,8 @@ public sealed class SongListReaderTests
         Assert.NotEmpty(FixtureScreens.OfKind("arcadelist"));
         // two of the bests were taken while the panel faded in: grey digits, a dimmer badge
         Assert.Contains(FixtureScreens.OfKind("songlist"), n => FixtureScreens.Expected[n].Grade == "S");
+        // each tab lights in its own colour, 5K SINGLE orange and 6K DOUBLE blue (D71)
+        Assert.All(new[] { nameof(ChartType.Single), nameof(ChartType.HalfDouble) },
+            type => Assert.Contains(FixtureScreens.OfKind("songlist"), n => FixtureScreens.Expected[n].ChartType == type));
     }
 }

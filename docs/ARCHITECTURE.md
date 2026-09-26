@@ -61,7 +61,8 @@ PiuScoresWatcher.sln
 │   ├── Exceptions/                  WatcherException and its kinds (player-showable messages)
 │   ├── Recognition/                 ScreenImage, Layouts (both screens as fractions of the frame),
 │   │                                ResultScreenDetector, ResultScreenReader → ResultScreenReading,
-│   │                                SongListDetector + SongListReader (Warm Up's song list, D45–D48),
+│   │                                SongListDetector + SongListReader (Warm Up's song list, D45–D48; each
+│   │                                tab lit in its own colour, D71),
 │   │                                GradeBadges + grades.json (the nine grade sprites' features),
 │   │                                the mask/segmenter/template machinery, templates.json (generated),
 │   │                                ITitleReader, TitleBox (where a title is read: the result screen's, or

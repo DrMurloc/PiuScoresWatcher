@@ -975,5 +975,32 @@
     "maxCombo": 591,
     "grade": "SSS",
     "note": "the row shows the tail scrolling out, the panel the start coming back in (D68, D69)"
+  },
+  "20260926111534": {
+    "kind": "songlist",
+    "mix": "rise",
+    "title": "Curiosity Overdrive",
+    "chartType": "HalfDouble",
+    "level": 16,
+    "score": 972054,
+    "maxCombo": 200,
+    "grade": "SS",
+    "note": "6K DOUBLE lit: its tab is blue where 5K SINGLE's is orange (D71)"
+  },
+  "20260926111537": {
+    "kind": "songlist-empty",
+    "mix": "rise",
+    "title": "SONIC BOOM",
+    "chartType": "HalfDouble",
+    "level": 14,
+    "note": "6K DOUBLE lit, a chart with no best (D71)"
+  },
+  "20260926111606": {
+    "kind": "songlist-empty",
+    "mix": "rise",
+    "title": "ULTRA SYNERGY MATRIX",
+    "chartType": "HalfDouble",
+    "level": 20,
+    "note": "6K DOUBLE lit, caught as the highlight reached the second box: its digits still grey (D71)"
   }
 }

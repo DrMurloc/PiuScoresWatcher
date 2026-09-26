@@ -14,6 +14,9 @@ FEATURE = 16                                     # the badge is compared as 16x1
 # 1080p rectangles; the reader keeps them as fractions
 BANNER = P.R(140, 30, 630, 110)                  # the yellow WARM UP banner
 TABS = {"S": P.R(174, 492, 383, 540), "HD": P.R(398, 492, 607, 540)}   # 5K SINGLE, 6K DOUBLE
+# the lit tab's border and caption, as (hue lo, hue hi, saturation, value): 5K SINGLE's orange (hue about 23),
+# 6K DOUBLE's blue (about 201); an unlit tab is grey (watcher.md D71)
+TAB_LIT = {"S": (15, 40, 0.6, 0.6), "HD": (185, 230, 0.6, 0.6)}
 BOX_X0, BOX_STRIDE, BOX_W, BOX_Y0, BOX_Y1, BOXES = 83, 90, 76, 562, 630, 6
 SCORE = P.R(320, 636, 452, 668)
 COMBO = P.R(320, 716, 452, 748)
@@ -80,9 +83,18 @@ TESTER = {
     "20260925000000": (("warmup", "Elysium", "S", 4, 1000000, 272, "SSS"), [4, 9, 14],
                        "a title that reads, at a level PIU Scores' Rise list had wrong (D70)"),
 }
-EXPECTED_LIST.update({name: exp for name, (exp, _, _) in TESTER.items()})
-BOX_LEVELS.update({name: boxes for name, (_, boxes, _) in TESTER.items()})
-NOTES = {name: note for name, (_, _, note) in TESTER.items()}
+# The owner's F12s of the list with 6K DOUBLE lit (watcher.md D71): the tab is blue, not orange
+SIX_K = {
+    "20260926111534": (("warmup", "Curiosity Overdrive", "HD", 16, 972054, 200, "SS"), [16, 21, 24],
+                       "6K DOUBLE lit: its tab is blue where 5K SINGLE's is orange (D71)"),
+    "20260926111537": (("warmup-empty", "SONIC BOOM", "HD", 14, None, None, None), [14, 18, 23, 25],
+                       "6K DOUBLE lit, a chart with no best (D71)"),
+    "20260926111606": (("warmup-empty", "ULTRA SYNERGY MATRIX", "HD", 20, None, None, None), [12, 20, 23],
+                       "6K DOUBLE lit, caught as the highlight reached the second box: its digits still grey (D71)"),
+}
+EXPECTED_LIST.update({name: exp for name, (exp, _, _) in (TESTER | SIX_K).items()})
+BOX_LEVELS.update({name: boxes for name, (_, boxes, _) in (TESTER | SIX_K).items()})
+NOTES = {name: note for name, (_, _, note) in (TESTER | SIX_K).items()}
 KEPT = None  # a watcher's failed\ folder the tester's screens are copied from (--fixtures <folder>)
 
 
@@ -119,7 +131,7 @@ def detect(img):
     """(chart type, lit box) on a Warm Up song list, else None."""
     if share(img, BANNER, 35, 60, 0.6, 0.7) < 0.2:
         return None
-    lit_tabs = [t for t, r in TABS.items() if share(img, r, 15, 40, 0.6, 0.6) >= 0.08]
+    lit_tabs = [t for t, r in TABS.items() if share(img, r, *TAB_LIT[t]) >= 0.08]
     lit_boxes = [i for i in range(BOXES) if share(img, box(i), 40, 60, 0.6, 0.7) >= 0.3]
     if len(lit_tabs) != 1 or len(lit_boxes) != 1:
         return None
@@ -243,6 +255,8 @@ def write_fixtures():
                 expected[name]["note"] = NOTES[name]
         elif exp[0] == "warmup-empty":
             expected[name] = {"kind": "songlist-empty", "mix": "rise", "title": exp[1], "chartType": TYPE_NAMES[exp[2]], "level": exp[3]}
+            if name in NOTES:
+                expected[name]["note"] = NOTES[name]
         else:
             expected[name] = {"kind": "arcadelist", "note": "the Arcade Station's song list: not read in v1 (D45)"}
     with open(path, "w") as f:

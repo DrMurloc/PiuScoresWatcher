@@ -34,7 +34,7 @@ No Windows API, no game, no network; it runs wherever the SDK does. This is the 
 | `empty` | `NumbersNotShown` — the grade sticker is up, the number bars are still blank |
 | `aggregate` | `NotAPlay` — a Challenge result, four songs summed under a division badge where the song title goes |
 | `none` | not detected at all — WorldMax's mission summary, the title screen, the song wheel, a loading frame |
-| `songlist` | Warm Up's song list: the lit tab, the lit level, the best score, and a grade badge that agrees with it (D47) |
+| `songlist` | Warm Up's song list: the lit tab — 5K SINGLE lit orange, 6K DOUBLE lit blue (D71) — the lit level, the best score, and a grade badge that agrees with it (D47) |
 | `songlist-empty` | Warm Up's song list on a chart with no best: nothing to capture |
 | `arcadelist` | the Arcade Station's song list: not read in v1 (D45) |
 
@@ -71,7 +71,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] F5 a dev build while the installed watcher runs → both run; the dev one's title and tooltip name the local site; connecting it leaves the installed one connected.
 - [ ] Sign out and back in → it is in the tray (Start with Windows); switched off → it isn't.
 - [ ] Bulk capture: start it from the tray → the window says how many Warm Up bests PIU Scores has; Start.
-- [ ] Move through a dozen charts on Warm Up's song list, some 6K DOUBLE via TAB → a chime for each best above the site's, a tick for the rest, and the site shows the chimed ones as plays.
+- [ ] Move through a dozen charts on Warm Up's song list, some 6K DOUBLE via TAB → a chime for each best above the site's, a tick for the rest, and the site shows the chimed ones as plays — the 6K DOUBLE ones as half-doubles (D71).
 - [ ] Flip quickly between two charts → neither is captured with the other's score.
 - [ ] Two songs in a row showing the same level and score (two 1,000,000s at one level) → both chime.
 - [ ] Titles the panel scrolls (wanna go to the moon palace, Conflict -NOMA CONCEiVER REMiX-) and short ones (B2, D, N, Dr. M, 8 6) → each chimes or ticks within two seconds; none is kept (D66–D69).

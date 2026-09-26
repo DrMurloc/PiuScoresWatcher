@@ -96,8 +96,8 @@ public sealed record SongListReading(
     ulong Jacket);
 
 /// <summary>
-///     Is this frame Warm Up's song list, and which chart is lit? The yellow banner, exactly one lit tab
-///     (orange: 5K SINGLE or 6K DOUBLE) and exactly one lit level box (yellow). The Arcade Station's list
+///     Is this frame Warm Up's song list, and which chart is lit? The yellow banner, exactly one lit tab — 5K
+///     SINGLE's orange or 6K DOUBLE's blue (D71) — and exactly one lit level box (yellow). The Arcade Station's list
 ///     has none of them (D45).
 /// </summary>
 public sealed class SongListDetector
@@ -111,7 +111,7 @@ public sealed class SongListDetector
         if (Colors.Fraction(image, SongListLayout.Banner.On(image), ColorClass.BannerYellow) < MinimumBannerShare)
             return null;
         var single = Colors.Fraction(image, SongListLayout.SingleTab.On(image), ColorClass.TabOrange) >= MinimumTabShare;
-        var halfDouble = Colors.Fraction(image, SongListLayout.HalfDoubleTab.On(image), ColorClass.TabOrange) >= MinimumTabShare;
+        var halfDouble = Colors.Fraction(image, SongListLayout.HalfDoubleTab.On(image), ColorClass.TabBlue) >= MinimumTabShare;
         if (single == halfDouble)
             return null;
         var lit = Enumerable.Range(0, SongListLayout.Boxes)
