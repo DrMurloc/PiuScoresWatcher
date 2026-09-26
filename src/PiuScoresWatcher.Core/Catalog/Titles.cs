@@ -59,9 +59,11 @@ public static class Titles
 
     /// <summary>
     ///     A song list row's title (D75): read attempt by attempt until a reading names a chart at one of the row's
-    ///     <paramref name="levels" />, each matched on its own among the songs that have that chart, the leftmost first. A row
-    ///     is one song, so the chart found names the song for the row's other charts. Otherwise as
-    ///     <see cref="ChooseAsync" />: a song the list has only at other charts is what the choice says when nothing is found.
+    ///     <paramref name="levels" />, each matched on its own among the songs that have that chart. A reading that spells a
+    ///     song exactly at one of them names it before a loose match at another, the leftmost first after that: where the list
+    ///     lacks Beethoven Virus's S7 but has its FULL SONG's, the S10 spelled exactly is the song. A row is one song, so the
+    ///     chart found names the song for the row's other charts. Otherwise as <see cref="ChooseAsync" />: a song the list has
+    ///     only at other charts is what the choice says when nothing is found.
     /// </summary>
     public static async Task<TitleChoice> ChooseSongAsync(this ITitleReader titles, ScreenImage image, TitleBox box, SongCatalog catalog,
         ChartType type, IReadOnlyList<int> levels, CancellationToken cancellationToken)
@@ -72,15 +74,22 @@ public static class Titles
         await foreach (var read in titles.ReadAsync(image, box, cancellationToken))
         {
             first ??= read;
+            CatalogMatch.Found? loose = null;
             foreach (var level in levels)
                 switch (catalog.Match(read, type, level, null, shape))
                 {
-                    case CatalogMatch.Found found:
+                    case CatalogMatch.Found found when SongCatalog.Key(found.Chart.SongName) == SongCatalog.Key(read):
                         return new TitleChoice(read, found, [new BoxReading(box.Name, first)]);
+                    case CatalogMatch.Found found:
+                        loose ??= found;
+                        break;
                     case CatalogMatch.Unlisted listed:
                         unlisted ??= listed;
                         break;
                 }
+
+            if (loose is not null)
+                return new TitleChoice(read, loose, [new BoxReading(box.Name, first)]);
         }
 
         return new TitleChoice(first, unlisted ?? (CatalogMatch)new CatalogMatch.NotFound(), first is null ? [] : [new BoxReading(box.Name, first)]);

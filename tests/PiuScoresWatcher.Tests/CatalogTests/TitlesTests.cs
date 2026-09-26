@@ -149,6 +149,22 @@ public sealed class TitlesTests
     }
 
     [Fact]
+    public async Task ARowsTitleSpelledExactlyAtOneOfItsLevelsBeatsALooseMatchAtAnother()
+    {
+        // Perfect Games at S7 and S10; the list lacks Beethoven Virus's S7, and its FULL SONG has one, which the title is
+        // a part of: the S10 it spells exactly names the song
+        var catalog = new SongCatalog([Chart("Beethoven Virus -FULL SONG-", 7), Chart("Beethoven Virus", 10)]);
+        Reads("row 2", "Beethoven Virus");
+        var row = new TitleBox("row 2", new PixelRect(0, 0, 10, 10), false, null);
+
+        var choice = await _titles.Object.ChooseSongAsync(FixtureScreens.Load(ElysiumS4), row, catalog, ChartType.Single, [7, 10],
+            CancellationToken.None);
+
+        var found = Assert.IsType<CatalogMatch.Found>(choice.Match).Chart;
+        Assert.Equal(("Beethoven Virus", 10), (found.SongName, found.Level));
+    }
+
+    [Fact]
     public async Task ARowWhoseSongTheListHasOnlyAtOtherChartsSaysSo()
     {
         Reads("row 2", "Elysium");

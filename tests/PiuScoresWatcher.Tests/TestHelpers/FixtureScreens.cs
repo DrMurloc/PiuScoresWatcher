@@ -70,6 +70,23 @@ internal static class FixtureScreens
         return new ScreenImage(width, image.Height, pasted);
     }
 
+    /// <summary>A frame with one region painted a flat colour: a tab lit or unlit to order, where no screen shows it.</summary>
+    public static ScreenImage Painted(ScreenImage image, FractionRect region, byte red, byte green, byte blue)
+    {
+        var rect = region.On(image);
+        var painted = new byte[image.Width * image.Height * 4];
+        for (var y = 0; y < image.Height; y++)
+        for (var x = 0; x < image.Width; x++)
+        {
+            var inside = rect.X0 <= x && x < rect.X1 && rect.Y0 <= y && y < rect.Y1;
+            var at = (y * image.Width + x) * 4;
+            (painted[at], painted[at + 1], painted[at + 2], painted[at + 3]) =
+                inside ? (blue, green, red, (byte)255) : (image.Blue(x, y), image.Green(x, y), image.Red(x, y), (byte)255);
+        }
+
+        return new ScreenImage(image.Width, image.Height, painted);
+    }
+
     /// <summary>A fixture with one region's pixels pasted over another's — a misread made to order.</summary>
     public static ScreenImage LoadWithCopy(string name, FractionRect from, FractionRect to)
     {

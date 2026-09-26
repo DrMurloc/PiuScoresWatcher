@@ -177,7 +177,7 @@ public sealed class BulkCaptureRun
         if (reading.Status == SongListStatus.Unplaced)
             return Unplaced(frame, reading.Reason ?? "the song list with a chart lit that can't be placed", fromWindow);
 
-        var rows = RowsToActOn(reading.Rows, fromWindow);
+        var rows = RowsToActOn(reading.ChartType!.Value, reading.Rows, fromWindow);
         var lit = await LitChartAsync(frame, reading, fromWindow, cancellationToken);
         // from the window, the rows wait a frame after the lit chart makes its sound, so both are heard (D77)
         if (rows is null || (fromWindow && lit is not (BulkOutcome.Waiting or BulkOutcome.NoBest)))
@@ -228,12 +228,14 @@ public sealed class BulkCaptureRun
     /// <summary>
     ///     The rows as they stand, when they are to be acted on with this frame: a row holds a Perfect Game, they have held
     ///     still for <see cref="Settle" /> (a screenshot is already still), and they were not acted on as they stand (D75).
+    ///     As they stand is on this tab, with these Perfect Games: after TAB the same songs, marks alike, are other charts.
     /// </summary>
-    private string? RowsToActOn(IReadOnlyList<SongListRow> rows, bool fromWindow)
+    private string? RowsToActOn(ChartType type, IReadOnlyList<SongListRow> rows, bool fromWindow)
     {
         if (!rows.Any(row => row.PerfectGames.Count > 0))
             return null;
-        var print = string.Join(" ", rows.Select(row => $"{row.Row}:{row.Jacket:x16}:{(row.Marks is null ? "?" : string.Concat(row.Marks))}"));
+        var print = $"{type} " + string.Join(" ", rows.Select(row =>
+            $"{row.Row}:{row.Jacket:x16}:{(row.Marks is null ? "?" : string.Concat(row.Marks))}:{string.Join(",", row.PerfectGames)}"));
         if (print == _rowsActed)
             return null;
         if (!fromWindow)

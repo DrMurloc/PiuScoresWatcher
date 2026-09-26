@@ -433,9 +433,10 @@ candidates https://claude.ai/artifact/ETgkSbTPRtRat9Rzium6T9, picked with "I lik
   when each of its three bars is lit gold or unlit grey, the lit ones from the left, and is empty when none is either. A
   row with anything else in a place (moving, covered) is not read on that frame. Where all three are lit, the level is
   read with the panel's level templates and the row's title by Windows OCR, matched against the chart list at each of
-  the row's Perfect Games' levels (D49, D68); the first chart found names the song for the rest. 1,000,000 is sent when
-  PIU Scores has less on that chart. A row is read once a run: it is known again by its jacket, within a few bits, and
-  its Perfect Games' levels, so a song scrolling through six places costs one OCR. On the fixtures: 473 charts in the
+  the row's Perfect Games' levels (D49, D68): a reading that spells a song exactly at one of them names it before a loose
+  match at another, and the chart found names the song for the rest. 1,000,000 is sent when PIU Scores has less on that
+  chart. A row is read once a run on each tab: it is known again by its jacket, within a few bits, and its Perfect Games'
+  levels, so a song scrolling through six places costs one OCR. On the fixtures: 473 charts in the
   rows, none ambiguous, 118 of them Perfect Games, every level read.
 - **D76 (owner, 2026-09-26). Only a Perfect Game the rows send is heard.** One PIU Scores already has, one whose title or
   level names no chart and one PIU Scores didn't take make no sound, keep no screen and count as nothing ("that would just
@@ -451,6 +452,11 @@ candidates https://claude.ai/artifact/ETgkSbTPRtRat9Rzium6T9, picked with "I lik
   one on screen is sent once the list stops moving." Level up joins the sounds after the chime ("A Perfect Game, sent to
   PIU Scores."), the summary adds how many of the new bests were Perfect Games when any were, and Sounds while playing
   names it. New copy since the mocks (D36), called out in the pull request.
+
+The bug check of the branch (2026-09-26) found four things. Two are fixed: after TAB the same rows, their marks alike,
+were taken for done (the tab and the Perfect Games' levels now count in how the rows stand), and a loose title match at a
+row's leftmost level beat an exact one at another (Beethoven Virus -FULL SONG- over Beethoven Virus where the list lacks
+one of the latter's charts). Two wait on the owner (§9).
 
 ## 3. The pipeline
 
@@ -583,6 +589,18 @@ beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14)
 - **The name.** "PIU Scores Watcher" is a placeholder; the owner names it before v0.1.0 (the icon is settled,
   D34).
 - **Steam's "uncompressed copy" folder.** Steam can save a lossless PNG beside the JPEG; worth watching both?
+- **From the bug check (2026-09-26), waiting on the owner:**
+  - *Rows dropped when the list moves right after the lit chart's sound.* The rows and the lit chart settle together; when
+    the lit chart makes its sound the rows wait a frame (D77), and if W or S is pressed in that frame the rows look new
+    and their half second starts over, so rows that did hold still are never acted on. "Wait for the sound before moving
+    on" is exactly that timing: the bug check's run through three tester lists sent 0 of 26 row Perfect Games moving on
+    at the sound, and 26 of 26 staying 200 ms longer. Recommended: keep rows that held still until they are acted on,
+    whatever the list shows next (a row is known by its jacket, not its place), and act on them also on the frame the
+    list goes away.
+  - *The rows' work eating the lit chart's two seconds (D69).* While the lit title is read again, the rows are acted on
+    in the same frames, and their reads and posts (14 Perfect Games at 150 ms a post is 2.1 s) use up the two seconds, so
+    a title that would have named its chart on the third read is kept instead. Recommended, with the one above: the rows
+    also wait while the lit chart reads its title again.
 - **From the bug check (2026-09-24), waiting on the test loop:**
   - *A score over more notes than were judged.* `20260922192124` looks like a finished Aragami S19, not a score
     counting up: 974/21/3/2/8 is 1,008 notes and the accuracy (97.95%) fits them, but 971,789 is the formula over

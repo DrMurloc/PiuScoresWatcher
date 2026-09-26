@@ -604,6 +604,23 @@ public sealed class BulkCaptureRunTests
     }
 
     [Fact]
+    public async Task TheSameRowsOnTheOtherTabAreActedOnAgain()
+    {
+        // B2's list with 6K DOUBLE lit instead, the rest of the screen as it was: after TAB the same songs, marks alike,
+        // are other charts — here ones PIU Scores' list doesn't have, so each is left, but each is looked at
+        var run = TesterRun(("B2", 7, 1_000_000));
+        TitlesOf(B2List);
+        Assert.Equal(8, (await run.HandleAsync(Screenshot(B2List), CancellationToken.None)).PerfectGames.Count);
+        var unlit = FixtureScreens.Painted(FixtureScreens.Load(B2List), FractionRect.At1080p(174, 492, 383, 540), 80, 80, 80);
+        var sixK = FixtureScreens.Painted(unlit, FractionRect.At1080p(398, 492, 607, 540), 40, 170, 240);
+
+        var outcome = await run.HandleAsync(Screenshot(sixK), CancellationToken.None);
+
+        Assert.Equal(8, outcome.PerfectGames.Count);
+        Assert.All(outcome.PerfectGames, perfectGame => Assert.Equal(ChartType.HalfDouble, Assert.IsType<PerfectGameOutcome.Unplaced>(perfectGame).ChartType));
+    }
+
+    [Fact]
     public async Task ARowSeenAgainWithTheListStillIsNotReadAgain()
     {
         var run = TesterRun(("B2", 7, 1_000_000));
