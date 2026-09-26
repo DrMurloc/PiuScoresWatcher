@@ -3,7 +3,8 @@
 Status: **the MVP shipped as v0.1.0 from one pull request, #8** (merged 2026-09-24, D33). The reader reads every
 one of the owner's result screens and reconciles them; the client posts; the tray app captures the game window once
 a second while RISE runs and reads every F12 screenshot Steam writes, posting each reconciled play once; bulk
-capture reads Warm Up's song list. The first tester's evening (2026-09-24/25) is D66–D70, on their own pull request.
+capture reads Warm Up's song list. The testers' first evenings (2026-09-24/25) and what they led to are D66–D73, on
+their own pull request.
 Phase 2 of PIU
 Scores' RISE plan
 ([rise.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/design/rise.md) §8): phase 1 added
@@ -390,7 +391,28 @@ all. `titles.py` over the fixtures: 49 of 62 titles read exactly at the first at
 **The second tester** (2026-09-25, 1920×1080): 807 bests sent and 45 song lists kept, every one the title again. D66–D70
 make 26 of the 30 whose chart the list has name it, none another; the other four are The Quick Brown Fox mid-scroll
 (D69). The other 15 are the same Rise list errors as the first tester's, which the SQL covers. Between them the two
-testers sent 2,338 bests and not one half-double: §9.
+testers sent 2,338 bests and not one half-double: D71.
+
+**6K DOUBLE** (owner's F12s of the song list with 6K DOUBLE lit, 2026-09-26; the owner's yes to D72 and D73 the same
+day).
+
+- **D71. 6K DOUBLE's tab is lit blue.** On Warm Up's song list the lit tab's border and caption are orange on 5K
+  SINGLE (a hue of about 23°) and blue on 6K DOUBLE (about 201°); an unlit tab is grey, with no colour at all. The
+  detector looked for orange on both, found no tab lit on 6K DOUBLE, and so saw no song list: the second tester's two
+  and a half minutes on 6K DOUBLE did nothing, and nothing was kept to say so. Each tab is now checked for its own
+  colour. The lit level box is yellow on both, and the best, the badge and the title sit where 5K SINGLE has them; the
+  owner's three F12s (a best, no best, a box further right) are the fixtures. Closes §9's 6K DOUBLE.
+- **D72 (owner, 2026-09-26). A song list the watcher sees and can't place is kept once a run, with the low tone.**
+  Seen: the WARM UP banner, and a tab or a level box lit. Placed: exactly one of each. From the window the list has to
+  stay unplaced for two seconds, longer than a highlight takes to move between two boxes; a screenshot is kept at
+  once. It is kept the first time in a run and the run says nothing more about it: "The watcher couldn't tell which
+  chart was selected, so nothing was sent." D71 failed silent, against D13; the next one like it says so the first
+  evening. While such a list is on screen, the run doesn't end for the list being gone.
+- **D73 (owner, 2026-09-26). A played chart PIU Scores doesn't list says so.** A result whose title names a song the
+  chart list has only at other charts (D70) is still posted, in the list's spelling (D49) — the list may have been
+  corrected since the watcher loaded it — and PIU Scores' 404 then reads "PIU Scores doesn't list this chart. Not
+  recorded." and, in review, "PIU Scores doesn't list this chart, so it wasn't recorded.", where it used to blame a
+  misread title.
 
 ## 3. The pipeline
 
@@ -399,8 +421,8 @@ testers sent 2,338 bests and not one half-double: §9.
 the title by Windows OCR) → `PlayChecksum` (D10) → `Deduplicator` (D11) → `IPlaysClient` → `INotifier`.
 ARCHITECTURE.md draws it. A bulk capture run (D45–D52) branches off the same sources: `SongListDetector` →
 `SongListReader` (the lit tab, the lit level box, the best score, the grade badge) → `BulkCaptureRun` (the
-half-second wait, the chart-list match, the title read again while the panel holds, the stored bests) →
-`IPlaysClient`, with sounds instead of notifications.
+half-second wait, the chart-list match, the title read again while the panel holds, a list it can't place, the
+stored bests) → `IPlaysClient`, with sounds instead of notifications.
 
 The reader was built on the owner's 81 screenshots of 2026-09-21/22 (39 kept as fixtures: 30 results across
 both layouts, coloured and grey, 1080p and 720p; one mid-count frame; two blank-number frames; a Challenge
@@ -414,7 +436,7 @@ reading names a chart (D55), and two more for a short title (D67). A result scre
 list has two, the lit row's and then the panel's (D66), and one cut off at its box's edge is only ever the start of
 a longer title (D68). The name is matched against the chart list when it is loaded (D49) — on the Arcade
 Station at the level the chart's note count says was played (D56); PIU Scores resolves what is posted and answers
-404 for a song it does not know.
+404 for a chart it does not list, which the chart list tells apart from a song it does not know (D73).
 
 ## 4. The API
 
@@ -433,7 +455,7 @@ base64("anything:<token>")`. One request per play:
 `200` returns `recorded`, `mix`, `scoringModel`. `400` problem types the toast must turn into sentences:
 `judgments-do-not-reconcile` (a misread — should not reach the server past D10), `judgments-invalid`,
 `score-invalid`, `played-at-invalid`, `legacy-mix`, `source-required`, `plays-required`. `401` — the token.
-`404` — the song. `429` carries `Retry-After` (600 requests a minute per token; a session is nowhere near).
+`404` — no chart matches: a song the site doesn't know, or one it lists at other charts (D73). `429` carries `Retry-After` (600 requests a minute per token; a session is nowhere near).
 
 `GET api/v2/players/me` verifies the token on the settings window and greets the player by name. A bulk capture
 run also reads `GET api/v2/charts?mix=rise` (the chart list the titles are matched against) and `GET
@@ -510,12 +532,8 @@ beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14)
   evening added four more Arcade results, but held out of training the stepball still misreads (18 as 12, 17 as
   18, 19 as 12) and so, once, does the score. The checksum catches the numbers; D56 catches the level wherever
   PIU Scores knows the chart's note count. More Arcade results with F12 keep making both sturdier.
-- **6K DOUBLE on the song list isn't recognized.** Neither tester's bulk capture caught a half-double: the first sent
-  1,531 bests, all 5K SINGLE, and the second's run on 6K DOUBLE lasted two and a half minutes and did nothing at all.
-  `SongListDetector` knows only the 5K SINGLE panel, a tab lit orange, and on 6K DOUBLE it sees no song list, so
-  nothing is captured and nothing is kept (the reader failing silent, against D13). The game's art tints 6K
-  DOUBLE's tab blue where 5K SINGLE's is orange, which would explain it; the fix waits on F12s of the song list with
-  6K DOUBLE lit, which become fixtures first. Live half-double results read and post as they always have.
+- ~~**6K DOUBLE on the song list isn't recognized.**~~ Read since D71: its tab is lit blue, where the detector
+  looked for orange. A list the watcher sees and can't place is kept since D72.
 - ~~**One-letter titles.**~~ Read since D67, off a page of the title three times over.
 - **Titles longer than the list's row.** The Quick Brown Fox Jumps Over The Lazy Dog and Vanish 2 - Roar of the
   invisible dragon scroll in both places a title is read, so they depend on the ticker showing their start while
