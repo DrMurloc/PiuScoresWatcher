@@ -80,7 +80,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] The Quick Brown Fox Jumps Over The Lazy Dog, the one title that scrolls in the list too → captured if you wait on it for two seconds; kept at most once if you don't.
 - [ ] A chart PIU Scores doesn't list → the low tone, and the review window says PIU Scores doesn't list this chart (D70).
 - [ ] RISE at 1280×720: F12 a handful of Warm Up song lists with bests on them → they become the 720p fixtures, and the reader is fixed against them before the tag (watcher.md §9).
-- [ ] Perfect Games without highlighting them (D74–D76): on a list with three gold bars under some levels, press W or S a few songs at a time and pause → Level up whenever a Perfect Game PIU Scores didn't have went up, silence otherwise; the site shows each at 1,000,000 as a Perfect Game. Scroll back over the same songs → silence. Both tabs, 5K SINGLE and 6K DOUBLE.
+- [ ] Perfect Games without highlighting them (D74–D76): on a list with three gold bars under some levels, press W or S the moment each sound starts, as a sweep goes → Level up a beat later whenever a Perfect Game PIU Scores didn't have went up, silence otherwise; the site shows each at 1,000,000 as a Perfect Game. Scroll back over the same songs → silence. Both tabs, 5K SINGLE and 6K DOUBLE.
 - [ ] Start a song → the run ends; one summary notification, which says how many of the new bests were Perfect Games; one line in Recent.
 - [ ] Run it again over the same charts → ticks only, nothing sent.
 - [ ] The sounds are clear over the song list's music at your usual volume, Level up included.

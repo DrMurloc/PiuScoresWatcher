@@ -94,9 +94,11 @@ public sealed record BulkTally(int Sent, int Already, int Unreadable, int NotRec
 ///     that can't be placed is kept the first time it stays so for <see cref="UnplacedFor" />, and not again in the run
 ///     (D72).
 ///     The other rows' Perfect Games go up too, highlighted or not (D74): once the rows have held still for
-///     <see cref="Settle" />, each row with one has its title read and each Perfect Game PIU Scores has less than a million
-///     on is sent. A row is acted on once a run, known again by its jacket and its Perfect Games' levels, and nothing about
-///     it is heard or kept but a Perfect Game sent (D75, D76).
+///     <see cref="Settle" />, they are taken up with their frame, and on the first frame the lit chart isn't making its
+///     sound or reading its title again, whatever that frame shows, each row with one has its title read and each Perfect
+///     Game PIU Scores has less than a million on is sent, so moving on at the sound loses nothing (D77). A row is acted on
+///     once a run, known again by its jacket and its Perfect Games' levels, and nothing about it is heard or kept but a
+///     Perfect Game sent (D75, D76).
 /// </summary>
 public sealed class BulkCaptureRun
 {
@@ -133,8 +135,11 @@ public sealed class BulkCaptureRun
     private Fingerprint? _acted;
     private (Fingerprint Fingerprint, DateTimeOffset Since)? _pending;
 
-    /// <summary>The rows as last acted on, and as they have stood since when: a change of any row is the list moving (D75).</summary>
+    /// <summary>The rows as last taken up, and as they have stood since when: a change of any row is the list moving (D75).</summary>
     private string? _rowsActed;
+
+    /// <summary>Rows taken up with their frame, waiting for the lit chart to be done with its sound or its title (D75, D77).</summary>
+    private readonly Queue<(CapturedFrame Frame, SongListReading Reading)> _rowsHeld = new();
 
     private (string Rows, DateTimeOffset Since)? _rowsPending;
     private Unnamed? _unnamed;
@@ -171,19 +176,33 @@ public sealed class BulkCaptureRun
         var reading = _reader.Read(frame.Image);
         if (fromWindow && reading?.Status != SongListStatus.Unplaced)
             _unplacedSince = null;
+        var outcome = await OutcomeAsync(frame, reading, fromWindow, cancellationToken);
+
+        // From the window the rows taken up wait while the lit chart makes its sound, so both are heard, and while it reads
+        // its title again, so their reads and posts don't eat its two seconds (D69, D77). Any other frame acts on them,
+        // whatever it shows (the list moved on at the sound, or gone): a row is known by its jacket, not its place (D75).
+        var litFirst = fromWindow && reading is not null && (outcome is not (BulkOutcome.Waiting or BulkOutcome.NoBest) || _unnamed is not null);
+        if (_rowsHeld.Count == 0 || litFirst)
+            return outcome;
+        var perfectGames = await PerfectGamesAsync(cancellationToken);
+        return perfectGames.Count == 0 ? outcome : outcome with { PerfectGames = perfectGames };
+    }
+
+    /// <summary>What a frame does apart from the rows' Perfect Games: the list gone, a chart lit that can't be placed, or the lit chart.</summary>
+    private async Task<BulkOutcome> OutcomeAsync(CapturedFrame frame, SongListReading? reading, bool fromWindow, CancellationToken cancellationToken)
+    {
         if (reading is null)
             return new BulkOutcome.NotTheList(KeepUnnamed());
         ListLastSeen = _clock.Now;
         if (reading.Status == SongListStatus.Unplaced)
             return Unplaced(frame, reading.Reason ?? "the song list with a chart lit that can't be placed", fromWindow);
+        if (RowsToActOn(reading.ChartType!.Value, reading.Rows, fromWindow) is { } rows)
+        {
+            _rowsActed = rows;
+            _rowsHeld.Enqueue((frame, reading));
+        }
 
-        var rows = RowsToActOn(reading.ChartType!.Value, reading.Rows, fromWindow);
-        var lit = await LitChartAsync(frame, reading, fromWindow, cancellationToken);
-        // from the window, the rows wait a frame after the lit chart makes its sound, so both are heard (D77)
-        if (rows is null || (fromWindow && lit is not (BulkOutcome.Waiting or BulkOutcome.NoBest)))
-            return lit;
-        var perfectGames = await PerfectGamesAsync(frame, reading, rows, cancellationToken);
-        return perfectGames.Count == 0 ? lit : lit with { PerfectGames = perfectGames };
+        return await LitChartAsync(frame, reading, fromWindow, cancellationToken);
     }
 
     /// <summary>The lit chart's part of a frame of the list: the half-second wait, the capture, the title read again (D48-D52, D69).</summary>
@@ -233,7 +252,13 @@ public sealed class BulkCaptureRun
     private string? RowsToActOn(ChartType type, IReadOnlyList<SongListRow> rows, bool fromWindow)
     {
         if (!rows.Any(row => row.PerfectGames.Count > 0))
+        {
+            // rows seen before are taken up again when the list comes back to them, for a post that was lost (D76)
+            _rowsActed = null;
+            _rowsPending = null;
             return null;
+        }
+
         var print = $"{type} " + string.Join(" ", rows.Select(row =>
             $"{row.Row}:{row.Jacket:x16}:{(row.Marks is null ? "?" : string.Concat(row.Marks))}:{string.Join(",", row.PerfectGames)}"));
         if (print == _rowsActed)
@@ -247,34 +272,39 @@ public sealed class BulkCaptureRun
             return null;
         }
 
-        return now - pending.Since >= Settle ? print : null;
+        if (now - pending.Since < Settle)
+            return null;
+        _rowsPending = null;
+        return print;
     }
 
     /// <summary>
-    ///     The rows' Perfect Games (D74-D76): a row not acted on this run has its title read and matched at its Perfect Games'
-    ///     levels, and each one PIU Scores has less than a million on is sent. A row is done once acted on, unless a post was
-    ///     lost to the network or a rate limit: then it is tried again the next time it settles in view.
+    ///     The rows' Perfect Games (D74-D76), from each frame the rows were taken up on: a row not acted on this run has its
+    ///     title read and matched at its Perfect Games' levels, and each one PIU Scores has less than a million on is sent. A
+    ///     row is done once acted on, unless a post was lost to the network or a rate limit: then it is tried again the next
+    ///     time it settles in view.
     /// </summary>
-    private async Task<IReadOnlyList<PerfectGameOutcome>> PerfectGamesAsync(CapturedFrame frame, SongListReading reading, string rows,
-        CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<PerfectGameOutcome>> PerfectGamesAsync(CancellationToken cancellationToken)
     {
-        _rowsActed = rows;
-        _rowsPending = null;
-        var type = reading.ChartType!.Value;
         List<PerfectGameOutcome> outcomes = [];
-        foreach (var row in reading.Rows.Where(row => row.PerfectGames.Count > 0 && !Done(type, row)))
+        while (_rowsHeld.TryDequeue(out var held))
         {
-            var choice = await _titles.ChooseSongAsync(frame.Image, row.Title, _catalog, type, row.PerfectGames, cancellationToken);
-            var again = false;
-            foreach (var level in row.PerfectGames)
+            var (frame, reading) = held;
+            var type = reading.ChartType!.Value;
+            foreach (var row in reading.Rows.Where(row => row.PerfectGames.Count > 0 && !Done(type, row)))
             {
-                var outcome = await PerfectGameAsync(frame, row, choice, type, level, cancellationToken);
-                again |= outcome is PerfectGameOutcome.NotRecorded { Outcome: PostOutcome.RateLimited or PostOutcome.Failed };
-                outcomes.Add(outcome);
-            }
+                var choice = await _titles.ChooseSongAsync(frame.Image, row.Title, _catalog, type, row.PerfectGames, cancellationToken);
+                var again = false;
+                foreach (var level in row.PerfectGames)
+                {
+                    var outcome = await PerfectGameAsync(frame, row, choice, type, level, cancellationToken);
+                    again |= outcome is PerfectGameOutcome.NotRecorded { Outcome: PostOutcome.RateLimited or PostOutcome.Failed };
+                    outcomes.Add(outcome);
+                }
 
-            if (!again)
-                _rowsDone.Add(new RowKey(type, row.Jacket, row.PerfectGames));
+                if (!again)
+                    _rowsDone.Add(new RowKey(type, row.Jacket, row.PerfectGames));
+            }
         }
 
         return outcomes;

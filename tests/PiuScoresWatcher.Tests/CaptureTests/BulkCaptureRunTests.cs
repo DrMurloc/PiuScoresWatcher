@@ -545,6 +545,135 @@ public sealed class BulkCaptureRunTests
     }
 
     [Fact]
+    public async Task RowsThatHeldStillGoUpWhenTheListMovesOnAtTheLitChartsSound()
+    {
+        // the tick for B2 S7, and S at once: the next frame is the list one song on, still moving (owner, 2026-09-26: "i'm
+        // gonna want to hit that button as soon as i hear that noise start")
+        var run = TesterRun(("B2", 7, 1_000_000));
+        TitlesOf(B2List);
+        Assert.IsType<BulkOutcome.AlreadyThere>(await SettleAsync(run, B2List));
+        _clock.Advance(TimeSpan.FromMilliseconds(200));
+
+        var next = await run.HandleAsync(Window(PeopleList), CancellationToken.None);
+
+        Assert.IsType<BulkOutcome.Waiting>(next);
+        Assert.Equal(8, SentOf(next).Count);
+        Assert.Contains(("BANYA HIPHOP REMIX", 8), SentOf(next));
+    }
+
+    [Fact]
+    public async Task ASweepThatMovesOnAtEverySoundSendsEveryRowsPerfectGame()
+    {
+        // The People didn't know "Pumping up", one song on to The Quick Brown Fox (whose title names nothing, so its two
+        // seconds run out on the low tone), then B2, moving on the moment each makes its sound, and a song started at the
+        // end: the bug check sent none of these 26 before the rows waited with their frames
+        var run = TesterRun(("The People didn't know \"Pumping up\"", 8, 1_000_000), ("B2", 7, 1_000_000));
+        var screens = new[] { PeopleList, FoxList, B2List }.ToDictionary(name => name, FixtureScreens.Load);
+        foreach (var (name, image) in screens)
+            TitlesIn(name, image);
+
+        List<BulkOutcome> outcomes = [];
+        foreach (var image in screens.Values)
+            outcomes.AddRange(await UntilTheSoundAsync(run, image));
+        outcomes.Add(await run.HandleAsync(Window(AResultScreen), CancellationToken.None));
+
+        Assert.Equal(26, outcomes.Sum(outcome => SentOf(outcome).Count));
+        Assert.Equal(26, run.Tally.PerfectGames);
+    }
+
+    /// <summary>A fixture's titles, as <see cref="TitlesOf" /> has them, read only off that frame: rows taken up on one screen are read on the next.</summary>
+    private void TitlesIn(string fixture, ScreenImage image)
+    {
+        var (lit, rows) = TesterTitles[fixture];
+        _titles.Setup(t => t.ReadAsync(image, It.Is<TitleBox>(box => box.Name == "list" || box.Name == "panel"), It.IsAny<CancellationToken>()))
+            .Returns(() => lit.Length > 0 ? TitleReads.Of(lit) : TitleReads.Of());
+        foreach (var (row, title) in rows)
+            _titles.Setup(t => t.ReadAsync(image, It.Is<TitleBox>(box => box.Name == $"row {row}"), It.IsAny<CancellationToken>()))
+                .Returns(() => TitleReads.Of(title));
+    }
+
+    /// <summary>A screen's frames, 200 ms apart, until its lit chart makes its sound, and not a frame more: the player moves on at the sound.</summary>
+    private async Task<List<BulkOutcome>> UntilTheSoundAsync(BulkCaptureRun run, ScreenImage image)
+    {
+        List<BulkOutcome> outcomes = [];
+        while (outcomes.Count < 20)
+        {
+            var outcome = await run.HandleAsync(Window(image), CancellationToken.None);
+            outcomes.Add(outcome);
+            _clock.Advance(TimeSpan.FromMilliseconds(200));
+            if (outcome is not (BulkOutcome.Waiting or BulkOutcome.NoBest))
+                return outcomes;
+        }
+
+        throw new InvalidOperationException("The lit chart never made its sound.");
+    }
+
+    [Fact]
+    public async Task RowsThatHeldStillGoUpWhenTheListGoesAwayAtTheLitChartsSound()
+    {
+        var run = TesterRun(("B2", 7, 1_000_000));
+        TitlesOf(B2List);
+        Assert.IsType<BulkOutcome.AlreadyThere>(await SettleAsync(run, B2List));
+        _clock.Advance(TimeSpan.FromMilliseconds(200));
+
+        var gone = await run.HandleAsync(Window(AResultScreen), CancellationToken.None);
+
+        Assert.IsType<BulkOutcome.NotTheList>(gone);
+        Assert.Equal(8, SentOf(gone).Count);
+    }
+
+    [Fact]
+    public async Task RowsWaitWhileTheLitChartReadsItsTitleAgainSoTheirPostsDontEatItsTwoSeconds()
+    {
+        // B2's title names nothing on its first two reads and B2 on its third (D69), and each post takes 300 ms: the rows'
+        // eight would take 2.4 s of the lit chart's two seconds
+        var run = TesterRun();
+        TitlesOf(B2List);
+        _titles.SetupSequence(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.Is<TitleBox>(box => box.Name == "list"), It.IsAny<CancellationToken>()))
+            .Returns(TitleReads.Of()).Returns(TitleReads.Of()).Returns(TitleReads.Of("B2"));
+        _titles.Setup(t => t.ReadAsync(It.IsAny<ScreenImage>(), It.Is<TitleBox>(box => box.Name == "panel"), It.IsAny<CancellationToken>()))
+            .Returns(() => TitleReads.Of());
+        _site.Setup(s => s.PostAsync(It.IsAny<ObservedPlay>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                _clock.Advance(TimeSpan.FromMilliseconds(300));
+                return new PostOutcome.Recorded(1, "Rise");
+            });
+
+        var reading = await SettleAsync(run, B2List);
+        _clock.Advance(TimeSpan.FromMilliseconds(200));
+        var again = await run.HandleAsync(Window(B2List), CancellationToken.None);
+        _clock.Advance(TimeSpan.FromMilliseconds(200));
+        var named = await run.HandleAsync(Window(B2List), CancellationToken.None);
+        _clock.Advance(TimeSpan.FromMilliseconds(200));
+        var rows = await run.HandleAsync(Window(B2List), CancellationToken.None);
+
+        Assert.Empty(reading.PerfectGames);
+        Assert.Empty(again.PerfectGames);
+        Assert.Equal("B2", Assert.IsType<BulkOutcome.Sent>(named).Play.SongName);
+        Assert.Empty(named.PerfectGames);
+        Assert.Equal(8, SentOf(rows).Count);
+    }
+
+    [Fact]
+    public async Task ARowLostToTheNetworkIsTakenUpAgainAfterAScreenWithoutPerfectGames()
+    {
+        var run = TesterRun(("B2", 7, 1_000_000));
+        TitlesOf(B2List);
+        _site.SetupSequence(s => s.PostAsync(It.Is<ObservedPlay>(p => p.SongName == "BANYA HIPHOP REMIX" && p.Level == 8), It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PostOutcome.Failed(null, "no network"))
+            .ReturnsAsync(new PostOutcome.Recorded(1, "Rise"));
+        await run.HandleAsync(Screenshot(B2List), CancellationToken.None);
+
+        // away to the owner's list, whose rows carry no marks, and back
+        await run.HandleAsync(Screenshot(Aragami), CancellationToken.None);
+        var back = await run.HandleAsync(Screenshot(B2List), CancellationToken.None);
+
+        Assert.Equal([("BANYA HIPHOP REMIX", 8)], SentOf(back));
+    }
+
+    [Fact]
     public async Task RowsThatHaveNotHeldStillForHalfASecondSendNothing()
     {
         var run = TesterRun(("B2", 7, 1_000_000));

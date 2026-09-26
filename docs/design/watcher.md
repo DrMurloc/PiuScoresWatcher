@@ -427,7 +427,10 @@ candidates https://claude.ai/artifact/ETgkSbTPRtRat9Rzium6T9, picked with "I lik
   always come from the play that earned a mark (D47), so they are read and never sent. On the 22 song-list fixtures every
   lit chart at 1,000,000 shows three bars and none of the ten lower bests does.
 - **D75. How the rows are read.** The rows other than the lit one, six on screen with the lit song kept in the fourth
-  (D66), once they have held still for half a second (D48's wait); a screenshot at once. The lit row is skipped: its
+  (D66), once they have held still for half a second (D48's wait); a screenshot at once. They are taken up with the frame
+  they held still in and acted on at the first frame the lit chart isn't making its sound or reading its title again,
+  whatever the list shows by then, so moving on at the sound loses nothing (owner, 2026-09-26: "if i'm bulk uploading
+  i'm gonna want to hit that button as soon as i hear that noise start"). The lit row is skipped: its
   yellow hides which of its places are empty, its chart is the panel's as before, and every song passes through the other
   rows as the list scrolls. A row's six places for a level sit right-aligned at fixed positions; a place holds a chart
   when each of its three bars is lit gold or unlit grey, the lit ones from the left, and is empty when none is either. A
@@ -447,16 +450,18 @@ candidates https://claude.ai/artifact/ETgkSbTPRtRat9Rzium6T9, picked with "I lik
   D63). It is a quick climb up the chime's chord landing on its top note with the octave ringing over it: 0.66 s, a
   little longer than the chime, and cut short by the next sound like any other. It replaces the chime for a Perfect Game
   (D64). A bulk capture's frame makes one sound, Level up when a Perfect Game went up and the lit chart's own otherwise;
-  from the window, the rows wait a frame after the lit chart makes its sound, so both are heard.
+  from the window the rows wait while the lit chart makes its sound, so both are heard (D75).
 - **D78. The start window and the summary say so.** Under the steps: "Perfect Games don't need to be highlighted: every
   one on screen is sent once the list stops moving." Level up joins the sounds after the chime ("A Perfect Game, sent to
   PIU Scores."), the summary adds how many of the new bests were Perfect Games when any were, and Sounds while playing
   names it. New copy since the mocks (D36), called out in the pull request.
 
-The bug check of the branch (2026-09-26) found four things. Two are fixed: after TAB the same rows, their marks alike,
-were taken for done (the tab and the Perfect Games' levels now count in how the rows stand), and a loose title match at a
-row's leftmost level beat an exact one at another (Beethoven Virus -FULL SONG- over Beethoven Virus where the list lacks
-one of the latter's charts). Two wait on the owner (§9).
+The bug check of the branch (2026-09-26) found four things, all fixed. After TAB the same rows, their marks alike, were
+taken for done (the tab and the Perfect Games' levels now count in how the rows stand). A loose title match at a row's
+leftmost level beat an exact one at another (Beethoven Virus -FULL SONG- over Beethoven Virus where the list lacks one of
+the latter's charts). And, with the owner's go, rows that had held still were dropped when the list moved on at the lit
+chart's sound, the moment the start window says to move (the check's sweep of three tester lists sent none of 26), and
+their reads and posts could use up the lit chart's two seconds (D69): they now wait with their frame (D75).
 
 ## 3. The pipeline
 
@@ -589,18 +594,6 @@ beside the tokens. Owner's copy. The v2 plays write exists already (rise.md D14)
 - **The name.** "PIU Scores Watcher" is a placeholder; the owner names it before v0.1.0 (the icon is settled,
   D34).
 - **Steam's "uncompressed copy" folder.** Steam can save a lossless PNG beside the JPEG; worth watching both?
-- **From the bug check (2026-09-26), waiting on the owner:**
-  - *Rows dropped when the list moves right after the lit chart's sound.* The rows and the lit chart settle together; when
-    the lit chart makes its sound the rows wait a frame (D77), and if W or S is pressed in that frame the rows look new
-    and their half second starts over, so rows that did hold still are never acted on. "Wait for the sound before moving
-    on" is exactly that timing: the bug check's run through three tester lists sent 0 of 26 row Perfect Games moving on
-    at the sound, and 26 of 26 staying 200 ms longer. Recommended: keep rows that held still until they are acted on,
-    whatever the list shows next (a row is known by its jacket, not its place), and act on them also on the frame the
-    list goes away.
-  - *The rows' work eating the lit chart's two seconds (D69).* While the lit title is read again, the rows are acted on
-    in the same frames, and their reads and posts (14 Perfect Games at 150 ms a post is 2.1 s) use up the two seconds, so
-    a title that would have named its chart on the third read is kept instead. Recommended, with the one above: the rows
-    also wait while the lit chart reads its title again.
 - **From the bug check (2026-09-24), waiting on the test loop:**
   - *A score over more notes than were judged.* `20260922192124` looks like a finished Aragami S19, not a score
     counting up: 974/21/3/2/8 is 1,008 notes and the accuracy (97.95%) fits them, but 971,789 is the formula over
