@@ -76,29 +76,45 @@ public enum SongListStatus
     Unreadable,
 
     /// <summary>The badge is a different grade from the one the score earns — a misread number (D47).</summary>
-    GradeDisagrees
+    GradeDisagrees,
+
+    /// <summary>The list, with a chart lit that can't be placed: nothing is read off it (D72).</summary>
+    Unplaced
 }
 
 /// <summary>
 ///     What the song-list reader made of one frame. The title is read by an adapter from <see cref="Titles" />, the lit
 ///     row's and then the panel's (D66); <see cref="Jacket" /> is a print of the lit song's jacket, which tells two songs
-///     apart when their panels read the same.
+///     apart when their panels read the same. A list whose lit chart can't be placed has no chart type, and nothing
+///     else is read (D72).
 /// </summary>
 [ExcludeFromCodeCoverage]
 public sealed record SongListReading(
     SongListStatus Status,
     string? Reason,
-    ChartType ChartType,
+    ChartType? ChartType,
     int? Level,
     int? Score,
     string? Grade,
     IReadOnlyList<TitleBox> Titles,
     ulong Jacket);
 
+/// <summary>What the detector saw of Warm Up's song list on a frame that shows it.</summary>
+[ExcludeFromCodeCoverage]
+public abstract record SongListSighting
+{
+    /// <summary>The lit chart: its tab's chart type, and its level box counted from the left.</summary>
+    public sealed record Lit(ChartType ChartType, int Box) : SongListSighting;
+
+    /// <summary>A tab or a level box lit, and not exactly one of each: which chart is lit can't be told (D72).</summary>
+    public sealed record Unplaced(string Reason) : SongListSighting;
+}
+
 /// <summary>
 ///     Is this frame Warm Up's song list, and which chart is lit? The yellow banner, exactly one lit tab — 5K
 ///     SINGLE's orange or 6K DOUBLE's blue (D71) — and exactly one lit level box (yellow). The Arcade Station's list
-///     has none of them (D45).
+///     has none of them (D45). The banner with a tab or a box lit, but not one of each, is the list with a chart that
+///     can't be placed (D72): 6K DOUBLE's blue tab was that, before D71.
 /// </summary>
 public sealed class SongListDetector
 {
@@ -106,18 +122,40 @@ public sealed class SongListDetector
     public const double MinimumTabShare = 0.08;
     public const double MinimumBoxShare = 0.3;
 
-    public (ChartType ChartType, int LitBox)? Detect(ScreenImage image)
+    /// <summary>The list as seen, or null when the frame is not Warm Up's song list.</summary>
+    public SongListSighting? Detect(ScreenImage image)
     {
         if (Colors.Fraction(image, SongListLayout.Banner.On(image), ColorClass.BannerYellow) < MinimumBannerShare)
             return null;
-        var single = Colors.Fraction(image, SongListLayout.SingleTab.On(image), ColorClass.TabOrange) >= MinimumTabShare;
-        var halfDouble = Colors.Fraction(image, SongListLayout.HalfDoubleTab.On(image), ColorClass.TabBlue) >= MinimumTabShare;
-        if (single == halfDouble)
-            return null;
-        var lit = Enumerable.Range(0, SongListLayout.Boxes)
+        List<ChartType> tabs = [];
+        if (Colors.Fraction(image, SongListLayout.SingleTab.On(image), ColorClass.TabOrange) >= MinimumTabShare)
+            tabs.Add(ChartType.Single);
+        if (Colors.Fraction(image, SongListLayout.HalfDoubleTab.On(image), ColorClass.TabBlue) >= MinimumTabShare)
+            tabs.Add(ChartType.HalfDouble);
+        var boxes = Enumerable.Range(0, SongListLayout.Boxes)
             .Where(i => Colors.Fraction(image, SongListLayout.Box(i).On(image), ColorClass.BoxYellow) >= MinimumBoxShare)
             .ToList();
-        return lit.Count == 1 ? (single ? ChartType.Single : ChartType.HalfDouble, lit[0]) : null;
+        if (tabs.Count == 1 && boxes.Count == 1)
+            return new SongListSighting.Lit(tabs[0], boxes[0]);
+        return tabs.Count == 0 && boxes.Count == 0 ? null : new SongListSighting.Unplaced(Described(tabs, boxes));
+    }
+
+    /// <summary>What the list showed lit, for the note beside the frame and the log.</summary>
+    private static string Described(List<ChartType> tabs, List<int> boxes)
+    {
+        var tab = tabs.Count switch
+        {
+            0 => "no tab lit (5K SINGLE orange, 6K DOUBLE blue)",
+            1 => $"the {tabs[0]} tab lit",
+            _ => "both tabs lit"
+        };
+        var box = boxes.Count switch
+        {
+            0 => "no level box lit",
+            1 => $"level box {boxes[0] + 1} lit",
+            _ => $"level boxes {string.Join(", ", boxes.Select(i => i + 1))} lit"
+        };
+        return $"the song list with {tab} and {box}";
     }
 }
 
@@ -141,11 +179,14 @@ public sealed class SongListReader
     /// <summary>The reading, or null when the frame is not Warm Up's song list.</summary>
     public SongListReading? Read(ScreenImage image)
     {
-        if (_detector.Detect(image) is not { } lit)
+        var sighting = _detector.Detect(image);
+        if (sighting is SongListSighting.Unplaced unplaced)
+            return new SongListReading(SongListStatus.Unplaced, unplaced.Reason, null, null, null, null, [], 0);
+        if (sighting is not SongListSighting.Lit lit)
             return null;
         var titles = SongListLayout.Titles(image);
         var jacket = Colors.LuminancePrint(image, SongListLayout.LitJacket.On(image));
-        var level = NumberFieldReader.Read(image, SongListLayout.BoxDigits(lit.LitBox).On(image), MaskKind.Light, TemplateFamilies.ListLevel, _templates);
+        var level = NumberFieldReader.Read(image, SongListLayout.BoxDigits(lit.Box).On(image), MaskKind.Light, TemplateFamilies.ListLevel, _templates);
         var score = NumberFieldReader.Read(image, SongListLayout.Score.On(image), MaskKind.Light, TemplateFamilies.ListValue, _templates);
 
         if (score.IsEmpty)

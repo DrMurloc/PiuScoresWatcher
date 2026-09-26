@@ -450,6 +450,9 @@
   <data name="The token wasn't accepted. Not recorded." xml:space="preserve">
     <value>Le jeton n'a pas été accepté. Non enregistrée.</value>
   </data>
+  <data name="The watcher couldn't tell which chart was selected, so nothing was sent." xml:space="preserve">
+    <value>L'appli n'a pas pu savoir quelle chart était sélectionnée, rien n'a donc été envoyé.</value>
+  </data>
   <data name="The watcher isn't connected" xml:space="preserve">
     <value>L'appli n'est pas connectée</value>
   </data>

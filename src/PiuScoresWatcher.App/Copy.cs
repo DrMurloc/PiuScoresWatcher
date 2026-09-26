@@ -368,6 +368,7 @@ public static class Copy
         KeptBecause.ListUnreadable => L("Some of the numbers couldn't be read, so nothing was sent."),
         KeptBecause.GradeDisagrees => L("The grade didn't match the score, so nothing was sent."),
         KeptBecause.TitleUnmatched => L("The song title didn't match any song on PIU Scores, so nothing was sent."),
+        KeptBecause.ChartUnplaced => L("The watcher couldn't tell which chart was selected, so nothing was sent."),
         KeptBecause.ChartDisagrees => L("The chart it read has a different number of notes than the judgments add up to, so nothing was recorded."),
         KeptBecause.Refused => L("PIU Scores refused the play, so it wasn't recorded."),
         KeptBecause.SongUnknown => L("PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread."),

@@ -62,7 +62,7 @@ PiuScoresWatcher.sln
 │   ├── Recognition/                 ScreenImage, Layouts (both screens as fractions of the frame),
 │   │                                ResultScreenDetector, ResultScreenReader → ResultScreenReading,
 │   │                                SongListDetector + SongListReader (Warm Up's song list, D45–D48; each
-│   │                                tab lit in its own colour, D71),
+│   │                                tab lit in its own colour, D71; the list with a chart it can't place, D72),
 │   │                                GradeBadges + grades.json (the nine grade sprites' features),
 │   │                                the mask/segmenter/template machinery, templates.json (generated),
 │   │                                ITitleReader, TitleBox (where a title is read: the result screen's, or
@@ -81,7 +81,8 @@ PiuScoresWatcher.sln
 │   ├── Sounds/                      Tones (the chime, the tick and the low tone, synthesized to WAV, D50)
 │   └── Capture/                     CapturePipeline (one frame → one outcome), Deduplicator + PlayKey,
 │                                    BulkCaptureRun (a bulk capture: the wait, the match, the bests, D48–D52;
-│                                    the title read again while the panel holds, a chart kept once, D69),
+│                                    the title read again while the panel holds, a chart kept once, D69;
+│                                    a list it can't place kept the first time, D72),
 │                                    the ports IScreenSource / IGameSession / IFailedScreenStore / INotifier,
 │                                    WatcherNotice, SteamScreenshotFolders
 ├── src/PiuScoresWatcher.App         net10.0-windows10.0.19041.0 — WPF + adapters

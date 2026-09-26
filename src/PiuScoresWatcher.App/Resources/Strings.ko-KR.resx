@@ -450,6 +450,9 @@
   <data name="The token wasn't accepted. Not recorded." xml:space="preserve">
     <value>토큰이 받아들여지지 않았습니다. 기록되지 않았습니다.</value>
   </data>
+  <data name="The watcher couldn't tell which chart was selected, so nothing was sent." xml:space="preserve">
+    <value>앱이 어떤 채보가 선택되었는지 알 수 없어서 아무것도 전송되지 않았습니다.</value>
+  </data>
   <data name="The watcher isn't connected" xml:space="preserve">
     <value>앱이 연결되어 있지 않습니다</value>
   </data>

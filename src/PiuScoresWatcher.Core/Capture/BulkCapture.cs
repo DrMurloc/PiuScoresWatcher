@@ -18,8 +18,8 @@ public abstract record BulkOutcome
     public sealed record NotTheList(Unreadable? Kept = null) : BulkOutcome;
 
     /// <summary>
-    ///     The list, but not still for long enough yet, a title being read again while the panel holds (D69), or a chart
-    ///     already handled while it stays lit.
+    ///     The list, but not still for long enough yet, a title being read again while the panel holds (D69), a chart
+    ///     already handled while it stays lit, or a chart lit that can't be placed (D72).
     /// </summary>
     public sealed record Waiting : BulkOutcome;
 
@@ -33,8 +33,9 @@ public abstract record BulkOutcome
     public sealed record AlreadyThere(string SongName, ChartType ChartType, int Level) : BulkOutcome;
 
     /// <summary>
-    ///     Could not be read, or named no chart the list has: kept for review — the low tone. <paramref name="SavedTo" /> is
-    ///     null for a chart this run kept already, which is heard again but not kept twice (D69).
+    ///     Could not be read, named no chart the list has, or lit a chart that can't be placed (D72): kept for review — the
+    ///     low tone. <paramref name="SavedTo" /> is null for a chart this run kept already, which is heard again but not
+    ///     kept twice (D69).
     /// </summary>
     public sealed record Unreadable(KeptBecause Because, string Reason, string? SavedTo) : BulkOutcome;
 
@@ -58,7 +59,9 @@ public sealed record BulkTally(int Sent, int Already, int Unreadable, int NotRec
 ///     and sent only when it is higher; anything that cannot be read is kept for review, never sent.
 ///     A title that names no chart is read again, frame by frame, while the panel holds — a title too long for its
 ///     box scrolls through it, and each frame shows another piece — for up to <see cref="TitleRetry" />, and only then
-///     kept; a chart is kept once in a run however often the player comes back to it (D69).
+///     kept; a chart is kept once in a run however often the player comes back to it (D69). The list with a chart lit
+///     that can't be placed is kept the first time it stays so for <see cref="UnplacedFor" />, and not again in the run
+///     (D72).
 /// </summary>
 public sealed class BulkCaptureRun
 {
@@ -66,6 +69,12 @@ public sealed class BulkCaptureRun
 
     /// <summary>How long a panel whose title names no chart is read again before the chart is kept (D69).</summary>
     public static readonly TimeSpan TitleRetry = TimeSpan.FromSeconds(2);
+
+    /// <summary>How long the window shows the list with a chart it can't place before a frame of it is kept (D72).</summary>
+    public static readonly TimeSpan UnplacedFor = TimeSpan.FromSeconds(2);
+
+    /// <summary>The list with a chart it can't place, among the charts a run keeps: one entry, so it is kept once (D72).</summary>
+    private static readonly Fingerprint UnplacedList = new(SongListStatus.Unplaced, null, null, null, null, 0);
 
     private readonly Dictionary<Guid, StoredBest> _bests;
     private readonly SongCatalog _catalog;
@@ -82,6 +91,9 @@ public sealed class BulkCaptureRun
     private Fingerprint? _acted;
     private (Fingerprint Fingerprint, DateTimeOffset Since)? _pending;
     private Unnamed? _unnamed;
+
+    /// <summary>Since when the window has shown the list with a chart it can't place, frame after frame.</summary>
+    private DateTimeOffset? _unplacedSince;
 
     public BulkCaptureRun(SongListReader reader, ITitleReader titles, IPlaysClient site, IFailedScreenStore failed, IClock clock,
         SongCatalog catalog, IEnumerable<StoredBest> bests)
@@ -108,10 +120,15 @@ public sealed class BulkCaptureRun
 
     public async Task<BulkOutcome> HandleAsync(CapturedFrame frame, CancellationToken cancellationToken)
     {
+        var fromWindow = frame.Source != CaptureSource.SteamScreenshot;
         var reading = _reader.Read(frame.Image);
+        if (fromWindow && reading?.Status != SongListStatus.Unplaced)
+            _unplacedSince = null;
         if (reading is null)
             return new BulkOutcome.NotTheList(KeepUnnamed());
         ListLastSeen = _clock.Now;
+        if (reading.Status == SongListStatus.Unplaced)
+            return Unplaced(frame, reading.Reason ?? "the song list with a chart lit that can't be placed", fromWindow);
 
         // one action per arrival: the chart that was acted on stays quiet until the panel shows something else
         var fingerprint = new Fingerprint(reading.Status, reading.ChartType, reading.Level, reading.Score, reading.Grade, reading.Jacket);
@@ -121,7 +138,6 @@ public sealed class BulkCaptureRun
 
         // the window's panel moved on while the last chart's title still named nothing: that chart is kept as it was last
         // seen, and this frame starts the next one's half second (a screenshot is its own frame, and leaves it be)
-        var fromWindow = frame.Source != CaptureSource.SteamScreenshot;
         if (fromWindow && _unnamed is { } unnamed && unnamed.Fingerprint != fingerprint)
         {
             var kept = KeepUnnamed()!;
@@ -150,6 +166,34 @@ public sealed class BulkCaptureRun
         return KeepUnnamed();
     }
 
+    /// <summary>
+    ///     The list, with a chart lit that can't be placed (D72): from the window, kept once it has stayed so for
+    ///     <see cref="UnplacedFor" />, a screenshot at once, and only the first time in the run — after that the run says
+    ///     nothing more about it. The chart whose title the window was reading again is no longer the one lit, and is kept
+    ///     as it was last seen.
+    /// </summary>
+    private BulkOutcome Unplaced(CapturedFrame frame, string reason, bool fromWindow)
+    {
+        var now = _clock.Now;
+        if (fromWindow && KeepUnnamed() is { } unnamed)
+        {
+            _unplacedSince = now;
+            return unnamed;
+        }
+
+        lock (_gate)
+            if (_kept.Contains(UnplacedList))
+                return new BulkOutcome.Waiting();
+        if (fromWindow)
+        {
+            _unplacedSince ??= now;
+            if (now - _unplacedSince < UnplacedFor)
+                return new BulkOutcome.Waiting();
+        }
+
+        return Keep(frame, UnplacedList, KeptBecause.ChartUnplaced, reason);
+    }
+
     private bool HasSettled(Fingerprint fingerprint)
     {
         var now = _clock.Now;
@@ -165,11 +209,12 @@ public sealed class BulkCaptureRun
     private async Task<BulkOutcome> CaptureAsync(CapturedFrame frame, SongListReading reading, Fingerprint fingerprint,
         CancellationToken cancellationToken)
     {
+        var type = reading.ChartType!.Value;
         var level = reading.Level!.Value;
         var score = reading.Score!.Value;
-        var choice = await _titles.ChooseAsync(frame.Image, reading.Titles, _catalog, reading.ChartType, level, null, cancellationToken);
+        var choice = await _titles.ChooseAsync(frame.Image, reading.Titles, _catalog, type, level, null, cancellationToken);
         if (choice.Match is not CatalogMatch.Found { Chart: var chart })
-            return Unmatched(frame, fingerprint, choice, reading.ChartType, level);
+            return Unmatched(frame, fingerprint, choice, type, level);
 
         if (_unnamed?.Fingerprint == fingerprint)
             _unnamed = null;
@@ -177,10 +222,10 @@ public sealed class BulkCaptureRun
         if (_bests.TryGetValue(chart.Id, out var stored) && stored is { IsBroken: false, Score: { } storedScore } && storedScore >= score)
         {
             Count(tally => tally with { Already = tally.Already + 1 });
-            return new BulkOutcome.AlreadyThere(chart.SongName, reading.ChartType, level);
+            return new BulkOutcome.AlreadyThere(chart.SongName, type, level);
         }
 
-        var play = ObservedPlay.Captured(RiseMix.Rise, chart.SongName, reading.ChartType, level, score, frame.SeenAt);
+        var play = ObservedPlay.Captured(RiseMix.Rise, chart.SongName, type, level, score, frame.SeenAt);
         var outcome = await _site.PostAsync(play, CaptureSources.SongList, cancellationToken);
         if (outcome is PostOutcome.Recorded)
         {
@@ -254,7 +299,7 @@ public sealed class BulkCaptureRun
     ///     What the panel showed, and whose jacket is lit in the list; a change of any part is a new arrival. The jacket
     ///     is there because two songs in a row can show the same level, score and grade — every 1,000,000 is an SSS.
     /// </summary>
-    private sealed record Fingerprint(SongListStatus Status, ChartType ChartType, int? Level, int? Score, string? Grade, ulong Jacket);
+    private sealed record Fingerprint(SongListStatus Status, ChartType? ChartType, int? Level, int? Score, string? Grade, ulong Jacket);
 
     /// <summary>A chart whose title has named nothing since <paramref name="Since" />, and how it was last seen.</summary>
     private sealed record Unnamed(Fingerprint Fingerprint, DateTimeOffset Since, CapturedFrame Frame, KeptBecause Because, string Reason);

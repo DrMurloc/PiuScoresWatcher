@@ -78,6 +78,22 @@ public sealed class SongListReaderTests
         Assert.Null(new SongListDetector().Detect(FixtureScreens.Load(name)));
     }
 
+    [Fact]
+    public void AListWithALitBoxAndNoTabItKnowsIsSeenAndNotPlaced()
+    {
+        // 6K DOUBLE's list with that tab taken from a 5K SINGLE screen, where it is unlit: the banner and a lit box, and
+        // no tab the detector knows — how it saw 6K DOUBLE before D71 (D72)
+        var image = FixtureScreens.LoadWithRegionOf("20260926111534", "20260923193118", FractionRect.At1080p(398, 492, 607, 540));
+
+        var reading = Reader.Read(image);
+
+        Assert.NotNull(reading);
+        Assert.Equal(SongListStatus.Unplaced, reading.Status);
+        Assert.Equal("the song list with no tab lit (5K SINGLE orange, 6K DOUBLE blue) and level box 1 lit", reading.Reason);
+        Assert.Null(reading.ChartType);
+        Assert.Empty(reading.Titles);
+    }
+
     [Theory]
     [MemberData(nameof(SongLists))]
     public void NoSongListIsAResultScreen(string name)
