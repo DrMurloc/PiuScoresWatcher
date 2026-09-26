@@ -134,6 +134,33 @@ public sealed class TitlesTests
     }
 
     [Fact]
+    public async Task ARowsTitleNamesItsSongAtWhicheverOfItsPerfectGamesTheListHas()
+    {
+        // Elysium's row: Perfect Games at S4 and S9, and PIU Scores' Rise list had its S4 at S3 (D70)
+        Reads("row 2", "Elysium");
+        var image = FixtureScreens.Load(ElysiumS4);
+        var row = new TitleBox("row 2", new PixelRect(0, 0, 10, 10), false, null);
+
+        var choice = await _titles.Object.ChooseSongAsync(image, row, Rise, ChartType.Single, [4, 9], CancellationToken.None);
+
+        var found = Assert.IsType<CatalogMatch.Found>(choice.Match).Chart;
+        Assert.Equal(("Elysium", 9), (found.SongName, found.Level));
+        Assert.Equal("'Elysium' (row 2)", choice.Described);
+    }
+
+    [Fact]
+    public async Task ARowWhoseSongTheListHasOnlyAtOtherChartsSaysSo()
+    {
+        Reads("row 2", "Elysium");
+        var image = FixtureScreens.Load(ElysiumS4);
+        var row = new TitleBox("row 2", new PixelRect(0, 0, 10, 10), false, null);
+
+        var choice = await _titles.Object.ChooseSongAsync(image, row, Rise, ChartType.Single, [4, 7], CancellationToken.None);
+
+        Assert.Equal("Elysium", Assert.IsType<CatalogMatch.Unlisted>(choice.Match).SongName);
+    }
+
+    [Fact]
     public async Task NothingReadAnywhereIsSeenAsNothing()
     {
         Reads("list");

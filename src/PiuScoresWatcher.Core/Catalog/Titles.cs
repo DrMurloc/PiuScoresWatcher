@@ -56,4 +56,33 @@ public static class Titles
 
         return new TitleChoice(first, unlisted ?? (CatalogMatch)new CatalogMatch.NotFound(), seen);
     }
+
+    /// <summary>
+    ///     A song list row's title (D75): read attempt by attempt until a reading names a chart at one of the row's
+    ///     <paramref name="levels" />, each matched on its own among the songs that have that chart, the leftmost first. A row
+    ///     is one song, so the chart found names the song for the row's other charts. Otherwise as
+    ///     <see cref="ChooseAsync" />: a song the list has only at other charts is what the choice says when nothing is found.
+    /// </summary>
+    public static async Task<TitleChoice> ChooseSongAsync(this ITitleReader titles, ScreenImage image, TitleBox box, SongCatalog catalog,
+        ChartType type, IReadOnlyList<int> levels, CancellationToken cancellationToken)
+    {
+        string? first = null;
+        CatalogMatch.Unlisted? unlisted = null;
+        var shape = box.ScrollsPast is { } past ? new TitleShape(TitleInk.RunsOffRight(image, box.Region), past) : TitleShape.Whole;
+        await foreach (var read in titles.ReadAsync(image, box, cancellationToken))
+        {
+            first ??= read;
+            foreach (var level in levels)
+                switch (catalog.Match(read, type, level, null, shape))
+                {
+                    case CatalogMatch.Found found:
+                        return new TitleChoice(read, found, [new BoxReading(box.Name, first)]);
+                    case CatalogMatch.Unlisted listed:
+                        unlisted ??= listed;
+                        break;
+                }
+        }
+
+        return new TitleChoice(first, unlisted ?? (CatalogMatch)new CatalogMatch.NotFound(), first is null ? [] : [new BoxReading(box.Name, first)]);
+    }
 }

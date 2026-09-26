@@ -1,6 +1,7 @@
 using PiuScoresWatcher.Core.Domain;
 using PiuScoresWatcher.Core.Exceptions;
 using PiuScoresWatcher.Core.Recognition;
+using PiuScoresWatcher.Core.Scoring;
 
 namespace PiuScoresWatcher.Core.Api;
 
@@ -66,4 +67,12 @@ public sealed record ObservedPlay(
             throw new IncompletePlayException("A capture needs the song's title to be posted.");
         return new ObservedPlay(mix, songName.Trim(), chartType, level, null, null, score, false, readAt);
     }
+
+    /// <summary>
+    ///     A Perfect Game, the way PIU Scores records one: the award its judgments earn, or for a capture, which has none, the
+    ///     million only a Perfect Game scores (D74). What plays Level up (D77).
+    /// </summary>
+    public bool IsPerfectGame => Judgments is null
+        ? !IsBroken && Score == PhoenixScoring.PerfectGameScore
+        : Awards.Of(Mix, Judgments, IsBroken) == Award.PerfectGame;
 }

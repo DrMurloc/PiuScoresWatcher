@@ -129,6 +129,17 @@ public sealed class SongCatalog
             : new CatalogMatch.NotFound();
     }
 
+    /// <summary>
+    ///     The song's chart at a type and level, by the list's own spelling of its name — a row of the song list is one song,
+    ///     so the chart its title named at one level names it at the others (D75); null when the list lacks that chart (D70).
+    /// </summary>
+    public CatalogChart? Chart(string songName, ChartType type, int level)
+    {
+        return _byChart.TryGetValue((type, level), out var charts)
+            ? charts.Select(entry => entry.Chart).FirstOrDefault(chart => chart.SongName == songName)
+            : null;
+    }
+
     /// <summary>The one candidate the key names — exactly, by a near miss, or with a piece missing or extra — or null.</summary>
     private static CatalogChart? Best(string key, IReadOnlyList<(string Key, CatalogChart Chart)> candidates)
     {

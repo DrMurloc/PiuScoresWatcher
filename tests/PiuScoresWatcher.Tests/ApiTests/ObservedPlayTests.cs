@@ -40,6 +40,23 @@ public sealed class ObservedPlayTests
         Assert.Throws<IncompletePlayException>(() => ObservedPlay.From(Reading(), "   ", When));
     }
 
+    [Fact]
+    public void APerfectGameIsEveryJudgmentAPerfectOrACaptureOfAMillion()
+    {
+        Assert.True(ObservedPlay.From(Reading() with { Judgments = Judgments.From(1001, 0, 0, 0, 0), Score = 1_000_000 }, "Ugly Dee", When).IsPerfectGame);
+        Assert.False(ObservedPlay.From(Reading(), "Ugly Dee", When).IsPerfectGame);
+        Assert.True(ObservedPlay.Captured(RiseMix.Rise, "B2", ChartType.Single, 7, 1_000_000, When).IsPerfectGame);
+        Assert.False(ObservedPlay.Captured(RiseMix.Rise, "Aragami", ChartType.Single, 19, 999_999, When).IsPerfectGame);
+    }
+
+    [Fact]
+    public void AGreyGradeIsNoPerfectGame()
+    {
+        var reading = Reading() with { Mix = RiseMix.Rise, Judgments = Judgments.From(1001, 0, 0, 0, 0), Score = 1_000_000, IsBroken = true };
+
+        Assert.False(ObservedPlay.From(reading, "Ugly Dee", When).IsPerfectGame);
+    }
+
     [Theory]
     [InlineData(CaptureSource.Replay, "watcher-replay")]
     [InlineData(CaptureSource.GameWindow, "watcher-grab")]
