@@ -22,11 +22,11 @@ public enum Waveform
 public sealed record Tone(double Frequency, double Start, double Duration, Waveform Wave, double Peak, double Attack = 0.002, double Tail = 0.0001);
 
 /// <summary>
-///     The bulk capture's three sounds (D50), synthesized rather than shipped as files: a snap and a bright
-///     two-note ding for sent, a short click for already there, a descending buzz for not sent. The first play
-///     test lost the mock's soft beeps under Warm Up's song previews, so every sound starts within a couple of
-///     milliseconds, sits where music leaves room — high and bright, or buzzy with overtones — and is mixed as
-///     loud as a WAV goes without distorting. The player turns the watcher down in Windows' volume mixer, and
+///     The watcher's sounds (D50), synthesized rather than shipped as files: a snap and a bright two-note ding for
+///     sent, a short click for already there, a descending buzz for not sent, and Level up for a Perfect Game (D87).
+///     The first play test lost the mock's soft beeps under Warm Up's song previews, so every sound starts within a
+///     couple of milliseconds, sits where music leaves room — high and bright, or buzzy with overtones — and is mixed
+///     as loud as a WAV goes without distorting. The player turns the watcher down in Windows' volume mixer, and
 ///     the App hands the bytes to Windows.
 /// </summary>
 public static class Tones
@@ -55,6 +55,22 @@ public static class Tones
     [
         new(311.1, 0, 0.13, Waveform.Sawtooth, 0.5, Attack: 0.003, Tail: 0.3),
         new(233.1, 0.17, 0.2, Waveform.Sawtooth, 0.5, Attack: 0.003, Tail: 0.05)
+    ];
+
+    /// <summary>
+    ///     Level up, the owner's pick for a Perfect Game (D87): a snap and a quick climb up the chime's chord (E6, A6, C♯7)
+    ///     landing on its top note, E7, with the octave over the chime's A ringing and a square A6 under it for bite. It
+    ///     rings a little longer than the chime; the next sound cuts it short like any other.
+    /// </summary>
+    public static readonly Tone[] PerfectGame =
+    [
+        new(0, 0, 0.012, Waveform.Noise, 0.6, Attack: 0.0005, Tail: 0.001),
+        new(1318.51, 0, 0.09, Waveform.Triangle, 0.5, Tail: 0.05),
+        new(1760, 0.055, 0.09, Waveform.Triangle, 0.5, Tail: 0.05),
+        new(2217.46, 0.11, 0.09, Waveform.Triangle, 0.5, Tail: 0.05),
+        new(2637.02, 0.165, 0.46, Waveform.Triangle, 0.6, Tail: 0.005),
+        new(3520, 0.165, 0.46, Waveform.Triangle, 0.35, Tail: 0.005),
+        new(1760, 0.165, 0.1, Waveform.Square, 0.14, Tail: 0.05)
     ];
 
     /// <summary>A 16-bit mono PCM WAV of the notes mixed and brought up to <see cref="Loudness" />, with a moment of silence after the last.</summary>

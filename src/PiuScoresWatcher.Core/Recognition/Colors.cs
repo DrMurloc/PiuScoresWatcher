@@ -1,7 +1,7 @@
 namespace PiuScoresWatcher.Core.Recognition;
 
-/// <summary>A hue band with saturation and brightness floors; the band may wrap through red (0°).</summary>
-internal readonly record struct ColorClass(double HueLo, double HueHi, double MinSat, double MinVal)
+/// <summary>A hue band with saturation and brightness floors, and ceilings when a colour is dark or grey; the band may wrap through red (0°).</summary>
+internal readonly record struct ColorClass(double HueLo, double HueHi, double MinSat, double MinVal, double MaxSat = 1, double MaxVal = 1)
 {
     /// <summary>PERFECT's label.</summary>
     public static readonly ColorClass Blue = new(180, 250, 0.45, 0.55);
@@ -30,9 +30,18 @@ internal readonly record struct ColorClass(double HueLo, double HueHi, double Mi
     /// <summary>The lit level box on the Warm Up song list.</summary>
     public static readonly ColorClass BoxYellow = new(40, 60, 0.6, 0.7);
 
+    /// <summary>The song list's lit row, whose yellow hides its empty places behind the same gold as a lit bar (D85).</summary>
+    public static readonly ColorClass LitRow = new(30, 60, 0.6, 0.7);
+
+    /// <summary>A mark's bar lit gold under a level in the song list (D84).</summary>
+    public static readonly ColorClass BarLit = new(35, 55, 0.7, 0.75);
+
+    /// <summary>A mark's bar unlit: a colourless dark grey, where the row behind it is navy (D84).</summary>
+    public static readonly ColorClass BarUnlit = new(0, 360, 0, 0.18, MaxSat: 0.3, MaxVal: 0.45);
+
     public bool Matches(double hue, double sat, double val)
     {
-        if (sat < MinSat || val < MinVal)
+        if (sat < MinSat || val < MinVal || sat > MaxSat || val > MaxVal)
             return false;
         return HueLo <= HueHi ? hue >= HueLo && hue <= HueHi : hue >= HueLo || hue <= HueHi;
     }

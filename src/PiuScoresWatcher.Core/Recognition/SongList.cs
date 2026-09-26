@@ -62,6 +62,74 @@ internal static class SongListLayout
         var x0 = 83 + 90 * i;
         return FractionRect.At1080p(x0 + 21, 574, x0 + 66, 604);
     }
+
+    /// <summary>The list's rows, counted from the top; the lit song's is the fourth (D66).</summary>
+    public const int Rows = 7;
+
+    public const int LitRow = 4;
+
+    /// <summary>A row's places for a level, right-aligned: a song with fewer charts leaves the left ones empty (D85).</summary>
+    public const int Places = 6;
+
+    // Measured on the first tester's 4K lists, halved (tools/reader-lab/songlist.py): the first row's bars' centre line and
+    // the row pitch, the first place's left edge and the place pitch, and each bar's inside, clear of its dark edges.
+    private const double FirstBarsY = 300.8;
+    private const double RowPitch = 108.36;
+    private const double FirstPlaceX = 1454;
+    private const double PlacePitch = 62;
+    private const double BarHalfHeight = 1.5;
+    private static readonly (double X0, double X1)[] BarSpans = [(1, 11), (15, 25), (29, 40)];
+
+    /// <summary>One of the three bars under a place's level, the first leftmost: lit gold for the chart's best mark (D84).</summary>
+    public static FractionRect Bar(int row, int place, int bar)
+    {
+        var x0 = FirstPlaceX + PlacePitch * place;
+        var y = BarsY(row);
+        return At1080p(x0 + BarSpans[bar].X0, y - BarHalfHeight, x0 + BarSpans[bar].X1, y + BarHalfHeight);
+    }
+
+    /// <summary>A place's level, above its bars; the H stamp sits over its top left, as it does on the panel's boxes.</summary>
+    public static FractionRect PlaceDigits(int row, int place)
+    {
+        var x0 = FirstPlaceX + PlacePitch * place;
+        var y = BarsY(row);
+        return At1080p(x0 - 6, y - 40, x0 + 48, y - 6);
+    }
+
+    /// <summary>Right of a row's last place, where nothing but the row is drawn: yellow on the lit row, navy on the others.</summary>
+    public static FractionRect RowBackground(int row)
+    {
+        var y = BarsY(row);
+        return At1080p(1812, y - 14, 1880, y + 14);
+    }
+
+    /// <summary>A row's title box: the lit row's, moved to the row.</summary>
+    public static FractionRect RowTitleOf(int row)
+    {
+        return Moved(RowTitle, row);
+    }
+
+    /// <summary>A row's jacket: the lit one's place, moved to the row. A song shows the same jacket in every row it scrolls through.</summary>
+    public static FractionRect JacketOf(int row)
+    {
+        return Moved(LitJacket, row);
+    }
+
+    private static double BarsY(int row)
+    {
+        return FirstBarsY + RowPitch * (row - 1);
+    }
+
+    private static FractionRect Moved(FractionRect litRow, int row)
+    {
+        var dy = (BarsY(row) - BarsY(LitRow)) / 1080;
+        return litRow with { Y0 = litRow.Y0 + dy, Y1 = litRow.Y1 + dy };
+    }
+
+    private static FractionRect At1080p(double x0, double y0, double x1, double y1)
+    {
+        return new FractionRect(x0 / 1920, y0 / 1080, x1 / 1920, y1 / 1080);
+    }
 }
 
 public enum SongListStatus
@@ -85,8 +153,8 @@ public enum SongListStatus
 /// <summary>
 ///     What the song-list reader made of one frame. The title is read by an adapter from <see cref="Titles" />, the lit
 ///     row's and then the panel's (D66); <see cref="Jacket" /> is a print of the lit song's jacket, which tells two songs
-///     apart when their panels read the same. A list whose lit chart can't be placed has no chart type, and nothing
-///     else is read (D72).
+///     apart when their panels read the same. <see cref="Rows" /> are the list's other rows, whatever the lit chart's
+///     status (D84). A list whose lit chart can't be placed has no chart type, and nothing else is read (D72).
 /// </summary>
 [ExcludeFromCodeCoverage]
 public sealed record SongListReading(
@@ -97,7 +165,24 @@ public sealed record SongListReading(
     int? Score,
     string? Grade,
     IReadOnlyList<TitleBox> Titles,
-    ulong Jacket);
+    ulong Jacket,
+    IReadOnlyList<SongListRow> Rows);
+
+/// <summary>
+///     One of the song list's rows other than the lit one, as far as its marks go (D84, D85): under each level three bars
+///     light gold from the left for the chart's best mark — one No Miss, two Full Combo, three a Perfect Game, which is
+///     1,000,000 and so a whole capture.
+/// </summary>
+/// <param name="Row">Where it sits, counted from the top; never <see cref="SongListLayout.LitRow" />.</param>
+/// <param name="Jacket">A print of its jacket: the same song prints the same in whichever row it scrolls through.</param>
+/// <param name="Marks">
+///     Each chart's lit bars, left to right; null when the row can't be read on this frame — a bar neither lit nor unlit, or
+///     a Perfect Game whose level doesn't read — and empty for a row with no chart.
+/// </param>
+/// <param name="PerfectGames">The levels of the charts with all three bars lit, left to right; empty when <paramref name="Marks" /> is null.</param>
+/// <param name="Title">The row's title box, read only when it has a Perfect Game to send.</param>
+[ExcludeFromCodeCoverage]
+public sealed record SongListRow(int Row, ulong Jacket, IReadOnlyList<int>? Marks, IReadOnlyList<int> PerfectGames, TitleBox Title);
 
 /// <summary>What the detector saw of Warm Up's song list on a frame that shows it.</summary>
 [ExcludeFromCodeCoverage]
@@ -162,10 +247,17 @@ public sealed class SongListDetector
 /// <summary>
 ///     Reads the lit chart's best off Warm Up's song list: the level from the lit box, the best score, and
 ///     the grade badge as the check (D47). The panel's accuracy and max combo are left alone: they do not
-///     always come from the best-score play.
+///     always come from the best-score play. The other rows are read for their marks, and the level of each chart
+///     whose three bars are lit: a Perfect Game (D84, D85).
 /// </summary>
 public sealed class SongListReader
 {
+    /// <summary>How much of a bar must be the gold of a lit one, or the grey of an unlit one, for it to count as either.</summary>
+    public const double MinimumBarShare = 0.6;
+
+    /// <summary>The lit row shows at least 0.29 of its yellow right of its places on every fixture; the others show none.</summary>
+    public const double MinimumLitRowShare = 0.1;
+
     private readonly SongListDetector _detector = new();
     private readonly GradeBadges _grades;
     private readonly TemplateSet _templates;
@@ -181,33 +273,103 @@ public sealed class SongListReader
     {
         var sighting = _detector.Detect(image);
         if (sighting is SongListSighting.Unplaced unplaced)
-            return new SongListReading(SongListStatus.Unplaced, unplaced.Reason, null, null, null, null, [], 0);
+            return new SongListReading(SongListStatus.Unplaced, unplaced.Reason, null, null, null, null, [], 0, []);
         if (sighting is not SongListSighting.Lit lit)
             return null;
         var titles = SongListLayout.Titles(image);
         var jacket = Colors.LuminancePrint(image, SongListLayout.LitJacket.On(image));
+        var rows = Rows(image);
         var level = NumberFieldReader.Read(image, SongListLayout.BoxDigits(lit.Box).On(image), MaskKind.Light, TemplateFamilies.ListLevel, _templates);
         var score = NumberFieldReader.Read(image, SongListLayout.Score.On(image), MaskKind.Light, TemplateFamilies.ListValue, _templates);
 
         if (score.IsEmpty)
-            return new SongListReading(SongListStatus.NoBest, null, lit.ChartType, level.Value, null, null, titles, jacket);
+            return new SongListReading(SongListStatus.NoBest, null, lit.ChartType, level.Value, null, null, titles, jacket, rows);
         if (!level.IsClean || level.Value is not (>= 1 and <= 29))
             return new SongListReading(SongListStatus.Unreadable, $"level read as '{level.Text}'", lit.ChartType, null, score.Value, null, titles,
-                jacket);
+                jacket, rows);
         if (!score.IsClean || score.Value is not (>= 0 and <= 1_000_000))
             return new SongListReading(SongListStatus.Unreadable, $"best score read as '{score.Text}'", lit.ChartType, level.Value, null, null,
-                titles, jacket);
+                titles, jacket, rows);
 
         var grade = _grades.Classify(image, SongListLayout.Badge.On(image));
         if (!grade.IsConfident)
             return new SongListReading(SongListStatus.Unreadable,
                 $"the grade badge matched no grade clearly ({grade.Grade} at {grade.Similarity:0.00}, ahead by {grade.Margin:0.00})",
-                lit.ChartType, level.Value, score.Value, null, titles, jacket);
+                lit.ChartType, level.Value, score.Value, null, titles, jacket, rows);
 
         var earned = Grades.Of(RiseMix.Rise, score.Value.Value);
         return earned == grade.Grade
-            ? new SongListReading(SongListStatus.Best, null, lit.ChartType, level.Value, score.Value, grade.Grade, titles, jacket)
+            ? new SongListReading(SongListStatus.Best, null, lit.ChartType, level.Value, score.Value, grade.Grade, titles, jacket, rows)
             : new SongListReading(SongListStatus.GradeDisagrees, $"the badge shows {grade.Grade}, {score.Value} earns {earned}",
-                lit.ChartType, level.Value, score.Value, grade.Grade, titles, jacket);
+                lit.ChartType, level.Value, score.Value, grade.Grade, titles, jacket, rows);
+    }
+
+    /// <summary>Every row but the lit one, which its yellow gives away (D85).</summary>
+    private IReadOnlyList<SongListRow> Rows(ScreenImage image)
+    {
+        List<SongListRow> rows = [];
+        for (var row = 1; row <= SongListLayout.Rows; row++)
+        {
+            if (Colors.Fraction(image, SongListLayout.RowBackground(row).On(image), ColorClass.LitRow) >= MinimumLitRowShare)
+                continue;
+            var jacket = Colors.LuminancePrint(image, SongListLayout.JacketOf(row).On(image));
+            var title = new TitleBox($"row {row}", SongListLayout.RowTitleOf(row).On(image), false, SongListLayout.RowScrollsPast);
+            rows.Add(Marks(image, row) is { } read
+                ? new SongListRow(row, jacket, read.Marks, read.PerfectGames, title)
+                : new SongListRow(row, jacket, null, [], title));
+        }
+
+        return rows;
+    }
+
+    /// <summary>
+    ///     A row's marks, place by place from the left, and the level of each Perfect Game; null when the row can't be read
+    ///     on this frame. A place holds a chart when each of its bars is lit or unlit, the lit ones from the left, and is
+    ///     empty when none is either; the places are right-aligned, so an empty one after a chart means the row is not
+    ///     sitting where it should, moving or covered.
+    /// </summary>
+    private (IReadOnlyList<int> Marks, IReadOnlyList<int> PerfectGames)? Marks(ScreenImage image, int row)
+    {
+        List<int> marks = [];
+        List<int> perfectGames = [];
+        for (var place = 0; place < SongListLayout.Places; place++)
+        {
+            var lit = 0;
+            var unlit = 0;
+            for (var bar = 0; bar < 3; bar++)
+            {
+                var rect = SongListLayout.Bar(row, place, bar).On(image);
+                if (Colors.Fraction(image, rect, ColorClass.BarLit) >= MinimumBarShare)
+                {
+                    if (unlit > 0)
+                        return null; // a lit bar after an unlit one: no mark looks like that
+                    lit++;
+                }
+                else if (Colors.Fraction(image, rect, ColorClass.BarUnlit) >= MinimumBarShare)
+                {
+                    unlit++;
+                }
+            }
+
+            if (lit + unlit == 0)
+            {
+                if (marks.Count > 0)
+                    return null;
+                continue;
+            }
+
+            if (lit + unlit < 3)
+                return null;
+            marks.Add(lit);
+            if (lit < 3)
+                continue;
+            var level = NumberFieldReader.Read(image, SongListLayout.PlaceDigits(row, place).On(image), MaskKind.Light, TemplateFamilies.ListLevel,
+                _templates);
+            if (!level.IsClean || level.Value is not (>= 1 and <= 29))
+                return null;
+            perfectGames.Add(level.Value.Value);
+        }
+
+        return (marks, perfectGames);
     }
 }

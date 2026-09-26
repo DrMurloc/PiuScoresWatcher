@@ -164,10 +164,37 @@ public sealed class BulkCaptureService : IDisposable
                 break;
         }
 
+        foreach (var perfectGame in outcome.PerfectGames)
+            LogPerfectGame(perfectGame);
+
         // a run stopped while this frame was in flight has already given its summary
-        if (stillRunning && outcome is not (BulkOutcome.NotTheList { Kept: null } or BulkOutcome.Waiting))
+        if (stillRunning && (outcome is not (BulkOutcome.NotTheList { Kept: null } or BulkOutcome.Waiting) || outcome.PerfectGames.Count > 0))
             _status.BulkProgress(run.Tally);
         return outcome;
+    }
+
+    /// <summary>A Perfect Game off one of the list's other rows (D84-D86): the log hears of each, the player only of those sent.</summary>
+    private void LogPerfectGame(PerfectGameOutcome outcome)
+    {
+        switch (outcome)
+        {
+            case PerfectGameOutcome.Sent sent:
+                _log.LogInformation("Bulk capture sent {Song} {Type} {Level}, a Perfect Game in the list's rows", sent.Play.SongName,
+                    sent.Play.ChartType, sent.Play.Level);
+                break;
+            case PerfectGameOutcome.AlreadyThere already:
+                _log.LogInformation("Bulk capture: {Song} {Type} {Level}, a Perfect Game in the list's rows, already on PIU Scores", already.SongName,
+                    already.ChartType, already.Level);
+                break;
+            case PerfectGameOutcome.Unplaced unplaced:
+                _log.LogWarning("Bulk capture left the Perfect Game at {Type} {Level} in row {Row}: {Reason}", unplaced.ChartType, unplaced.Level,
+                    unplaced.Row, unplaced.Reason);
+                break;
+            case PerfectGameOutcome.NotRecorded notRecorded:
+                _log.LogWarning("Bulk capture: {Song} {Type} {Level}, a Perfect Game in the list's rows, not recorded — {Why}", notRecorded.Play.SongName,
+                    notRecorded.Play.ChartType, notRecorded.Play.Level, notRecorded.Outcome.Describe());
+                break;
+        }
     }
 
     private void LogKept(BulkOutcome.Unreadable kept, string when)

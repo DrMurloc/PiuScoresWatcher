@@ -109,12 +109,14 @@ public sealed class WatcherNotifier : INotifier
         };
     }
 
-    /// <summary>The run's one summary (D50): Review only when something is waiting there.</summary>
+    /// <summary>The run's one summary (D50): how many of its new bests were Perfect Games when any were (D88), and Review only when something is waiting there.</summary>
     private static ToastContentBuilder Finished(BulkTally tally)
     {
         var toast = Opening(ToastAction.Settings)
             .AddText(Copy.BulkFinishedTitle)
             .AddText(Copy.BulkSummary(tally));
+        if (tally.PerfectGames > 0)
+            toast.AddText(Copy.BulkPerfectGames(tally.PerfectGames));
         if (tally.NotSent > 0)
             toast.AddButton(new ToastButton().SetContent(Copy.Review).AddArgument(ToastAction.Key, ToastAction.Review));
         return toast.AddButton(new ToastButton().SetContent(Copy.TrayOpenSite).AddArgument(ToastAction.Key, ToastAction.Site));
@@ -164,7 +166,8 @@ public sealed class WatcherNotifier : INotifier
                 _log.LogInformation("Updated to {Version}", updated.Version);
                 break;
             case WatcherNotice.BulkCaptureFinished finished:
-                _log.LogInformation("Bulk capture finished: {Summary}", Copy.English(() => Copy.BulkSummary(finished.Tally)));
+                _log.LogInformation("Bulk capture finished: {Summary}, {PerfectGames} Perfect Games among them", Copy.English(() => Copy.BulkSummary(finished.Tally)),
+                    finished.Tally.PerfectGames);
                 break;
         }
     }

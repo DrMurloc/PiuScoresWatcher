@@ -127,7 +127,8 @@ internal static partial class ReplayRunner
     /// <summary>
     ///     What a bulk capture would read from Warm Up's song list (D47), the title included even when the
     ///     chart has no best — every attempt in the lit row and on the panel, and whether each runs off its box (D66,
-    ///     D68). Never posted: a replay has neither the chart list nor the player's bests to check a best against.
+    ///     D68) — and every other row's marks, with the title of each that holds a Perfect Game (D84, D85). Never
+    ///     posted: a replay has neither the chart list nor the player's bests to check a best against.
     /// </summary>
     private static async Task<(object Report, int ExitCode)> SongListAsync(string file, ScreenImage image)
     {
@@ -143,6 +144,17 @@ internal static partial class ReplayRunner
             titles.AddRange(attempts);
             boxes.Add(new { box = box.Name, runsOffRight = TitleInk.RunsOffRight(image, box.Region), attempts });
         }
+
+        // every other row's marks, and the title of each row with a Perfect Game to send (D84, D85)
+        var rows = new List<object>();
+        foreach (var row in reading.Rows)
+            rows.Add(new
+            {
+                row.Row,
+                marks = row.Marks is { } marks ? string.Join(" ", marks) : "unread",
+                row.PerfectGames,
+                title = row.PerfectGames.Count > 0 ? (await ReadTitlesAsync(image, row.Title)).FirstOrDefault() : null
+            });
 
         var title = titles.FirstOrDefault();
         var report = new
@@ -160,6 +172,7 @@ internal static partial class ReplayRunner
             titleBoxes = boxes,
             reading.Score,
             reading.Grade,
+            rows,
             note = "a song list is reported, never posted: only a bulk capture checks a best against yours"
         };
         return (report, reading.Status == SongListStatus.Best && title is not null ? 0 : 1);

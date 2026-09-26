@@ -135,9 +135,9 @@ public static class Copy
     // ---- Settings: a play's sound (D63, D64) ----
     public static string SoundsWhilePlaying => L("Sounds while playing");
 
-    /// <summary>Under the switch: what each of the three sounds means for a play.</summary>
+    /// <summary>Under the switch: what each of the four sounds means for a play (D87).</summary>
     public static string SoundsWhilePlayingDetail =>
-        L("A chime when a play is recorded, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it.");
+        L("A chime when a play is recorded, a level-up for a Perfect Game, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it.");
 
     // ---- Settings: when a session ends (D74–D78) ----
     public static string SectionSessions => Upper(L("Sessions"));
@@ -202,8 +202,14 @@ public static class Copy
     public static string BulkStep2 => L("Move through every chart: {A} {D} change the level, {TAB} switches 5K SINGLE and 6K DOUBLE, {W} {S} change the song.");
 
     public static string BulkStep3 => L("Wait for the sound before moving on.");
+
+    /// <summary>Under the steps: the other rows' Perfect Games go up without being lit (D84, D88).</summary>
+    public static string BulkPerfectGamesTip => L("Perfect Games don't need to be highlighted: every one on screen is sent once the list stops moving.");
+
     public static string SoundChime => L("Chime");
     public static string SoundChimeMeaning => L("Sent to PIU Scores.");
+    public static string SoundLevelUp => L("Level up");
+    public static string SoundLevelUpMeaning => L("A Perfect Game, sent to PIU Scores.");
     public static string SoundTick => L("Tick");
     public static string SoundTickMeaning => L("PIU Scores already has this best, or a higher one.");
     public static string SoundLow => L("Low tone");
@@ -274,6 +280,9 @@ public static class Copy
 
     public static string BulkSummary(BulkTally tally) =>
         L("{0} new bests sent · {1} already on PIU Scores · {2} couldn't be read", tally.Sent, tally.Already, tally.NotSent);
+
+    /// <summary>The summary's second line when any of the new bests were Perfect Games (D88).</summary>
+    public static string BulkPerfectGames(int count) => Plural(count, "{0} of them a Perfect Game", "{0} of them Perfect Games");
 
     public static string StatusDetail(DateTimeOffset? lastRecorded, int playsToday, DateTimeOffset now)
     {

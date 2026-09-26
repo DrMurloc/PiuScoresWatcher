@@ -48,6 +48,14 @@ public sealed class SongCatalogTests
         return (match as CatalogMatch.Found)?.Chart.SongName;
     }
 
+    [Fact]
+    public void ASongsChartIsFoundByTheListsOwnSpellingOfItsName()
+    {
+        Assert.Equal(20, Catalog.Chart("Aragami", ChartType.HalfDouble, 20)?.Level);
+        Assert.Null(Catalog.Chart("Aragami", ChartType.Single, 20));
+        Assert.Null(Catalog.Chart("aragami", ChartType.Single, 19));
+    }
+
     [Theory]
     [InlineData("Destr0yer", 22, "Destr0yer")]
     [InlineData("DestrOyer", 22, "Destr0yer")]

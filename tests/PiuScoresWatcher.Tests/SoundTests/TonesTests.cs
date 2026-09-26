@@ -2,12 +2,12 @@ using PiuScoresWatcher.Core.Sounds;
 
 namespace PiuScoresWatcher.Tests.SoundTests;
 
-/// <summary>The bulk capture's three sounds come out as WAV files Windows will play (D50).</summary>
+/// <summary>The watcher's four sounds come out as WAV files Windows will play (D50, D87).</summary>
 public sealed class TonesTests
 {
     public static TheoryData<string> Sounds()
     {
-        return new TheoryData<string>(["sent", "already", "notSent"]);
+        return new TheoryData<string>(["sent", "already", "notSent", "perfectGame"]);
     }
 
     private static Tone[] Named(string name)
@@ -16,6 +16,7 @@ public sealed class TonesTests
         {
             "sent" => Tones.Sent,
             "already" => Tones.Already,
+            "perfectGame" => Tones.PerfectGame,
             _ => Tones.NotSent
         };
     }
@@ -42,8 +43,9 @@ public sealed class TonesTests
     {
         var wav = Tones.Wav(Named(name));
 
+        // Level up rings the longest, 0.66 s with its moment of silence (D87)
         var seconds = (wav.Length - 44) / 2.0 / Tones.SampleRate;
-        Assert.InRange(seconds, 0.05, 0.5);
+        Assert.InRange(seconds, 0.05, 0.7);
         var loudest = 0;
         for (var i = 44; i < wav.Length; i += 2)
             loudest = Math.Max(loudest, Math.Abs((int)BitConverter.ToInt16(wav, i)));
@@ -80,10 +82,17 @@ public sealed class TonesTests
     }
 
     [Fact]
-    public void TheThreeSoundsDiffer()
+    public void TheFourSoundsDiffer()
     {
         Assert.NotEqual(Tones.Wav(Tones.Sent), Tones.Wav(Tones.Already));
         Assert.NotEqual(Tones.Wav(Tones.Already), Tones.Wav(Tones.NotSent));
+        Assert.NotEqual(Tones.Wav(Tones.Sent), Tones.Wav(Tones.PerfectGame));
+    }
+
+    [Fact]
+    public void APerfectGameRingsLongerThanTheChime()
+    {
+        Assert.True(Tones.Wav(Tones.PerfectGame).Length > Tones.Wav(Tones.Sent).Length * 3 / 2);
     }
 
     private static int[] Samples(byte[] wav)

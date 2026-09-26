@@ -334,7 +334,16 @@
     "mix": "rise",
     "title": "Fantasia Sonata Destiny",
     "chartType": "Single",
-    "level": 20
+    "level": 20,
+    "rows": [
+      "11:0 14:0 17:0 20:0 22:0",
+      "15:0 19:0 22:0 24:0",
+      "7:0 11:0 16:0 18:0 22:0",
+      null,
+      "7:0 13:0 18:0 22:0",
+      "12:0 18:0 20:0 22:0",
+      ""
+    ]
   },
   "20260922183006": {
     "kind": "result",
@@ -567,14 +576,32 @@
     "level": 19,
     "score": 971789,
     "maxCombo": 392,
-    "grade": "SS"
+    "grade": "SS",
+    "rows": [
+      "15:0 18:0 20:0 23:0",
+      "7:0 13:0 18:0 22:0",
+      "12:0 18:0 20:0 22:0",
+      null,
+      "14:0 17:0 20:0 23:0",
+      "12:0 16:0 18:0 20:0 22:0",
+      "11:0 14:0 17:0 19:0 21:0 23:0"
+    ]
   },
   "20260923193120": {
     "kind": "songlist-empty",
     "mix": "rise",
     "title": "Aragami",
     "chartType": "Single",
-    "level": 17
+    "level": 17,
+    "rows": [
+      "15:0 18:0 20:0 23:0",
+      "7:0 13:0 18:0 22:0",
+      "12:0 18:0 20:0 22:0",
+      null,
+      "14:0 17:0 20:0 23:0",
+      "12:0 16:0 18:0 20:0 22:0",
+      "11:0 14:0 17:0 19:0 21:0 23:0"
+    ]
   },
   "20260923193123": {
     "kind": "songlist",
@@ -584,7 +611,16 @@
     "level": 22,
     "score": 971998,
     "maxCombo": 507,
-    "grade": "SS"
+    "grade": "SS",
+    "rows": [
+      "15:0 19:0 22:0 24:0",
+      "7:0 11:0 16:0 18:0 22:0",
+      "15:0 18:0 20:0 23:0",
+      null,
+      "12:0 18:0 20:0 22:0",
+      "15:0 17:0 19:0 22:0 24:0",
+      "14:0 17:0 20:0 23:0"
+    ]
   },
   "20260923193126": {
     "kind": "songlist",
@@ -594,7 +630,16 @@
     "level": 21,
     "score": 956496,
     "maxCombo": 290,
-    "grade": "S"
+    "grade": "S",
+    "rows": [
+      "13:0 16:0 20:0 22:0",
+      "16:0 18:0 21:0 23:0",
+      "12:0 20:0 23:0",
+      null,
+      "12:0 15:0 18:0 21:0",
+      "11:0 14:0 17:0 20:0 22:0",
+      "15:0 19:0 22:0 24:0"
+    ]
   },
   "20260923193144": {
     "kind": "songlist",
@@ -604,7 +649,16 @@
     "level": 20,
     "score": 956984,
     "maxCombo": 241,
-    "grade": "S"
+    "grade": "S",
+    "rows": [
+      "18:0 21:0",
+      "18:0",
+      "21:0",
+      null,
+      "21:0",
+      "18:0",
+      "13:0 18:0"
+    ]
   },
   "20260923193156": {
     "kind": "songlist",
@@ -614,7 +668,16 @@
     "level": 20,
     "score": 945403,
     "maxCombo": 170,
-    "grade": "AA"
+    "grade": "AA",
+    "rows": [
+      "4:0 7:0 11:0 16:0 19:0",
+      "17:0 19:0 24:0",
+      "4:0 7:0 11:0 16:0 18:0 20:0",
+      null,
+      "12:0 15:0 18:0 21:0",
+      "4:0 7:0 11:0 16:0 19:0 21:0",
+      "12:0 16:0 19:0 21:0"
+    ]
   },
   "20260923193215": {
     "kind": "arcadelist",
@@ -853,7 +916,16 @@
     "score": 995844,
     "maxCombo": 1111,
     "grade": "SSS",
-    "note": "the panel shows the start of the title cut off at its edge; the list's row holds all of it (D66, D68)"
+    "note": "the panel shows the start of the title cut off at its edge; the list's row holds all of it (D66, D68)",
+    "rows": [
+      "21:0",
+      "21:0",
+      "21:0",
+      null,
+      "21:0",
+      "21:0",
+      "21:0"
+    ]
   },
   "20260924233951": {
     "kind": "songlist",
@@ -864,7 +936,16 @@
     "score": 1000000,
     "maxCombo": 514,
     "grade": "SSS",
-    "note": "a short title Windows OCR reads only three times over (D67)"
+    "note": "a short title Windows OCR reads only three times over (D67)",
+    "rows": [
+      "7:3 10:3 14:3 17:2 19:2 21:0",
+      "14:3 18:1",
+      "13:3 18:2",
+      null,
+      "16:1 18:1 21:0 23:0",
+      "13:3 19:0",
+      "6:3 8:3"
+    ]
   },
   "20260924234156": {
     "kind": "songlist",
@@ -875,7 +956,16 @@
     "score": 1000000,
     "maxCombo": 465,
     "grade": "SSS",
-    "note": "the title has scrolled off the panel entirely; the row holds it (D66)"
+    "note": "the title has scrolled off the panel entirely; the row holds it (D66)",
+    "rows": [
+      "1:3 5:3 9:3 13:3 16:2",
+      "4:3 6:3 12:3",
+      "3:3 6:3 7:3 9:3 16:1 17:1",
+      null,
+      "4:3 7:3 9:3 17:1 20:1",
+      "3:3 5:3 8:3 12:3 16:0 20:0",
+      "7:3 12:3 15:0 17:2 20:1"
+    ]
   },
   "20260924235245": {
     "kind": "songlist",
@@ -886,7 +976,16 @@
     "score": 996047,
     "maxCombo": 886,
     "grade": "SSS",
-    "note": "the panel shows 'Conflict -', the start of the title and another song's whole name (D68)"
+    "note": "the panel shows 'Conflict -', the start of the title and another song's whole name (D68)",
+    "rows": [
+      "10:3 15:2 18:2 21:0",
+      "4:3 6:3 11:0 13:3 17:1",
+      "6:3 11:0 15:0 17:2 19:2 22:0",
+      null,
+      "13:3 16:2 19:0 22:0",
+      "7:3 11:0 15:0 18:1 22:0",
+      "4:3 7:3 9:3 12:3 15:2"
+    ]
   },
   "20260924235401": {
     "kind": "songlist",
@@ -897,7 +996,16 @@
     "score": 1000000,
     "maxCombo": 185,
     "grade": "SSS",
-    "note": "a one-letter title (D67)"
+    "note": "a one-letter title (D67)",
+    "rows": [
+      "10:0 15:1 18:2 20:0 22:0",
+      "4:3 7:3 11:0 17:2 19:3 21:0",
+      "8:3 12:3 16:3 18:3 21:0",
+      null,
+      "5:3 6:3 11:0 18:1",
+      "2:3 4:3 6:3 15:3",
+      "8:3 12:3 16:2 19:1 21:1"
+    ]
   },
   "20260924235732": {
     "kind": "songlist",
@@ -908,7 +1016,16 @@
     "score": 1000000,
     "maxCombo": 298,
     "grade": "SSS",
-    "note": "a short title (D67)"
+    "note": "a short title (D67)",
+    "rows": [
+      "4:3 7:3 10:0 17:3 19:1",
+      "5:3 13:3 18:1",
+      "4:3 6:3 18:1",
+      null,
+      "12:0 18:0",
+      "16:3 19:0 22:0 24:0",
+      "10:0 13:3 16:1 18:1 21:0"
+    ]
   },
   "20260925000000": {
     "kind": "songlist",
@@ -919,7 +1036,16 @@
     "score": 1000000,
     "maxCombo": 272,
     "grade": "SSS",
-    "note": "a title that reads, at a level PIU Scores' Rise list had wrong (D70)"
+    "note": "a title that reads, at a level PIU Scores' Rise list had wrong (D70)",
+    "rows": [
+      "15:0 17:0 19:0 21:1",
+      "4:3 7:3 11:0 16:2 18:1 22:0",
+      "11:3 14:3 17:2 21:0",
+      null,
+      "2:3 8:3 12:2 16:2",
+      "7:3 11:0 16:0 18:1 20:1",
+      "13:3 16:2 20:0 22:0"
+    ]
   },
   "20260925002550": {
     "kind": "songlist",
@@ -930,7 +1056,16 @@
     "score": 954989,
     "maxCombo": 289,
     "grade": "S",
-    "note": "a one-letter title (D67)"
+    "note": "a one-letter title (D67)",
+    "rows": [
+      "4:3 10:2 18:0 19:1",
+      "4:3 6:3 8:0 15:2",
+      "15:0 18:1 21:0 23:0",
+      null,
+      "5:3 8:3 12:2 20:0",
+      "9:0 16:0 19:1",
+      "11:0 15:0 18:2"
+    ]
   },
   "20260925002824": {
     "kind": "songlist",
@@ -941,7 +1076,16 @@
     "score": 1000000,
     "maxCombo": 550,
     "grade": "SSS",
-    "note": "the panel's box used to take in the card's white edge, and 8 6 read as nothing (D66)"
+    "note": "the panel's box used to take in the card's white edge, and 8 6 read as nothing (D66)",
+    "rows": [
+      "15:3",
+      "9:3",
+      "12:3",
+      null,
+      "3:3",
+      "6:3",
+      "14:3"
+    ]
   },
   "20260925003645": {
     "kind": "songlist",
@@ -952,7 +1096,16 @@
     "score": 1000000,
     "maxCombo": 586,
     "grade": "SSS",
-    "note": "too long for the row as well: both places show its start, cut off at the edge (D68)"
+    "note": "too long for the row as well: both places show its start, cut off at the edge (D68)",
+    "rows": [
+      "12:3",
+      "16:3",
+      "8:3",
+      null,
+      "3:3",
+      "4:3",
+      "11:3"
+    ]
   },
   "20260925003656": {
     "kind": "songlist",
@@ -963,7 +1116,16 @@
     "score": 1000000,
     "maxCombo": 546,
     "grade": "SSS",
-    "note": "the panel shows only the tail, 'Pumping up', which is another song's whole title (D68)"
+    "note": "the panel shows only the tail, 'Pumping up', which is another song's whole title (D68)",
+    "rows": [
+      "4:3 6:3 9:3 12:3 19:1",
+      "4:3 7:3 11:3 16:2 19:0 21:0",
+      "3:3 5:3 12:3 16:3",
+      null,
+      "11:3 16:0 19:1 23:0",
+      "8:0 11:0 15:0 17:0 19:0 21:0",
+      "3:3 4:3 11:3 13:3 17:1"
+    ]
   },
   "20260925003727": {
     "kind": "songlist",
@@ -974,7 +1136,16 @@
     "score": 995422,
     "maxCombo": 591,
     "grade": "SSS",
-    "note": "the row shows the tail scrolling out, the panel the start coming back in (D68, D69)"
+    "note": "the row shows the tail scrolling out, the panel the start coming back in (D68, D69)",
+    "rows": [
+      "4:3 7:3 11:3 16:2 19:0 21:0",
+      "3:3 5:3 12:3 16:3",
+      "8:3",
+      null,
+      "8:0 11:0 15:0 17:0 19:0 21:0",
+      "3:3 4:3 11:3 13:3 17:1",
+      "12:3 16:3 19:0 21:0"
+    ]
   },
   "20260926111534": {
     "kind": "songlist",
@@ -985,7 +1156,16 @@
     "score": 972054,
     "maxCombo": 200,
     "grade": "SS",
-    "note": "6K DOUBLE lit: its tab is blue where 5K SINGLE's is orange (D71)"
+    "note": "6K DOUBLE lit: its tab is blue where 5K SINGLE's is orange (D71)",
+    "rows": [
+      "18:0 21:0 24:0",
+      "13:0 17:0 23:0 25:0",
+      "14:0 18:0 23:0 25:0",
+      null,
+      "18:0 24:0 25:0",
+      "21:0 25:0 26:0",
+      "21:0 24:0 27:0"
+    ]
   },
   "20260926111537": {
     "kind": "songlist-empty",
@@ -993,7 +1173,16 @@
     "title": "SONIC BOOM",
     "chartType": "HalfDouble",
     "level": 14,
-    "note": "6K DOUBLE lit, a chart with no best (D71)"
+    "note": "6K DOUBLE lit, a chart with no best (D71)",
+    "rows": [
+      "13:0 18:0 21:0 24:0",
+      "18:0 21:0 24:0",
+      "13:0 17:0 23:0 25:0",
+      null,
+      "16:0 21:0 24:0",
+      "18:0 24:0 25:0",
+      "21:0 25:0 26:0"
+    ]
   },
   "20260926111606": {
     "kind": "songlist-empty",
@@ -1001,6 +1190,15 @@
     "title": "ULTRA SYNERGY MATRIX",
     "chartType": "HalfDouble",
     "level": 20,
-    "note": "6K DOUBLE lit, caught as the highlight reached the second box: its digits still grey (D71)"
+    "note": "6K DOUBLE lit, caught as the highlight reached the second box: its digits still grey (D71)",
+    "rows": [
+      "14:0 20:0 23:0",
+      "17:0 20:0 23:0 25:0",
+      "17:0 21:0 24:0 26:0",
+      null,
+      "16:0 18:0 24:0",
+      "17:0 21:0 24:0",
+      "11:0 20:0 24:0"
+    ]
   }
 }

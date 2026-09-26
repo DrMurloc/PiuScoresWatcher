@@ -21,8 +21,11 @@
   <data name="1 screen couldn't be read" xml:space="preserve">
     <value>1 pantalla no se pudo leer</value>
   </data>
-  <data name="A chime when a play is recorded, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it." xml:space="preserve">
-    <value>Una campanilla cuando se registra un intento, un tono grave cuando no se puede leer una pantalla y un tic cuando PIU Scores no lo acepta.</value>
+  <data name="A chime when a play is recorded, a level-up for a Perfect Game, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it." xml:space="preserve">
+    <value>Una campanilla cuando se registra un intento, una subida de nivel si es un Perfect Game, un tono grave cuando no se puede leer una pantalla y un tic cuando PIU Scores no lo acepta.</value>
+  </data>
+  <data name="A Perfect Game, sent to PIU Scores." xml:space="preserve">
+    <value>Un Perfect Game, enviado a PIU Scores.</value>
   </data>
   <data name="A play PIU Scores didn't take" xml:space="preserve">
     <value>Un intento que PIU Scores no aceptó</value>
@@ -186,6 +189,9 @@
   <data name="Last recorded {0}" xml:space="preserve">
     <value>Último registro: {0}</value>
   </data>
+  <data name="Level up" xml:space="preserve">
+    <value>Subida de nivel</value>
+  </data>
   <data name="Looks at RISE once a second while it is running. Nothing else on your screen." xml:space="preserve">
     <value>Mira RISE una vez por segundo mientras está abierto. Nada más de tu pantalla.</value>
   </data>
@@ -260,6 +266,9 @@
   </data>
   <data name="Perfect Game" xml:space="preserve">
     <value>Perfect Game</value>
+  </data>
+  <data name="Perfect Games don't need to be highlighted: every one on screen is sent once the list stops moving." xml:space="preserve">
+    <value>No hace falta seleccionar cada Perfect Game: todos los que haya en pantalla se envían en cuanto la lista deja de moverse.</value>
   </data>
   <data name="PIU Scores already has this best, or a higher one." xml:space="preserve">
     <value>PIU Scores ya tiene este score o uno más alto.</value>
@@ -578,6 +587,12 @@
   </data>
   <data name="{0} new bests sent · {1} already on PIU Scores · {2} couldn't be read" xml:space="preserve">
     <value>{0} mejores scores nuevos enviados · {1} ya estaban en PIU Scores · {2} no se pudieron leer</value>
+  </data>
+  <data name="{0} of them a Perfect Game" xml:space="preserve">
+    <value>{0} de ellos con Perfect Game</value>
+  </data>
+  <data name="{0} of them Perfect Games" xml:space="preserve">
+    <value>{0} de ellos con Perfect Game</value>
   </data>
   <data name="{0} play today" xml:space="preserve">
     <value>{0} intento hoy</value>

@@ -163,6 +163,9 @@ public sealed class CaptureService(
             var bulkOutcome = await bulk.HandleAsync(frame, cancellationToken);
             if (bulkOutcome is BulkOutcome.Sent sent)
                 sessions.Recorded(sent.Play.Mix);
+            // the rows' Perfect Games ride on whatever the frame did to the lit chart, the list gone included (D85)
+            if (bulkOutcome?.PerfectGames.OfType<PerfectGameOutcome.Sent>().FirstOrDefault() is { } perfectGame)
+                sessions.Recorded(perfectGame.Play.Mix);
             if (bulkOutcome is not null and not BulkOutcome.NotTheList)
                 return; // Warm Up's song list: nothing for the result pipeline
 

@@ -134,6 +134,49 @@ public sealed class TitlesTests
     }
 
     [Fact]
+    public async Task ARowsTitleNamesItsSongAtWhicheverOfItsPerfectGamesTheListHas()
+    {
+        // Elysium's row: Perfect Games at S4 and S9, and PIU Scores' Rise list had its S4 at S3 (D70)
+        Reads("row 2", "Elysium");
+        var image = FixtureScreens.Load(ElysiumS4);
+        var row = new TitleBox("row 2", new PixelRect(0, 0, 10, 10), false, null);
+
+        var choice = await _titles.Object.ChooseSongAsync(image, row, Rise, ChartType.Single, [4, 9], CancellationToken.None);
+
+        var found = Assert.IsType<CatalogMatch.Found>(choice.Match).Chart;
+        Assert.Equal(("Elysium", 9), (found.SongName, found.Level));
+        Assert.Equal("'Elysium' (row 2)", choice.Described);
+    }
+
+    [Fact]
+    public async Task ARowsTitleSpelledExactlyAtOneOfItsLevelsBeatsALooseMatchAtAnother()
+    {
+        // Perfect Games at S7 and S10; the list lacks Beethoven Virus's S7, and its FULL SONG has one, which the title is
+        // a part of: the S10 it spells exactly names the song
+        var catalog = new SongCatalog([Chart("Beethoven Virus -FULL SONG-", 7), Chart("Beethoven Virus", 10)]);
+        Reads("row 2", "Beethoven Virus");
+        var row = new TitleBox("row 2", new PixelRect(0, 0, 10, 10), false, null);
+
+        var choice = await _titles.Object.ChooseSongAsync(FixtureScreens.Load(ElysiumS4), row, catalog, ChartType.Single, [7, 10],
+            CancellationToken.None);
+
+        var found = Assert.IsType<CatalogMatch.Found>(choice.Match).Chart;
+        Assert.Equal(("Beethoven Virus", 10), (found.SongName, found.Level));
+    }
+
+    [Fact]
+    public async Task ARowWhoseSongTheListHasOnlyAtOtherChartsSaysSo()
+    {
+        Reads("row 2", "Elysium");
+        var image = FixtureScreens.Load(ElysiumS4);
+        var row = new TitleBox("row 2", new PixelRect(0, 0, 10, 10), false, null);
+
+        var choice = await _titles.Object.ChooseSongAsync(image, row, Rise, ChartType.Single, [4, 7], CancellationToken.None);
+
+        Assert.Equal("Elysium", Assert.IsType<CatalogMatch.Unlisted>(choice.Match).SongName);
+    }
+
+    [Fact]
     public async Task NothingReadAnywhereIsSeenAsNothing()
     {
         Reads("list");
