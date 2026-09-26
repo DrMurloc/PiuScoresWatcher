@@ -111,7 +111,7 @@ public partial class App : Application
         if (_host is not null)
         {
             // quitting, or Windows ending: the session ends while the watcher can still say so (D81)
-            Services.GetRequiredService<SessionService>().EndOnExit(TimeSpan.FromSeconds(3));
+            Services.GetRequiredService<SessionService>().EndOnExit(TimeSpan.FromSeconds(2.5));
             _host.StopAsync().GetAwaiter().GetResult();
             _host.Dispose();
         }

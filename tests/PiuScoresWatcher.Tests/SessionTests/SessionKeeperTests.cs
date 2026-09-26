@@ -120,6 +120,36 @@ public sealed class SessionKeeperTests
     }
 
     [Fact]
+    public async Task EachCloseHasItsOwnTimeSoOneThatHangsDoesNotCostTheOtherItsTurn()
+    {
+        var keeper = Keeper();
+        keeper.Recorded(RiseMix.Rise);
+        keeper.Recorded(RiseMix.RiseArcade);
+        // the site hangs on Rise until the close is given up on, and the client answers a request cut off as failed
+        _site.Setup(site => site.CloseSittingsAsync(RiseMix.Rise, It.IsAny<CancellationToken>()))
+            .Returns(async (RiseMix _, CancellationToken token) =>
+            {
+                try
+                {
+                    await Task.Delay(Timeout.Infinite, token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // cut off
+                }
+
+                return (CloseOutcome)new CloseOutcome.Failed(null, "A task was canceled.");
+            });
+
+        keeper.End();
+        var sent = await keeper.SendOwedAsync(TimeSpan.FromMilliseconds(50), CancellationToken.None);
+
+        Assert.True(Assert.Single(sent, close => close.Mix == RiseMix.Rise).Outcome!.WorthRetrying);
+        Assert.IsType<CloseOutcome.Closed>(Assert.Single(sent, close => close.Mix == RiseMix.RiseArcade).Outcome);
+        Assert.Equal(RiseMix.Rise, Assert.Single(_store.Saved.Owed).Mix);
+    }
+
+    [Fact]
     public async Task AFinalAnswerIsNeverSentAgain()
     {
         foreach (var final in new CloseOutcome[] { new CloseOutcome.Refused("mix-required", null), new CloseOutcome.NotOffered() })

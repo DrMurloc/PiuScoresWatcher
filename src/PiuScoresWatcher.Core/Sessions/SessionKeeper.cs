@@ -102,7 +102,16 @@ public sealed class SessionKeeper
     ///     Sends every close owed, one per mix. One PIU Scores took, or answered finally, is done with; one that didn't get
     ///     through stays owed for the next try. One owed four hours after its session's last play is dropped unsent.
     /// </summary>
-    public async Task<IReadOnlyList<SentClose>> SendOwedAsync(CancellationToken cancellationToken)
+    public Task<IReadOnlyList<SentClose>> SendOwedAsync(CancellationToken cancellationToken)
+    {
+        return SendOwedAsync(Timeout.InfiniteTimeSpan, cancellationToken);
+    }
+
+    /// <summary>
+    ///     <see cref="SendOwedAsync(CancellationToken)" />, each close given up on after <paramref name="eachWithin" /> and
+    ///     left owed, so one that hangs doesn't cost the other its turn.
+    /// </summary>
+    public async Task<IReadOnlyList<SentClose>> SendOwedAsync(TimeSpan eachWithin, CancellationToken cancellationToken)
     {
         IReadOnlyList<MixSession> owed;
         lock (_gate)
@@ -111,8 +120,16 @@ public sealed class SessionKeeper
         var sent = new List<SentClose>();
         foreach (var close in owed)
         {
-            // the site has ended that session itself; a close now could only end a newer one
-            var outcome = _clock.Now - close.LastPlayAt >= SiteFallback ? null : await _site.CloseSittingsAsync(close.Mix, cancellationToken);
+            CloseOutcome? outcome = null;
+            // a close four hours after its session's last play is dropped: the site has ended that session itself, and a
+            // close now could only end a newer one
+            if (_clock.Now - close.LastPlayAt < SiteFallback)
+            {
+                using var one = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                one.CancelAfter(eachWithin);
+                outcome = await _site.CloseSittingsAsync(close.Mix, one.Token);
+            }
+
             sent.Add(new SentClose(close.Mix, outcome));
             if (outcome is { WorthRetrying: true })
                 continue;
