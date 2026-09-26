@@ -53,6 +53,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] A Challenge result (division badge in the header) → skipped, nothing posted, one log line.
 - [ ] A grey (broken) grade → `isBroken` true.
 - [ ] Sit on a result screen for a minute → one play, not sixty.
+- [ ] A result on a chart PIU Scores doesn't list (one of D70's, before the SQL runs) → the tick; the notification and the review window say PIU Scores doesn't list this chart, not that the title was misread (D73).
 - [ ] A play held for review whose screen reads right to you → keep its F12: another case like Aragami S19, whose score fits more notes than it judged (watcher.md §9).
 - [ ] F12 on a result screen with the game window mode off → the file is picked up and posted once.
 - [ ] Both modes on, F12 pressed on a screen the grab already read → still one play.

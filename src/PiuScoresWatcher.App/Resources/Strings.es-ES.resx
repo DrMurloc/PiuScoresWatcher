@@ -273,8 +273,14 @@
   <data name="PIU Scores doesn't know that song on this mix, so it wasn't recorded. The title was probably misread." xml:space="preserve">
     <value>PIU Scores no conoce esa canción en esta versión, así que no se registró. Probablemente se leyó mal el título.</value>
   </data>
+  <data name="PIU Scores doesn't list this chart, so it wasn't recorded." xml:space="preserve">
+    <value>PIU Scores no tiene este chart en su lista, así que no se registró.</value>
+  </data>
   <data name="PIU Scores doesn't list this chart, so nothing was sent." xml:space="preserve">
     <value>PIU Scores no tiene este chart en su lista, así que no se envió nada.</value>
+  </data>
+  <data name="PIU Scores doesn't list this chart. Not recorded." xml:space="preserve">
+    <value>PIU Scores no tiene este chart en su lista. No se ha registrado.</value>
   </data>
   <data name="PIU Scores has {0} of your Warm Up bests. Only higher ones are sent." xml:space="preserve">
     <value>PIU Scores tiene {0} de tus mejores scores de Warm Up. Solo se envían los más altos.</value>

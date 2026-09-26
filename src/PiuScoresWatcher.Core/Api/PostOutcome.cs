@@ -28,6 +28,16 @@ public abstract record PostOutcome
         public override string Describe() => $"no chart matched{(Detail is null ? "" : $": {Detail}")}";
     }
 
+    /// <summary>
+    ///     The same 404 for a song the chart list has at other charts only: PIU Scores knows the song and doesn't list the
+    ///     chart played. The site answers alike for both; the pipeline tells them apart by the chart list (D73).
+    /// </summary>
+    public sealed record ChartUnknown(string SongName, string? Detail) : PostOutcome
+    {
+        public override string Describe() =>
+            $"no chart matched: PIU Scores lists {SongName} at other charts only{(Detail is null ? "" : $" ({Detail})")}";
+    }
+
     /// <summary>Not recorded because of the token: none is stored, or PIU Scores refused the one that is.</summary>
     public bool IsAboutTheToken => this is Unauthorized or NotConnected;
 

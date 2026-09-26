@@ -15,6 +15,7 @@ public sealed class KeptBecauseTests
     [InlineData(KeptBecause.NumbersUnreadable, false)]
     [InlineData(KeptBecause.TitleUnreadable, false)]
     [InlineData(KeptBecause.Refused, false)]
+    [InlineData(KeptBecause.ChartUnknown, false)] // a result screen's play: its song-list twin is ChartUnlisted (D73)
     public void ASongListKeptDuringABulkCaptureIsToldApartFromAResultScreen(KeptBecause because, bool isSongList)
     {
         Assert.Equal(isSongList, because.IsSongList());
@@ -32,6 +33,7 @@ public sealed class KeptBecauseTests
     [InlineData(KeptBecause.ChartDisagrees, false)]
     [InlineData(KeptBecause.Refused, true)]
     [InlineData(KeptBecause.SongUnknown, true)]
+    [InlineData(KeptBecause.ChartUnknown, true)]
     [InlineData(KeptBecause.ChartUnlisted, true)] // read fine: it is the list that lacks the chart (D70)
     [InlineData(KeptBecause.TokenRejected, true)]
     [InlineData(KeptBecause.NotConnected, true)]
@@ -47,6 +49,7 @@ public sealed class KeptBecauseTests
     {
         Assert.Equal(KeptBecause.Refused, Kept.Because(new PostOutcome.Refused("judgments-do-not-reconcile", null)));
         Assert.Equal(KeptBecause.SongUnknown, Kept.Because(new PostOutcome.SongUnknown(null)));
+        Assert.Equal(KeptBecause.ChartUnknown, Kept.Because(new PostOutcome.ChartUnknown("Elysium", null)));
         Assert.Equal(KeptBecause.TokenRejected, Kept.Because(new PostOutcome.Unauthorized()));
         Assert.Equal(KeptBecause.NotConnected, Kept.Because(new PostOutcome.NotConnected()));
         Assert.Equal(KeptBecause.RateLimited, Kept.Because(new PostOutcome.RateLimited(null)));

@@ -52,6 +52,12 @@ public enum KeptBecause
     Refused,
     SongUnknown,
 
+    /// <summary>
+    ///     A play PIU Scores answered 404 for whose song the chart list has, at other charts only: the chart isn't listed
+    ///     (D73). Its song-list twin, never sent, is <see cref="ChartUnlisted" />.
+    /// </summary>
+    ChartUnknown,
+
     /// <summary>A best read off the song list whose title names a song PIU Scores lists only at other charts: not sent (D70).</summary>
     ChartUnlisted,
 
@@ -75,6 +81,7 @@ public static class Kept
     {
         PostOutcome.Refused => KeptBecause.Refused,
         PostOutcome.SongUnknown => KeptBecause.SongUnknown,
+        PostOutcome.ChartUnknown => KeptBecause.ChartUnknown,
         PostOutcome.Unauthorized => KeptBecause.TokenRejected,
         PostOutcome.NotConnected => KeptBecause.NotConnected,
         PostOutcome.RateLimited => KeptBecause.RateLimited,
