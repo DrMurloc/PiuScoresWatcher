@@ -1,6 +1,7 @@
 """The Warm Up song list (watcher.md D45-D48): where the lit chart and its best sit, how they read, and the
-grade-badge check. Trains the two digit families the list prints in and writes the grade features for
-templates.py; run it on its own for a report over the labeled song-list screens."""
+grade-badge check; and every other row's marks and Perfect Games (D74, D75). Trains the two digit families the list
+prints in and writes the grade features for templates.py; run it on its own for a report over the labeled song-list
+screens, or with --rows for the rows alone."""
 import json, os
 import numpy as np
 from PIL import Image
@@ -34,6 +35,98 @@ def box_digits(i):
     """Inside the box, right of the H stamp that overlaps its corner and above the three bars."""
     x0 = BOX_X0 + BOX_STRIDE * i
     return P.R(x0 + 21, 574, x0 + 66, 604)
+
+# The list's seven rows, the lit song in the fourth (watcher.md D66). Under each level in a row three bars light gold from
+# the left for the chart's best mark: one No Miss, two Full Combo, three a Perfect Game (D74). Measured on the first
+# tester's 4K lists, halved: the bars' centre line, the row pitch, the six places for a level (right-aligned), and the
+# inside of each bar clear of its dark edges.
+ROWS, LIT_ROW = 7, 4
+ROW_BARS_Y, ROW_PITCH = 300.8, 108.36
+SLOT_X0, SLOT_PITCH, SLOTS = 1454, 62, 6
+BARS = ((1, 11), (15, 25), (29, 40))
+BAR_HALF = 1.5
+# a bar lit gold, a bar unlit grey (a colourless dark grey: the row behind is navy), and the lit row's yellow, which
+# hides empty places behind the same gold
+BAR_LIT = (35, 55, 0.7, 0.75)
+BAR_UNLIT_SAT, BAR_UNLIT_VAL = 0.3, (0.18, 0.45)
+ROW_LIT = (30, 60, 0.6, 0.7)
+BAR_SHARE, ROW_LIT_SHARE = 0.6, 0.1
+
+def bars_y(place):
+    return ROW_BARS_Y + ROW_PITCH * (place - 1)
+
+def bar(place, slot, i):
+    x0 = SLOT_X0 + SLOT_PITCH * slot
+    y = bars_y(place)
+    return P.R(x0 + BARS[i][0], y - BAR_HALF, x0 + BARS[i][1], y + BAR_HALF)
+
+def row_digits(place, slot):
+    """A place's level, above its bars; the H stamp sits over its top left, as it does on the panel's boxes."""
+    x0 = SLOT_X0 + SLOT_PITCH * slot
+    y = bars_y(place)
+    return P.R(x0 - 6, y - 40, x0 + 48, y - 6)
+
+def row_lit_patch(place):
+    """Right of the rightmost place, where nothing but the row itself is drawn: yellow on the lit row, navy on the rest."""
+    y = bars_y(place)
+    return P.R(1812, y - 14, 1880, y + 14)
+
+def row_title(place):
+    """The lit row's title box (ROW_TITLE), moved to the row."""
+    dy = bars_y(place) - bars_y(LIT_ROW)
+    return P.R(872, 576 + dy, 1433, 618 + dy)
+
+def row_jacket(place):
+    dy = bars_y(place) - bars_y(LIT_ROW)
+    return P.R(792, 572 + dy, 858, 648 + dy)
+
+def bar_state(img, r):
+    """'L' lit, 'u' unlit, '.' neither."""
+    h, s, v = P.hsv(P.crop(img, r))
+    lo, hi, smin, vmin = BAR_LIT
+    if float(((h >= lo) & (h <= hi) & (s >= smin) & (v >= vmin)).mean()) >= BAR_SHARE:
+        return "L"
+    if float(((s <= BAR_UNLIT_SAT) & (v >= BAR_UNLIT_VAL[0]) & (v <= BAR_UNLIT_VAL[1])).mean()) >= BAR_SHARE:
+        return "u"
+    return "."
+
+def read_rows(img, templates):
+    """Every row but the lit one, as the watcher reads it (D75): per place, None for a lit row, '?' for one that can't be
+    read on this frame, else [(level or None, lit bars)] left to right — the level read only where all three are lit."""
+    out = {}
+    for place in range(1, ROWS + 1):
+        if share(img, row_lit_patch(place), *ROW_LIT) >= ROW_LIT_SHARE:
+            out[place] = None
+            continue
+        charts, seen_chart, readable = [], False, True
+        for slot in range(SLOTS):
+            states = "".join(bar_state(img, bar(place, slot, i)) for i in range(3))
+            if states == "...":
+                if seen_chart:  # a chart, then an empty place: nothing right-aligned looks like that
+                    readable = False
+                continue
+            if states not in ("uuu", "Luu", "LLu", "LLL"):
+                readable = False
+                continue
+            seen_chart = True
+            lit = states.count("L")
+            level = None
+            if lit == 3:
+                gl, _ = P.read_field(P.crop(img, row_digits(place, slot)), light_mask, "wllevel", templates, keep_dots=False)
+                text = "".join(c or "?" for c, s, g in gl)
+                level = int(text) if text.isdigit() else None
+                readable = readable and level is not None
+            charts.append((level, lit))
+        out[place] = charts if readable and charts else "?"
+    return out
+
+def describe_rows(rows):
+    """The label's form: each chart's level (or '-' where it isn't read) and lit bars, per place."""
+    def one(charts):
+        if charts is None or charts == "?":
+            return charts
+        return " ".join(f"{'-' if level is None else level}:{lit}" for level, lit in charts)
+    return [one(rows[place]) for place in range(1, ROWS + 1)]
 
 # name -> (kind, title, type, level, best, max combo, grade); arcade-list screens must never read as Warm Up
 EXPECTED_LIST = {
@@ -95,6 +188,32 @@ SIX_K = {
 EXPECTED_LIST.update({name: exp for name, (exp, _, _) in (TESTER | SIX_K).items()})
 BOX_LEVELS.update({name: boxes for name, (_, boxes, _) in (TESTER | SIX_K).items()})
 NOTES = {name: note for name, (_, _, note) in (TESTER | SIX_K).items()}
+# every row but the lit one, per place 1-7, as the owner's and the testers' screens show them, read by eye (D74): each
+# chart's level and lit bars; None for the lit row, '?' for a row the lab's player-card mask covers
+ROW_LABELS = {
+    "20260922072011": ["11:0 14:0 17:0 20:0 22:0", "15:0 19:0 22:0 24:0", "7:0 11:0 16:0 18:0 22:0", None, "7:0 13:0 18:0 22:0", "12:0 18:0 20:0 22:0", "?"],
+    "20260923193118": ["15:0 18:0 20:0 23:0", "7:0 13:0 18:0 22:0", "12:0 18:0 20:0 22:0", None, "14:0 17:0 20:0 23:0", "12:0 16:0 18:0 20:0 22:0", "11:0 14:0 17:0 19:0 21:0 23:0"],
+    "20260923193120": ["15:0 18:0 20:0 23:0", "7:0 13:0 18:0 22:0", "12:0 18:0 20:0 22:0", None, "14:0 17:0 20:0 23:0", "12:0 16:0 18:0 20:0 22:0", "11:0 14:0 17:0 19:0 21:0 23:0"],
+    "20260923193123": ["15:0 19:0 22:0 24:0", "7:0 11:0 16:0 18:0 22:0", "15:0 18:0 20:0 23:0", None, "12:0 18:0 20:0 22:0", "15:0 17:0 19:0 22:0 24:0", "14:0 17:0 20:0 23:0"],
+    "20260923193126": ["13:0 16:0 20:0 22:0", "16:0 18:0 21:0 23:0", "12:0 20:0 23:0", None, "12:0 15:0 18:0 21:0", "11:0 14:0 17:0 20:0 22:0", "15:0 19:0 22:0 24:0"],
+    "20260923193144": ["18:0 21:0", "18:0", "21:0", None, "21:0", "18:0", "13:0 18:0"],
+    "20260923193156": ["4:0 7:0 11:0 16:0 19:0", "17:0 19:0 24:0", "4:0 7:0 11:0 16:0 18:0 20:0", None, "12:0 15:0 18:0 21:0", "4:0 7:0 11:0 16:0 19:0 21:0", "12:0 16:0 19:0 21:0"],
+    "20260924233850": ["21:0", "21:0", "21:0", None, "21:0", "21:0", "21:0"],
+    "20260924233951": ["7:3 10:3 14:3 17:2 19:2 21:0", "14:3 18:1", "13:3 18:2", None, "16:1 18:1 21:0 23:0", "13:3 19:0", "6:3 8:3"],
+    "20260924234156": ["1:3 5:3 9:3 13:3 16:2", "4:3 6:3 12:3", "3:3 6:3 7:3 9:3 16:1 17:1", None, "4:3 7:3 9:3 17:1 20:1", "3:3 5:3 8:3 12:3 16:0 20:0", "7:3 12:3 15:0 17:2 20:1"],
+    "20260924235245": ["10:3 15:2 18:2 21:0", "4:3 6:3 11:0 13:3 17:1", "6:3 11:0 15:0 17:2 19:2 22:0", None, "13:3 16:2 19:0 22:0", "7:3 11:0 15:0 18:1 22:0", "4:3 7:3 9:3 12:3 15:2"],
+    "20260924235401": ["10:0 15:1 18:2 20:0 22:0", "4:3 7:3 11:0 17:2 19:3 21:0", "8:3 12:3 16:3 18:3 21:0", None, "5:3 6:3 11:0 18:1", "2:3 4:3 6:3 15:3", "8:3 12:3 16:2 19:1 21:1"],
+    "20260924235732": ["4:3 7:3 10:0 17:3 19:1", "5:3 13:3 18:1", "4:3 6:3 18:1", None, "12:0 18:0", "16:3 19:0 22:0 24:0", "10:0 13:3 16:1 18:1 21:0"],
+    "20260925000000": ["15:0 17:0 19:0 21:1", "4:3 7:3 11:0 16:2 18:1 22:0", "11:3 14:3 17:2 21:0", None, "2:3 8:3 12:2 16:2", "7:3 11:0 16:0 18:1 20:1", "13:3 16:2 20:0 22:0"],
+    "20260925002550": ["4:3 10:2 18:0 19:1", "4:3 6:3 8:0 15:2", "15:0 18:1 21:0 23:0", None, "5:3 8:3 12:2 20:0", "9:0 16:0 19:1", "11:0 15:0 18:2"],
+    "20260925002824": ["15:3", "9:3", "12:3", None, "3:3", "6:3", "14:3"],
+    "20260925003645": ["12:3", "16:3", "8:3", None, "3:3", "4:3", "11:3"],
+    "20260925003656": ["4:3 6:3 9:3 12:3 19:1", "4:3 7:3 11:3 16:2 19:0 21:0", "3:3 5:3 12:3 16:3", None, "11:3 16:0 19:1 23:0", "8:0 11:0 15:0 17:0 19:0 21:0", "3:3 4:3 11:3 13:3 17:1"],
+    "20260925003727": ["4:3 7:3 11:3 16:2 19:0 21:0", "3:3 5:3 12:3 16:3", "8:3", None, "8:0 11:0 15:0 17:0 19:0 21:0", "3:3 4:3 11:3 13:3 17:1", "12:3 16:3 19:0 21:0"],
+    "20260926111534": ["18:0 21:0 24:0", "13:0 17:0 23:0 25:0", "14:0 18:0 23:0 25:0", None, "18:0 24:0 25:0", "21:0 25:0 26:0", "21:0 24:0 27:0"],
+    "20260926111537": ["13:0 18:0 21:0 24:0", "18:0 21:0 24:0", "13:0 17:0 23:0 25:0", None, "16:0 21:0 24:0", "18:0 24:0 25:0", "21:0 25:0 26:0"],
+    "20260926111606": ["14:0 20:0 23:0", "17:0 20:0 23:0 25:0", "17:0 21:0 24:0 26:0", None, "16:0 18:0 24:0", "17:0 21:0 24:0", "11:0 20:0 24:0"],
+}
 KEPT = None  # a watcher's failed\ folder the tester's screens are copied from (--fixtures <folder>)
 
 
@@ -228,6 +347,35 @@ def main():
             print(name, exp[1], "->", {k: (round(v, 3) if isinstance(v, float) else v) for k, v in (got or {}).items()})
         bad += 0 if ok else 1
     print("song list:", bad, "misread")
+    rows_report(templates)
+
+def rows_agree(label, got):
+    """A row as read against its label: the same lit bars for every chart, and the level wherever all three are lit."""
+    if label is None or label == "?" or got is None or got == "?":
+        return label == got
+    want = [(int(level), int(lit)) for level, lit in (chart.split(":") for chart in label.split())]
+    return len(want) == len(got) and all(lit == got_lit and (lit < 3 or level == got_level)
+                                         for (level, lit), (got_level, got_lit) in zip(want, got))
+
+def rows_report(templates):
+    """Every labeled song list's rows through read_rows (D74, D75): what disagrees with the label, and the totals."""
+    charts = perfect = unread = bad = 0
+    for name in sorted(ROW_LABELS):
+        if not source(name):
+            continue
+        rows = read_rows(load(name), templates)
+        label = ROW_LABELS[name]
+        for place in range(1, ROWS + 1):
+            got = rows[place]
+            if got == "?":
+                unread += 1
+            elif got is not None:
+                charts += len(got)
+                perfect += sum(1 for _, lit in got if lit == 3)
+            if not rows_agree(label[place - 1], got):
+                bad += 1
+                print(f"  {name} row {place}: read {describe_rows(rows)[place - 1]!r}, labeled {label[place - 1]!r}")
+    print(f"rows: {charts} charts, {perfect} Perfect Games, {unread} rows not read, {bad} disagree with their labels")
 
 FIXTURES = os.path.join(P.REPO, "tests", "PiuScoresWatcher.Tests", "Fixtures", "screens")
 # the player card: top right on Warm Up's song list, top left on the Arcade Station's
@@ -253,10 +401,14 @@ def write_fixtures():
                               "level": exp[3], "score": exp[4], "maxCombo": exp[5], "grade": exp[6]}
             if name in NOTES:
                 expected[name]["note"] = NOTES[name]
+            if name in ROW_LABELS:
+                expected[name]["rows"] = ROW_LABELS[name]
         elif exp[0] == "warmup-empty":
             expected[name] = {"kind": "songlist-empty", "mix": "rise", "title": exp[1], "chartType": TYPE_NAMES[exp[2]], "level": exp[3]}
             if name in NOTES:
                 expected[name]["note"] = NOTES[name]
+            if name in ROW_LABELS:
+                expected[name]["rows"] = ROW_LABELS[name]
         else:
             expected[name] = {"kind": "arcadelist", "note": "the Arcade Station's song list: not read in v1 (D45)"}
     with open(path, "w") as f:
@@ -286,7 +438,11 @@ def merge_into_templates():
 
 if __name__ == "__main__":
     import sys
-    if "--write" in sys.argv:
+    if "--rows" in sys.argv:  # the rows alone: no grade sprites needed, nothing written
+        rows_templates = P.Templates()
+        train(rows_templates)
+        rows_report(rows_templates)
+    elif "--write" in sys.argv:
         merge_into_templates()
         write_grades()
     elif "--fixtures" in sys.argv:
