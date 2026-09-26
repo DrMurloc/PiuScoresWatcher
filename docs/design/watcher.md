@@ -4,7 +4,7 @@ Status: **the MVP shipped as v0.1.0 from one pull request, #8** (merged 2026-09-
 one of the owner's result screens and reconciles them; the client posts; the tray app captures the game window once
 a second while RISE runs and reads every F12 screenshot Steam writes, posting each reconciled play once; bulk
 capture reads Warm Up's song list. The testers' first evenings (2026-09-24/25) and what they led to are D66–D73, on
-their own pull request.
+their own pull request; Perfect Games read off every row of the list, with a sound of their own, are D74–D78.
 Phase 2 of PIU
 Scores' RISE plan
 ([rise.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/design/rise.md) §8): phase 1 added
@@ -332,7 +332,8 @@ the invalid vs failed noises").
   "Sounds while playing") apart from bulk capture's own (D50). The sound plays whatever the notification switches
   say: Windows' do-not-disturb rules often hold notifications back while a game runs full screen, so the sound is
   the feedback that reaches a player mid-session.
-- **D64. Bulk capture's three sounds, one meaning each.** The chime: the play is on PIU Scores. The low tone: the
+- **D64. Bulk capture's three sounds, one meaning each.** The chime: the play is on PIU Scores (Level up for a Perfect
+  Game, D77). The low tone: the
   screen couldn't be read — in time to press F12 again while it is still up. The tick: it was read, and PIU Scores
   didn't take it (refused, unreachable, the token). A play's notification goes silent when its sound plays, so a
   play makes one sound, not two, and a screen seen twice makes none the second time. A bulk capture keeps its own
@@ -414,15 +415,53 @@ day).
   recorded." and, in review, "PIU Scores doesn't list this chart, so it wasn't recorded.", where it used to blame a
   misread title.
 
+**Perfect Games from the bars** (owner, 2026-09-26: "bulk upload PGs based off the little gold bars beneath the song
+entry in warm up mode … You don't need to highlight it", and "a special sound effect for PGs being captured"; the
+candidates https://claude.ai/artifact/ETgkSbTPRtRat9Rzium6T9, picked with "I like Level up"; "get it in").
+
+- **D74 (owner, 2026-09-26). A Perfect Game is read off every row of Warm Up's song list, lit or not.** Under each level
+  in a row the game draws three bars, lit gold from the left for the chart's best mark: No Miss lights one, Full Combo
+  two, a Perfect Game all three. A Perfect Game scores 1,000,000 by the formula, so three lit bars are a whole capture,
+  the chart and its score, and PIU Scores records a million sent without judgments as a Perfect Game (its API.md,
+  2026-09-23): the capture is D46's, at 1,000,000. The other two marks don't pin a score, and the panel's figures don't
+  always come from the play that earned a mark (D47), so they are read and never sent. On the 22 song-list fixtures every
+  lit chart at 1,000,000 shows three bars and none of the ten lower bests does.
+- **D75. How the rows are read.** The rows other than the lit one, six on screen with the lit song kept in the fourth
+  (D66), once they have held still for half a second (D48's wait); a screenshot at once. The lit row is skipped: its
+  yellow hides which of its places are empty, its chart is the panel's as before, and every song passes through the other
+  rows as the list scrolls. A row's six places for a level sit right-aligned at fixed positions; a place holds a chart
+  when each of its three bars is lit gold or unlit grey, the lit ones from the left, and is empty when none is either. A
+  row with anything else in a place (moving, covered) is not read on that frame. Where all three are lit, the level is
+  read with the panel's level templates and the row's title by Windows OCR, matched against the chart list at each of
+  the row's Perfect Games' levels (D49, D68); the first chart found names the song for the rest. 1,000,000 is sent when
+  PIU Scores has less on that chart. A row is read once a run: it is known again by its jacket, within a few bits, and
+  its Perfect Games' levels, so a song scrolling through six places costs one OCR. On the fixtures: 473 charts in the
+  rows, none ambiguous, 118 of them Perfect Games, every level read.
+- **D76 (owner, 2026-09-26). Only a Perfect Game the rows send is heard.** One PIU Scores already has, one whose title or
+  level names no chart and one PIU Scores didn't take make no sound, keep no screen and count as nothing ("that would just
+  be unnecessary noise"); the log has each. A post that failed for the network or a rate limit is tried again the next
+  time the row settles in view. The lit chart keeps its three sounds (D50) and D69's keeping.
+- **D77 (owner, 2026-09-26). A Perfect Game makes its own sound, Level up**, wherever it lands: from a row, as the lit
+  chart's best at 1,000,000, and as a result screen's all-perfect play in either station, each under its own switch (D50,
+  D63). It is a quick climb up the chime's chord landing on its top note with the octave ringing over it: 0.66 s, a
+  little longer than the chime, and cut short by the next sound like any other. It replaces the chime for a Perfect Game
+  (D64). A bulk capture's frame makes one sound, Level up when a Perfect Game went up and the lit chart's own otherwise;
+  from the window, the rows wait a frame after the lit chart makes its sound, so both are heard.
+- **D78. The start window and the summary say so.** Under the steps: "Perfect Games don't need to be highlighted: every
+  one on screen is sent once the list stops moving." Level up joins the sounds after the chime ("A Perfect Game, sent to
+  PIU Scores."), the summary adds how many of the new bests were Perfect Games when any were, and Sounds while playing
+  names it. New copy since the mocks (D36), called out in the pull request.
+
 ## 3. The pipeline
 
 `IScreenSource` (one adapter per mode) → `ResultScreenDetector` (pixel anchors; which station) →
 `ResultScreenReader` (digit templates from the game's own font at layout positions that scale with the window;
 the title by Windows OCR) → `PlayChecksum` (D10) → `Deduplicator` (D11) → `IPlaysClient` → `INotifier`.
 ARCHITECTURE.md draws it. A bulk capture run (D45–D52) branches off the same sources: `SongListDetector` →
-`SongListReader` (the lit tab, the lit level box, the best score, the grade badge) → `BulkCaptureRun` (the
-half-second wait, the chart-list match, the title read again while the panel holds, a list it can't place, the
-stored bests) → `IPlaysClient`, with sounds instead of notifications.
+`SongListReader` (the lit tab, the lit level box, the best score, the grade badge, and every other row's marks and
+Perfect Games, D74) → `BulkCaptureRun` (the half-second wait, the chart-list match, the title read again while the
+panel holds, a list it can't place, the stored bests, each row's Perfect Games once a run, D75) → `IPlaysClient`, with
+sounds instead of notifications.
 
 The reader was built on the owner's 81 screenshots of 2026-09-21/22 (39 kept as fixtures: 30 results across
 both layouts, coloured and grey, 1080p and 720p; one mid-count frame; two blank-number frames; a Challenge
@@ -449,7 +488,7 @@ base64("anything:<token>")`. One request per play:
 | `source` | `watcher-grab` or `watcher-f12` (D16) |
 | `plays[]` | one play: `songName`, `chartType`, `level` (the server resolves the chart; `404` for an unknown title), `perfects`, `greats`, `goods`, `bads`, `misses`, `maxCombo`, `score`, `isBroken`, `playedAt` (the clock, ISO-8601 with offset) |
 | `award` | omitted — the server derives it from the judgments and would refuse a wrong claim anyway |
-| a bulk capture | `source` `watcher-songlist`; the play carries `songName`, `chartType`, `level`, `score`, `isBroken` false and `playedAt` (when it was read), and no judgments or max combo (D46) |
+| a bulk capture | `source` `watcher-songlist`; the play carries `songName`, `chartType`, `level`, `score`, `isBroken` false and `playedAt` (when it was read), and no judgments or max combo (D46). A Perfect Game read off a row is the same capture at `1000000`, with no `award`: PIU Scores records a million without judgments as a Perfect Game (D74) |
 | `recordBrokenAsBest` | omitted — the mix's default |
 
 `200` returns `recorded`, `mix`, `scoringModel`. `400` problem types the toast must turn into sentences:

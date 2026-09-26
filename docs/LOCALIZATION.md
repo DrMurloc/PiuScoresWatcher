@@ -63,7 +63,7 @@ sentence is the app, not a brand, so it becomes each language's word for an app.
 | kept (for review) | 보관 | 保存 | guardar | guardar | guardar | conserver | conservare |
 | song list | 노래 목록 | 曲リスト | lista de canciones | lista de canciones | lista de músicas | liste des chansons | lista delle canzoni |
 | judgments | 판정 | 判定 | juicios | juicios | julgamentos | jugements | giudizi |
-| the three sounds | 차임 · 틱 · 낮은 음 | チャイム · カチッ · 低い音 | Campanilla · Tic · Tono grave | Campanita · Tic · Tono grave | Sino · Tique · Tom grave | Carillon · Tic · Son grave | Campanella · Tic · Tono basso |
+| the four sounds: chime · level up · tick · low tone | 차임 · 레벨 업 · 틱 · 낮은 음 | チャイム · レベルアップ · カチッ · 低い音 | Campanilla · Subida de nivel · Tic · Tono grave | Campanita · Subida de nivel · Tic · Tono grave | Sino · Subida de nível · Tique · Tom grave | Carillon · Montée de niveau · Tic · Son grave | Campanella · Salita di livello · Tic · Tono basso |
 
 A play's words agree with it: `jogada`, `partie` and `partita` are feminine (`registrada`, `enregistrée`,
 `registrata`), and French keeps the site's feminine `la chart`. So does the app: `l'appli`, `la aplicación`,
@@ -75,4 +75,5 @@ is masculine.
 PIU Scores and PIU Scores Watcher; RISE, Warm Up and Arcade Station (the game's names); Steam, Windows and F12;
 the tabs 5K SINGLE and 6K DOUBLE; key caps; grade letters (SSS+, AA…); the chart labels (5K S18, 6K HD23,
 Arcade 5K S20); and "API tokens" in the path to the site's token page, which the site shows in English. Plate
-and mark names follow the site: English everywhere but Korean (퍼펙트 게임).
+and mark names follow the site: English everywhere but Korean (퍼펙트 게임), and they don't take a plural: a count of
+Perfect Games is "with Perfect Game" (`con Perfect Game`, `com Perfect Game`, `en Perfect Game`).
