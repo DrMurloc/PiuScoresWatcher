@@ -39,6 +39,12 @@
   <data name="Account" xml:space="preserve">
     <value>アカウント</value>
   </data>
+  <data name="After 4 hours without a play, PIU Scores ends a session and posts its card by itself, whatever is checked here." xml:space="preserve">
+    <value>プレイがないまま4時間たつと、ここでの設定にかかわらず、PIU Scoresがセッションを終了してカードを投稿します。</value>
+  </data>
+  <data name="After {0} minutes without a play" xml:space="preserve">
+    <value>{0}分間プレイがないとき</value>
+  </data>
   <data name="Both" xml:space="preserve">
     <value>両方</value>
   </data>
@@ -113,6 +119,9 @@
   </data>
   <data name="Each best on Warm Up's song list becomes a play on PIU Scores: the song, the chart and the score, no judgments." xml:space="preserve">
     <value>Warm Upの曲リストにある自己ベストが、それぞれPIU Scoresのプレイになります。曲・譜面・スコアのみで、判定は含みません。</value>
+  </data>
+  <data name="Even with RISE still open." xml:space="preserve">
+    <value>RISEを開いたままでも適用されます。</value>
   </data>
   <data name="Every recorded play" xml:space="preserve">
     <value>記録されたすべてのプレイ</value>
@@ -285,6 +294,9 @@
   <data name="PIU Scores has {0} of your Warm Up bests. Only higher ones are sent." xml:space="preserve">
     <value>PIU ScoresにはWarm Upの自己ベストが{0}件あります。それより高い記録だけが送信されます。</value>
   </data>
+  <data name="PIU Scores posts the session card when a session ends." xml:space="preserve">
+    <value>セッションが終わると、PIU Scoresがセッションカードを投稿します。</value>
+  </data>
   <data name="PIU Scores refused it. Not recorded." xml:space="preserve">
     <value>PIU Scoresに拒否されました。記録されていません。</value>
   </data>
@@ -341,6 +353,9 @@
   </data>
   <data name="Sent to PIU Scores." xml:space="preserve">
     <value>PIU Scoresに送信しました。</value>
+  </data>
+  <data name="Sessions" xml:space="preserve">
+    <value>セッション</value>
   </data>
   <data name="Set it up" xml:space="preserve">
     <value>設定する</value>
@@ -527,6 +542,9 @@
   </data>
   <data name="When a bulk capture finishes" xml:space="preserve">
     <value>一括キャプチャが終わったとき</value>
+  </data>
+  <data name="When RISE closes" xml:space="preserve">
+    <value>RISEを閉じたとき</value>
   </data>
   <data name="When the token stops working" xml:space="preserve">
     <value>トークンが使えなくなったとき</value>

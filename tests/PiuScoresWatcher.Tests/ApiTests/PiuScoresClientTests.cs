@@ -262,6 +262,92 @@ public sealed class PiuScoresClientTests
         Assert.Contains("unreachable", failed.Message, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(RiseMix.Rise, "Rise")]
+    [InlineData(RiseMix.RiseArcade, "RiseArcade")]
+    public async Task EndingASessionPostsTheMixAndNothingElse(RiseMix mix, string name)
+    {
+        var (client, exchange) = ClientOver(HttpStatusCode.NoContent, null);
+
+        var outcome = await client.CloseSittingsAsync(mix, CancellationToken.None);
+
+        Assert.Equal("https://piuscores.test/api/v2/players/me/sittings/close", exchange.Request!.RequestUri!.ToString());
+        Assert.Equal(HttpMethod.Post, exchange.Request.Method);
+        Assert.Equal("watcher:pst_secret", Encoding.UTF8.GetString(Convert.FromBase64String(exchange.Request.Headers.Authorization!.Parameter!)));
+        using var body = JsonDocument.Parse(exchange.RequestBody!);
+        var field = Assert.Single(body.RootElement.EnumerateObject());
+        Assert.Equal("mix", field.Name);
+        Assert.Equal(name, field.Value.GetString());
+        Assert.IsType<CloseOutcome.Closed>(outcome);
+        Assert.False(outcome.WorthRetrying);
+    }
+
+    [Fact]
+    public async Task WithoutATokenNoSessionIsEnded()
+    {
+        var (client, exchange) = ClientOver(HttpStatusCode.NoContent, null, token: null);
+
+        var outcome = await client.CloseSittingsAsync(RiseMix.Rise, CancellationToken.None);
+
+        Assert.IsType<CloseOutcome.NotConnected>(outcome);
+        Assert.True(outcome.WorthRetrying);
+        Assert.Null(exchange.Request);
+    }
+
+    [Fact]
+    public async Task AProblemWithTheCloseIsFinal()
+    {
+        var (client, _) = ClientOver(HttpStatusCode.BadRequest,
+            """{"type":"https://piuscores.arroweclip.se/errors/legacy-mix","title":"Not a Phoenix-scored mix.","status":400,"detail":"XX is not Phoenix-scored."}""",
+            mediaType: "application/problem+json");
+
+        var refused = Assert.IsType<CloseOutcome.Refused>(await client.CloseSittingsAsync(RiseMix.Rise, CancellationToken.None));
+
+        Assert.Equal("legacy-mix", refused.ProblemType);
+        Assert.Equal("XX is not Phoenix-scored.", refused.Detail);
+        Assert.False(refused.WorthRetrying);
+    }
+
+    [Fact]
+    public async Task ASiteThatDoesNotCloseSessionsYetIsFinal()
+    {
+        var (client, _) = ClientOver(HttpStatusCode.NotFound, null);
+
+        var outcome = await client.CloseSittingsAsync(RiseMix.Rise, CancellationToken.None);
+
+        Assert.IsType<CloseOutcome.NotOffered>(outcome);
+        Assert.False(outcome.WorthRetrying);
+    }
+
+    [Fact]
+    public async Task ARefusedTokenLeavesTheCloseOwed()
+    {
+        var (client, _) = ClientOver(HttpStatusCode.Unauthorized, null);
+
+        var outcome = await client.CloseSittingsAsync(RiseMix.Rise, CancellationToken.None);
+
+        Assert.IsType<CloseOutcome.Unauthorized>(outcome);
+        Assert.True(outcome.WorthRetrying);
+    }
+
+    [Fact]
+    public async Task ARateLimitAServerFailureOrNoNetworkLeavesTheCloseOwed()
+    {
+        var (limitedClient, _) = ClientOver(HttpStatusCode.TooManyRequests, null, retryAfter: TimeSpan.FromSeconds(30));
+        var (failingClient, _) = ClientOver(HttpStatusCode.ServiceUnavailable, "<html>down</html>", mediaType: "text/html");
+        var unreachable = new PiuScoresClient(new HttpClient(new ThrowingHandler()) { BaseAddress = new Uri("https://piuscores.test/") },
+            new StubTokens("pst_secret"));
+
+        var limited = Assert.IsType<CloseOutcome.RateLimited>(await limitedClient.CloseSittingsAsync(RiseMix.Rise, CancellationToken.None));
+        var failed = Assert.IsType<CloseOutcome.Failed>(await failingClient.CloseSittingsAsync(RiseMix.Rise, CancellationToken.None));
+        var cutOff = Assert.IsType<CloseOutcome.Failed>(await unreachable.CloseSittingsAsync(RiseMix.Rise, CancellationToken.None));
+
+        Assert.Equal(TimeSpan.FromSeconds(30), limited.RetryAfter);
+        Assert.Equal(503, failed.Status);
+        Assert.Null(cutOff.Status);
+        Assert.All(new CloseOutcome[] { limited, failed, cutOff }, outcome => Assert.True(outcome.WorthRetrying));
+    }
+
     /// <summary>A site that answers a fixed set of URLs, and remembers every request as it arrived.</summary>
     private sealed class Pages(Dictionary<string, string> bodies) : HttpMessageHandler
     {

@@ -139,6 +139,31 @@ public static class Copy
     public static string SoundsWhilePlayingDetail =>
         L("A chime when a play is recorded, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it.");
 
+    // ---- Settings: when a session ends (D74–D78) ----
+    public static string SectionSessions => Upper(L("Sessions"));
+    public static string SessionsLine => L("PIU Scores posts the session card when a session ends.");
+    public static string SessionEndsWhenRiseCloses => L("When RISE closes");
+
+    /// <summary>
+    ///     The minutes switch's words either side of its box, in the language's order: <c>After</c> [15] <c>minutes without a
+    ///     play</c>. Either side may be empty.
+    /// </summary>
+    public static (string Before, string After) SessionEndsAfterQuiet
+    {
+        get
+        {
+            var line = L("After {0} minutes without a play");
+            var box = line.IndexOf("{0}", StringComparison.Ordinal);
+            return box < 0 ? (line, "") : (line[..box].TrimEnd(), line[(box + 3)..].TrimStart());
+        }
+    }
+
+    public static string SessionEndsAfterQuietDetail => L("Even with RISE still open.");
+
+    /// <summary>Under the switches: PIU Scores' own four hours, whatever they say (D76).</summary>
+    public static string SessionFallback =>
+        L("After 4 hours without a play, PIU Scores ends a session and posts its card by itself, whatever is checked here.");
+
     // ---- Settings: the language (D58, D59) ----
     public static string SectionLanguage => Upper(L("Language"));
 

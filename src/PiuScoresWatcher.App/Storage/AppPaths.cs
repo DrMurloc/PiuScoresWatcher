@@ -26,6 +26,9 @@ public static class AppPaths
 
     public static string SettingsFile => Path.Combine(Root, "settings.json");
 
+    /// <summary>The sessions the watcher has open on PIU Scores and the closes it still owes (D82); bookkeeping, not choices.</summary>
+    public static string SessionFile => Path.Combine(Root, "session.json");
+
     /// <summary>The personal token, DPAPI-encrypted for the Windows account; never inside the settings file.</summary>
     public static string TokenFile => Path.Combine(Root, "token.bin");
 
