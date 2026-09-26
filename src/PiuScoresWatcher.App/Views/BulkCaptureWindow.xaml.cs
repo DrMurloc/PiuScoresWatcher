@@ -7,7 +7,7 @@ using PiuScoresWatcher.Core.Settings;
 namespace PiuScoresWatcher.App.Views;
 
 /// <summary>
-///     The start of a bulk capture (D51): the moves, and that Perfect Games need no highlight (D78), the four sounds
+///     The start of a bulk capture (D51): the moves, and that Perfect Games need no highlight (D88), the four sounds
 ///     with a button to hear each, what PIU Scores already has, and the sound switch. Start stays off until the chart list and the player's
 ///     bests are in, because a run without them cannot tell a new best from an old one.
 /// </summary>

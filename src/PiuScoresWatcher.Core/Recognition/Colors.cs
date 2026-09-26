@@ -30,13 +30,13 @@ internal readonly record struct ColorClass(double HueLo, double HueHi, double Mi
     /// <summary>The lit level box on the Warm Up song list.</summary>
     public static readonly ColorClass BoxYellow = new(40, 60, 0.6, 0.7);
 
-    /// <summary>The song list's lit row, whose yellow hides its empty places behind the same gold as a lit bar (D75).</summary>
+    /// <summary>The song list's lit row, whose yellow hides its empty places behind the same gold as a lit bar (D85).</summary>
     public static readonly ColorClass LitRow = new(30, 60, 0.6, 0.7);
 
-    /// <summary>A mark's bar lit gold under a level in the song list (D74).</summary>
+    /// <summary>A mark's bar lit gold under a level in the song list (D84).</summary>
     public static readonly ColorClass BarLit = new(35, 55, 0.7, 0.75);
 
-    /// <summary>A mark's bar unlit: a colourless dark grey, where the row behind it is navy (D74).</summary>
+    /// <summary>A mark's bar unlit: a colourless dark grey, where the row behind it is navy (D84).</summary>
     public static readonly ColorClass BarUnlit = new(0, 360, 0, 0.18, MaxSat: 0.3, MaxVal: 0.45);
 
     public bool Matches(double hue, double sat, double val)

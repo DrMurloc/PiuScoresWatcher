@@ -127,7 +127,7 @@ internal static partial class ReplayRunner
     /// <summary>
     ///     What a bulk capture would read from Warm Up's song list (D47), the title included even when the
     ///     chart has no best — every attempt in the lit row and on the panel, and whether each runs off its box (D66,
-    ///     D68) — and every other row's marks, with the title of each that holds a Perfect Game (D74, D75). Never
+    ///     D68) — and every other row's marks, with the title of each that holds a Perfect Game (D84, D85). Never
     ///     posted: a replay has neither the chart list nor the player's bests to check a best against.
     /// </summary>
     private static async Task<(object Report, int ExitCode)> SongListAsync(string file, ScreenImage image)
@@ -145,7 +145,7 @@ internal static partial class ReplayRunner
             boxes.Add(new { box = box.Name, runsOffRight = TitleInk.RunsOffRight(image, box.Region), attempts });
         }
 
-        // every other row's marks, and the title of each row with a Perfect Game to send (D74, D75)
+        // every other row's marks, and the title of each row with a Perfect Game to send (D84, D85)
         var rows = new List<object>();
         foreach (var row in reading.Rows)
             rows.Add(new

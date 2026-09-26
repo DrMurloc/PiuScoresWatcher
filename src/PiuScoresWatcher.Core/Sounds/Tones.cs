@@ -23,7 +23,7 @@ public sealed record Tone(double Frequency, double Start, double Duration, Wavef
 
 /// <summary>
 ///     The watcher's sounds (D50), synthesized rather than shipped as files: a snap and a bright two-note ding for
-///     sent, a short click for already there, a descending buzz for not sent, and Level up for a Perfect Game (D77).
+///     sent, a short click for already there, a descending buzz for not sent, and Level up for a Perfect Game (D87).
 ///     The first play test lost the mock's soft beeps under Warm Up's song previews, so every sound starts within a
 ///     couple of milliseconds, sits where music leaves room — high and bright, or buzzy with overtones — and is mixed
 ///     as loud as a WAV goes without distorting. The player turns the watcher down in Windows' volume mixer, and
@@ -58,7 +58,7 @@ public static class Tones
     ];
 
     /// <summary>
-    ///     Level up, the owner's pick for a Perfect Game (D77): a snap and a quick climb up the chime's chord (E6, A6, C♯7)
+    ///     Level up, the owner's pick for a Perfect Game (D87): a snap and a quick climb up the chime's chord (E6, A6, C♯7)
     ///     landing on its top note, E7, with the octave over the chime's A ringing and a square A6 under it for bite. It
     ///     rings a little longer than the chime; the next sound cuts it short like any other.
     /// </summary>

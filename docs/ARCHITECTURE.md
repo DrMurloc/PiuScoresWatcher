@@ -63,11 +63,11 @@ PiuScoresWatcher.sln
 │   │                                ResultScreenDetector, ResultScreenReader → ResultScreenReading,
 │   │                                SongListDetector + SongListReader (Warm Up's song list, D45–D48; each
 │   │                                tab lit in its own colour, D71; the list with a chart it can't place, D72;
-│   │                                every other row's marks and Perfect Games, D74, D75),
+│   │                                every other row's marks and Perfect Games, D84, D85),
 │   │                                GradeBadges + grades.json (the nine grade sprites' features),
 │   │                                the mask/segmenter/template machinery, templates.json (generated),
 │   │                                ITitleReader, TitleBox (where a title is read: the result screen's, the
-│   │                                song list's lit row and then its panel, D66, or another row's, D75), TitleInk (the title as
+│   │                                song list's lit row and then its panel, D66, or another row's, D85), TitleInk (the title as
 │   │                                dark letters on white, in the pages it is tried in, a short one three
 │   │                                times over, and whether it runs off its box, D53, D55, D67, D68)
 │   ├── Scoring/                     PhoenixScoring (the formula, copied from PIU Scores), PlayChecksum
@@ -78,14 +78,14 @@ PiuScoresWatcher.sln
 │   │                                Arcade Station the chart its note count fits, D56; a title cut off at
 │   │                                its box's edge only as the start of a longer one, D68; a song listed at
 │   │                                other charts, D70), ISongCatalogs, Titles (the title attempts, box by box,
-│   │                                until one names a chart; a row's until one names any of its Perfect Games, D75)
+│   │                                until one names a chart; a row's until one names any of its Perfect Games, D85)
 │   ├── Sounds/                      Tones (the chime, the tick, the low tone and Level up for a Perfect Game,
-│   │                                synthesized to WAV, D50, D77)
+│   │                                synthesized to WAV, D50, D87)
 │   └── Capture/                     CapturePipeline (one frame → one outcome), Deduplicator + PlayKey,
 │                                    BulkCaptureRun (a bulk capture: the wait, the match, the bests, D48–D52;
 │                                    the title read again while the panel holds, a chart kept once, D69;
 │                                    a list it can't place kept the first time, D72; each row's Perfect Games
-│                                    once a run, heard only when sent, D75, D76),
+│                                    once a run, heard only when sent, D85, D86),
 │                                    the ports IScreenSource / IGameSession / IFailedScreenStore / INotifier,
 │                                    WatcherNotice, SteamScreenshotFolders
 ├── src/PiuScoresWatcher.App         net10.0-windows10.0.19041.0 — WPF + adapters
@@ -113,7 +113,7 @@ PiuScoresWatcher.sln
 │   │                                SongCatalogs (each mix's chart list, loaded once the site answers for
 │   │                                the token — asked again until it does — and before a run)
 │   ├── Sounds/                      CaptureSounds (plays the Tones through Windows: a bulk capture's for each
-│   │                                chart, D50, and a play's, D63, D64; Level up for a Perfect Game, D77)
+│   │                                chart, D50, and a play's, D63, D64; Level up for a Perfect Game, D87)
 │   ├── Security/                    DpapiTokenStore, EnvironmentOrStoredToken (the dev seam)
 │   ├── Capture/                     RiseProcessWatch (is the game running, which window), WindowCaptureSource
 │   │                                (PrintWindow once a second), SteamScreenshotSource + SteamPaths (the F12

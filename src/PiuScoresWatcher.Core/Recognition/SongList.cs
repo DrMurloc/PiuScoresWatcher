@@ -68,7 +68,7 @@ internal static class SongListLayout
 
     public const int LitRow = 4;
 
-    /// <summary>A row's places for a level, right-aligned: a song with fewer charts leaves the left ones empty (D75).</summary>
+    /// <summary>A row's places for a level, right-aligned: a song with fewer charts leaves the left ones empty (D85).</summary>
     public const int Places = 6;
 
     // Measured on the first tester's 4K lists, halved (tools/reader-lab/songlist.py): the first row's bars' centre line and
@@ -80,7 +80,7 @@ internal static class SongListLayout
     private const double BarHalfHeight = 1.5;
     private static readonly (double X0, double X1)[] BarSpans = [(1, 11), (15, 25), (29, 40)];
 
-    /// <summary>One of the three bars under a place's level, the first leftmost: lit gold for the chart's best mark (D74).</summary>
+    /// <summary>One of the three bars under a place's level, the first leftmost: lit gold for the chart's best mark (D84).</summary>
     public static FractionRect Bar(int row, int place, int bar)
     {
         var x0 = FirstPlaceX + PlacePitch * place;
@@ -154,7 +154,7 @@ public enum SongListStatus
 ///     What the song-list reader made of one frame. The title is read by an adapter from <see cref="Titles" />, the lit
 ///     row's and then the panel's (D66); <see cref="Jacket" /> is a print of the lit song's jacket, which tells two songs
 ///     apart when their panels read the same. <see cref="Rows" /> are the list's other rows, whatever the lit chart's
-///     status (D74). A list whose lit chart can't be placed has no chart type, and nothing else is read (D72).
+///     status (D84). A list whose lit chart can't be placed has no chart type, and nothing else is read (D72).
 /// </summary>
 [ExcludeFromCodeCoverage]
 public sealed record SongListReading(
@@ -169,7 +169,7 @@ public sealed record SongListReading(
     IReadOnlyList<SongListRow> Rows);
 
 /// <summary>
-///     One of the song list's rows other than the lit one, as far as its marks go (D74, D75): under each level three bars
+///     One of the song list's rows other than the lit one, as far as its marks go (D84, D85): under each level three bars
 ///     light gold from the left for the chart's best mark — one No Miss, two Full Combo, three a Perfect Game, which is
 ///     1,000,000 and so a whole capture.
 /// </summary>
@@ -248,7 +248,7 @@ public sealed class SongListDetector
 ///     Reads the lit chart's best off Warm Up's song list: the level from the lit box, the best score, and
 ///     the grade badge as the check (D47). The panel's accuracy and max combo are left alone: they do not
 ///     always come from the best-score play. The other rows are read for their marks, and the level of each chart
-///     whose three bars are lit: a Perfect Game (D74, D75).
+///     whose three bars are lit: a Perfect Game (D84, D85).
 /// </summary>
 public sealed class SongListReader
 {
@@ -304,7 +304,7 @@ public sealed class SongListReader
                 lit.ChartType, level.Value, score.Value, grade.Grade, titles, jacket, rows);
     }
 
-    /// <summary>Every row but the lit one, which its yellow gives away (D75).</summary>
+    /// <summary>Every row but the lit one, which its yellow gives away (D85).</summary>
     private IReadOnlyList<SongListRow> Rows(ScreenImage image)
     {
         List<SongListRow> rows = [];

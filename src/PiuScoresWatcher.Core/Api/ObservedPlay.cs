@@ -70,7 +70,7 @@ public sealed record ObservedPlay(
 
     /// <summary>
     ///     A Perfect Game, the way PIU Scores records one: the award its judgments earn, or for a capture, which has none, the
-    ///     million only a Perfect Game scores (D74). What plays Level up (D77).
+    ///     million only a Perfect Game scores (D84). What plays Level up (D87).
     /// </summary>
     public bool IsPerfectGame => Judgments is null
         ? !IsBroken && Score == PhoenixScoring.PerfectGameScore

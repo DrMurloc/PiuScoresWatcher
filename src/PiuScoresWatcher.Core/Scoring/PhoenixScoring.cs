@@ -15,7 +15,7 @@ namespace PiuScoresWatcher.Core.Scoring;
 /// </summary>
 public static class PhoenixScoring
 {
-    /// <summary>Every judgment a perfect and the combo whole: 995,000 + 5,000. Only a Perfect Game scores it (D74).</summary>
+    /// <summary>Every judgment a perfect and the combo whole: 995,000 + 5,000. Only a Perfect Game scores it (D84).</summary>
     public const int PerfectGameScore = 1_000_000;
 
     public static int Score(Judgments judgments, int maxCombo)

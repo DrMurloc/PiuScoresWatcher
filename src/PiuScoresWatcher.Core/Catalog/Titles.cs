@@ -58,7 +58,7 @@ public static class Titles
     }
 
     /// <summary>
-    ///     A song list row's title (D75): read attempt by attempt until a reading names a chart at one of the row's
+    ///     A song list row's title (D85): read attempt by attempt until a reading names a chart at one of the row's
     ///     <paramref name="levels" />, each matched on its own among the songs that have that chart. A reading that spells a
     ///     song exactly at one of them names it before a loose match at another, the leftmost first after that: where the list
     ///     lacks Beethoven Virus's S7 but has its FULL SONG's, the S10 spelled exactly is the song. A row is one song, so the

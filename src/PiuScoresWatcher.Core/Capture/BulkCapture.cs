@@ -10,12 +10,12 @@ namespace PiuScoresWatcher.Core.Capture;
 
 /// <summary>
 ///     What one frame did to a bulk capture run; the App plays the sound each one calls for (D50). Whatever became of the lit
-///     chart, <see cref="PerfectGames" /> is what the other rows' Perfect Games came to on this frame (D74-D76).
+///     chart, <see cref="PerfectGames" /> is what the other rows' Perfect Games came to on this frame (D84-D86).
 /// </summary>
 [ExcludeFromCodeCoverage]
 public abstract record BulkOutcome
 {
-    /// <summary>The rows' Perfect Games acted on with this frame; only one sent is heard (D76, D77).</summary>
+    /// <summary>The rows' Perfect Games acted on with this frame; only one sent is heard (D86, D87).</summary>
     public IReadOnlyList<PerfectGameOutcome> PerfectGames { get; init; } = [];
 
     /// <summary>
@@ -52,7 +52,7 @@ public abstract record BulkOutcome
 }
 
 /// <summary>
-///     What became of one Perfect Game a row of the song list showed (D74-D76). Only <see cref="Sent" /> is heard, counted
+///     What became of one Perfect Game a row of the song list showed (D84-D86). Only <see cref="Sent" /> is heard, counted
 ///     and told; the rest are for the log.
 /// </summary>
 [ExcludeFromCodeCoverage]
@@ -73,7 +73,7 @@ public abstract record PerfectGameOutcome
 
 /// <summary>
 ///     A run's count so far: what the tray, the settings window and the summary say (D50). <see cref="PerfectGames" /> are
-///     the Perfect Games among <see cref="Sent" />, from the rows and the lit chart alike (D78).
+///     the Perfect Games among <see cref="Sent" />, from the rows and the lit chart alike (D88).
 /// </summary>
 [ExcludeFromCodeCoverage]
 public sealed record BulkTally(int Sent, int Already, int Unreadable, int NotRecorded, int PerfectGames = 0)
@@ -93,18 +93,18 @@ public sealed record BulkTally(int Sent, int Already, int Unreadable, int NotRec
 ///     kept; a chart is kept once in a run however often the player comes back to it (D69). The list with a chart lit
 ///     that can't be placed is kept the first time it stays so for <see cref="UnplacedFor" />, and not again in the run
 ///     (D72).
-///     The other rows' Perfect Games go up too, highlighted or not (D74): once the rows have held still for
+///     The other rows' Perfect Games go up too, highlighted or not (D84): once the rows have held still for
 ///     <see cref="Settle" />, they are taken up with their frame, and on the first frame the lit chart isn't making its
 ///     sound or reading its title again, whatever that frame shows, each row with one has its title read and each Perfect
-///     Game PIU Scores has less than a million on is sent, so moving on at the sound loses nothing (D77). A row is acted on
+///     Game PIU Scores has less than a million on is sent, so moving on at the sound loses nothing (D87). A row is acted on
 ///     once a run, known again by its jacket and its Perfect Games' levels, and nothing about it is heard or kept but a
-///     Perfect Game sent (D75, D76).
+///     Perfect Game sent (D85, D86).
 /// </summary>
 public sealed class BulkCaptureRun
 {
     public static readonly TimeSpan Settle = TimeSpan.FromMilliseconds(500);
 
-    /// <summary>How far a row's jacket may print from the one acted on and still be that row: the same song differs by a bit or none, two songs by 18 or more (D48, D75).</summary>
+    /// <summary>How far a row's jacket may print from the one acted on and still be that row: the same song differs by a bit or none, two songs by 18 or more (D48, D85).</summary>
     public const int JacketBits = 4;
 
     /// <summary>How long a panel whose title names no chart is read again before the chart is kept (D69).</summary>
@@ -127,7 +127,7 @@ public sealed class BulkCaptureRun
     private readonly HashSet<Fingerprint> _kept = [];
     private readonly SongListReader _reader;
 
-    /// <summary>The rows acted on this run (D75).</summary>
+    /// <summary>The rows acted on this run (D85).</summary>
     private readonly List<RowKey> _rowsDone = [];
 
     private readonly IPlaysClient _site;
@@ -135,10 +135,10 @@ public sealed class BulkCaptureRun
     private Fingerprint? _acted;
     private (Fingerprint Fingerprint, DateTimeOffset Since)? _pending;
 
-    /// <summary>The rows as last taken up, and as they have stood since when: a change of any row is the list moving (D75).</summary>
+    /// <summary>The rows as last taken up, and as they have stood since when: a change of any row is the list moving (D85).</summary>
     private string? _rowsActed;
 
-    /// <summary>Rows taken up with their frame, waiting for the lit chart to be done with its sound or its title (D75, D77).</summary>
+    /// <summary>Rows taken up with their frame, waiting for the lit chart to be done with its sound or its title (D85, D87).</summary>
     private readonly Queue<(CapturedFrame Frame, SongListReading Reading)> _rowsHeld = new();
 
     private (string Rows, DateTimeOffset Since)? _rowsPending;
@@ -179,8 +179,8 @@ public sealed class BulkCaptureRun
         var outcome = await OutcomeAsync(frame, reading, fromWindow, cancellationToken);
 
         // From the window the rows taken up wait while the lit chart makes its sound, so both are heard, and while it reads
-        // its title again, so their reads and posts don't eat its two seconds (D69, D77). Any other frame acts on them,
-        // whatever it shows (the list moved on at the sound, or gone): a row is known by its jacket, not its place (D75).
+        // its title again, so their reads and posts don't eat its two seconds (D69, D87). Any other frame acts on them,
+        // whatever it shows (the list moved on at the sound, or gone): a row is known by its jacket, not its place (D85).
         var litFirst = fromWindow && reading is not null && (outcome is not (BulkOutcome.Waiting or BulkOutcome.NoBest) || _unnamed is not null);
         if (_rowsHeld.Count == 0 || litFirst)
             return outcome;
@@ -246,14 +246,14 @@ public sealed class BulkCaptureRun
 
     /// <summary>
     ///     The rows as they stand, when they are to be acted on with this frame: a row holds a Perfect Game, they have held
-    ///     still for <see cref="Settle" /> (a screenshot is already still), and they were not acted on as they stand (D75).
+    ///     still for <see cref="Settle" /> (a screenshot is already still), and they were not acted on as they stand (D85).
     ///     As they stand is on this tab, with these Perfect Games: after TAB the same songs, marks alike, are other charts.
     /// </summary>
     private string? RowsToActOn(ChartType type, IReadOnlyList<SongListRow> rows, bool fromWindow)
     {
         if (!rows.Any(row => row.PerfectGames.Count > 0))
         {
-            // rows seen before are taken up again when the list comes back to them, for a post that was lost (D76)
+            // rows seen before are taken up again when the list comes back to them, for a post that was lost (D86)
             _rowsActed = null;
             _rowsPending = null;
             return null;
@@ -279,7 +279,7 @@ public sealed class BulkCaptureRun
     }
 
     /// <summary>
-    ///     The rows' Perfect Games (D74-D76), from each frame the rows were taken up on: a row not acted on this run has its
+    ///     The rows' Perfect Games (D84-D86), from each frame the rows were taken up on: a row not acted on this run has its
     ///     title read and matched at its Perfect Games' levels, and each one PIU Scores has less than a million on is sent. A
     ///     row is done once acted on, unless a post was lost to the network or a rate limit: then it is tried again the next
     ///     time it settles in view.
@@ -476,6 +476,6 @@ public sealed class BulkCaptureRun
     /// <summary>A chart whose title has named nothing since <paramref name="Since" />, and how it was last seen.</summary>
     private sealed record Unnamed(Fingerprint Fingerprint, DateTimeOffset Since, CapturedFrame Frame, KeptBecause Because, string Reason);
 
-    /// <summary>A row acted on: the tab it was seen on, its jacket's print, and its Perfect Games' levels (D75).</summary>
+    /// <summary>A row acted on: the tab it was seen on, its jacket's print, and its Perfect Games' levels (D85).</summary>
     private sealed record RowKey(ChartType Type, ulong Jacket, IReadOnlyList<int> Levels);
 }

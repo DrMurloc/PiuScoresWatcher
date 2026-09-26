@@ -72,7 +72,7 @@
                            LineStackingStrategy="BlockLineHeight" LineHeight="23" />
                 <TextBlock Grid.Row="2" Text="3." Margin="0,0,8,0" />
                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Static app:Copy.BulkStep3}" TextWrapping="Wrap" />
-                <!-- The other rows' Perfect Games go up without being lit (watcher.md D74, D78). -->
+                <!-- The other rows' Perfect Games go up without being lit (watcher.md D84, D88). -->
                 <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,8,0,0" Text="{x:Static app:Copy.BulkPerfectGamesTip}"
                            Style="{StaticResource Secondary}" TextWrapping="Wrap" />
             </Grid>

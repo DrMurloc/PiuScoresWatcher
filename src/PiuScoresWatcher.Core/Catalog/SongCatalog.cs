@@ -131,7 +131,7 @@ public sealed class SongCatalog
 
     /// <summary>
     ///     The song's chart at a type and level, by the list's own spelling of its name — a row of the song list is one song,
-    ///     so the chart its title named at one level names it at the others (D75); null when the list lacks that chart (D70).
+    ///     so the chart its title named at one level names it at the others (D85); null when the list lacks that chart (D70).
     /// </summary>
     public CatalogChart? Chart(string songName, ChartType type, int level)
     {

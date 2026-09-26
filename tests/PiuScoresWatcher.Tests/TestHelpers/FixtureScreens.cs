@@ -8,7 +8,7 @@ namespace PiuScoresWatcher.Tests.TestHelpers;
 /// <summary>
 ///     What one fixture screen is expected to read as. <c>Kind</c> is result, unsettled, empty, aggregate or
 ///     none for the result screens; songlist, songlist-empty or arcadelist for the song lists (D45). A song list's
-///     <c>Rows</c> are its seven rows from the top as the lab labels them (D74): each chart's level and lit bars
+///     <c>Rows</c> are its seven rows from the top as the lab labels them (D84): each chart's level and lit bars
 ///     (<c>"7:3 10:3 17:2"</c>), null for the lit row.
 /// </summary>
 internal sealed record ExpectedScreen(

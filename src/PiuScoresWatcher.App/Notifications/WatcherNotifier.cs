@@ -109,7 +109,7 @@ public sealed class WatcherNotifier : INotifier
         };
     }
 
-    /// <summary>The run's one summary (D50): how many of its new bests were Perfect Games when any were (D78), and Review only when something is waiting there.</summary>
+    /// <summary>The run's one summary (D50): how many of its new bests were Perfect Games when any were (D88), and Review only when something is waiting there.</summary>
     private static ToastContentBuilder Finished(BulkTally tally)
     {
         var toast = Opening(ToastAction.Settings)

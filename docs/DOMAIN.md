@@ -47,7 +47,7 @@ All three are PIU Scores' rules, verified there against the owner's result scree
 
 A score that does not recompute from the judgments means a digit was misread. That is the whole reason the rules are here.
 
-**The marks on Warm Up's song list.** Under every level in the song list, lit song or not, the game draws three bars that light gold from the left for the chart's best mark: one for NO MISS, two for FULL COMBO, three for PERFECT GAME. A Perfect Game is all perfects, so it scores exactly 1,000,000; three lit bars say the whole best, which is why the watcher can capture a Perfect Game without the chart being selected (design D74). The other two marks say nothing of the score.
+**The marks on Warm Up's song list.** Under every level in the song list, lit song or not, the game draws three bars that light gold from the left for the chart's best mark: one for NO MISS, two for FULL COMBO, three for PERFECT GAME. A Perfect Game is all perfects, so it scores exactly 1,000,000; three lit bars say the whole best, which is why the watcher can capture a Perfect Game without the chart being selected (design D84). The other two marks say nothing of the score.
 
 ### The RISE grade ladder (mix `rise`)
 

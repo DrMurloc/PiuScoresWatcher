@@ -173,7 +173,7 @@ public sealed class BulkCaptureService : IDisposable
         return outcome;
     }
 
-    /// <summary>A Perfect Game off one of the list's other rows (D74-D76): the log hears of each, the player only of those sent.</summary>
+    /// <summary>A Perfect Game off one of the list's other rows (D84-D86): the log hears of each, the player only of those sent.</summary>
     private void LogPerfectGame(PerfectGameOutcome outcome)
     {
         switch (outcome)

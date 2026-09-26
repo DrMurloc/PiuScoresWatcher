@@ -2,7 +2,7 @@ using PiuScoresWatcher.Core.Sounds;
 
 namespace PiuScoresWatcher.Tests.SoundTests;
 
-/// <summary>The watcher's four sounds come out as WAV files Windows will play (D50, D77).</summary>
+/// <summary>The watcher's four sounds come out as WAV files Windows will play (D50, D87).</summary>
 public sealed class TonesTests
 {
     public static TheoryData<string> Sounds()
@@ -43,7 +43,7 @@ public sealed class TonesTests
     {
         var wav = Tones.Wav(Named(name));
 
-        // Level up rings the longest, 0.66 s with its moment of silence (D77)
+        // Level up rings the longest, 0.66 s with its moment of silence (D87)
         var seconds = (wav.Length - 44) / 2.0 / Tones.SampleRate;
         Assert.InRange(seconds, 0.05, 0.7);
         var loudest = 0;

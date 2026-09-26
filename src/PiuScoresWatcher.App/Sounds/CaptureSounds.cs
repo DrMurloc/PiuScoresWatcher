@@ -6,20 +6,20 @@ using PiuScoresWatcher.Core.Sounds;
 
 namespace PiuScoresWatcher.App.Sounds;
 
-/// <summary>The watcher's four sounds (D50, D77), synthesized once at start-up and played by Windows.</summary>
+/// <summary>The watcher's four sounds (D50, D87), synthesized once at start-up and played by Windows.</summary>
 public enum CaptureSound
 {
     Chime,
     Tick,
     LowTone,
 
-    /// <summary>A Perfect Game on PIU Scores (D77).</summary>
+    /// <summary>A Perfect Game on PIU Scores (D87).</summary>
     LevelUp
 }
 
 /// <summary>
 ///     Plays the chime, the tick, the low tone or Level up: for what a bulk capture did with a chart (D50), and for
-///     what became of a play (D63, D64), each unless its switch is off; Level up whenever a Perfect Game lands (D77).
+///     what became of a play (D63, D64), each unless its switch is off; Level up whenever a Perfect Game lands (D87).
 ///     Playing never blocks: Windows plays in the background, and a new sound cuts the last one short, which is what a
 ///     quick flip through the list wants.
 /// </summary>
@@ -40,7 +40,7 @@ public sealed class CaptureSounds(ISettingsStore settings) : IDisposable
 
     /// <summary>
     ///     The one sound for what a bulk capture's frame did, when its switch is on: Level up when a Perfect Game went up,
-    ///     from a row or as the lit chart's best, else the lit chart's own. The rows are heard only when they send (D76).
+    ///     from a row or as the lit chart's best, else the lit chart's own. The rows are heard only when they send (D86).
     /// </summary>
     public void Play(BulkOutcome outcome)
     {
@@ -68,7 +68,7 @@ public sealed class CaptureSounds(ISettingsStore settings) : IDisposable
 
     /// <summary>
     ///     The sound for what became of a play, when its switch is on (D64): the chime when it is on PIU Scores — Level up
-    ///     for a Perfect Game (D77) — the low tone when its screen couldn't be read, the tick when PIU Scores didn't take
+    ///     for a Perfect Game (D87) — the low tone when its screen couldn't be read, the tick when PIU Scores didn't take
     ///     it. True when one played, so the play's notification can keep quiet.
     /// </summary>
     public bool Play(WatcherNotice notice)

@@ -34,7 +34,7 @@ No Windows API, no game, no network; it runs wherever the SDK does. This is the 
 | `empty` | `NumbersNotShown` — the grade sticker is up, the number bars are still blank |
 | `aggregate` | `NotAPlay` — a Challenge result, four songs summed under a division badge where the song title goes |
 | `none` | not detected at all — WorldMax's mission summary, the title screen, the song wheel, a loading frame |
-| `songlist` | Warm Up's song list: the lit tab — 5K SINGLE lit orange, 6K DOUBLE lit blue (D71) — the lit level, the best score, and a grade badge that agrees with it (D47); and every other row's marks, level by level, with the levels of its Perfect Games (D74, D75) |
+| `songlist` | Warm Up's song list: the lit tab — 5K SINGLE lit orange, 6K DOUBLE lit blue (D71) — the lit level, the best score, and a grade badge that agrees with it (D47); and every other row's marks, level by level, with the levels of its Perfect Games (D84, D85) |
 | `songlist-empty` | Warm Up's song list on a chart with no best: nothing to capture from the panel, and the other rows read as on any song list |
 | `arcadelist` | the Arcade Station's song list: not read in v1 (D45) |
 
@@ -63,7 +63,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] Install fresh → the first-run window opens on How it works; Set it up → the three steps; a bad token says so; a good one says who it is.
 - [ ] Notifications all off → no notification for a recorded play, and the settings window still lists it; one kind off → only that kind goes quiet.
 - [ ] A recorded play → the chime, and its notification makes no sound of its own; F12 before the score finishes counting → the low tone; a play with the token disconnected → the tick; Sounds while playing off → silence.
-- [ ] A Perfect Game in Warm Up (or the Arcade Station) → Level up instead of the chime (D77).
+- [ ] A Perfect Game in Warm Up (or the Arcade Station) → Level up instead of the chime (D87).
 - [ ] No banner at all → Windows' Do Not Disturb is on; the notifications are still in the notification center.
 - [ ] A notification's Review → the review window on that screen; Open settings → the settings window.
 - [ ] Review window → Show the file opens Explorer on it; Delete moves to the next; Delete all empties the list and the amber row goes.
@@ -75,12 +75,12 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] Bulk capture: start it from the tray → the window says how many Warm Up bests PIU Scores has; Start.
 - [ ] Move through a dozen charts on Warm Up's song list, some 6K DOUBLE via TAB → a chime for each best above the site's, a tick for the rest, and the site shows the chimed ones as plays — the 6K DOUBLE ones as half-doubles (D71).
 - [ ] Flip quickly between two charts → neither is captured with the other's score.
-- [ ] Two songs in a row showing the same level and score (two 1,000,000s at one level) → both play Level up, the Perfect Game's sound (D77).
+- [ ] Two songs in a row showing the same level and score (two 1,000,000s at one level) → both play Level up, the Perfect Game's sound (D87).
 - [ ] Titles the panel scrolls (wanna go to the moon palace, Conflict -NOMA CONCEiVER REMiX-) and short ones (B2, D, N, Dr. M, 8 6) → each is heard within two seconds (a chime or a tick, Level up for the 1,000,000s); none is kept (D66–D69).
 - [ ] The Quick Brown Fox Jumps Over The Lazy Dog, the one title that scrolls in the list too → captured if you wait on it for two seconds; kept at most once if you don't.
 - [ ] A chart PIU Scores doesn't list → the low tone, and the review window says PIU Scores doesn't list this chart (D70).
 - [ ] RISE at 1280×720: F12 a handful of Warm Up song lists with bests on them → they become the 720p fixtures, and the reader is fixed against them before the tag (watcher.md §9).
-- [ ] Perfect Games without highlighting them (D74–D76): on a list with three gold bars under some levels, press W or S the moment each sound starts, as a sweep goes → Level up a beat later whenever a Perfect Game PIU Scores didn't have went up, silence otherwise; the site shows each at 1,000,000 as a Perfect Game. Scroll back over the same songs → silence. Both tabs, 5K SINGLE and 6K DOUBLE.
+- [ ] Perfect Games without highlighting them (D84–D86): on a list with three gold bars under some levels, press W or S the moment each sound starts, as a sweep goes → Level up a beat later whenever a Perfect Game PIU Scores didn't have went up, silence otherwise; the site shows each at 1,000,000 as a Perfect Game. Scroll back over the same songs → silence. Both tabs, 5K SINGLE and 6K DOUBLE.
 - [ ] Start a song → the run ends; one summary notification, which says how many of the new bests were Perfect Games; one line in Recent.
 - [ ] Run it again over the same charts → ticks only, nothing sent.
 - [ ] The sounds are clear over the song list's music at your usual volume, Level up included.

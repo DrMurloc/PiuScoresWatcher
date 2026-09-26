@@ -159,7 +159,7 @@ public sealed class SongListReaderTests
     }
 
     /// <summary>
-    ///     Every row but the lit one, as the lab labels it by eye (D74, D75): each chart's lit bars, left to right, and the
+    ///     Every row but the lit one, as the lab labels it by eye (D84, D85): each chart's lit bars, left to right, and the
     ///     level of each Perfect Game. The owner's own rows carry no mark at all; the testers' carry 118 Perfect Games.
     /// </summary>
     [Theory]

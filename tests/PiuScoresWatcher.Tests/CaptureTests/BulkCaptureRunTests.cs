@@ -459,7 +459,7 @@ public sealed class BulkCaptureRunTests
         Assert.Equal(1, Run(new StoredBest(AragamiS19, 971789, false), new StoredBest(MorrighanS20, null, true)).StoredBestCount);
     }
 
-    // ---- The other rows' Perfect Games (D74-D76), on the first tester's lists: 5K SINGLE, rows full of three lit bars ----
+    // ---- The other rows' Perfect Games (D84-D86), on the first tester's lists: 5K SINGLE, rows full of three lit bars ----
 
     private const string B2List = "20260924233951";     // B2 S7 lit at 1,000,000; Perfect Games in rows 1-3, 6 and 7
     private const string PeopleList = "20260925003656"; // The People didn't know "Pumping up" S8 lit
@@ -524,7 +524,7 @@ public sealed class BulkCaptureRunTests
     [Fact]
     public async Task EveryPerfectGameInTheOtherRowsIsSentOnceTheListHasHeldStillAFrameAfterTheLitChartsSound()
     {
-        // the lit B2 S7 is already on PIU Scores: its tick comes first, the rows' Perfect Games a frame later (D77)
+        // the lit B2 S7 is already on PIU Scores: its tick comes first, the rows' Perfect Games a frame later (D87)
         var run = TesterRun(("B2", 7, 1_000_000));
         TitlesOf(B2List);
 

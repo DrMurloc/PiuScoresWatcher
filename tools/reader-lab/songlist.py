@@ -1,5 +1,5 @@
 """The Warm Up song list (watcher.md D45-D48): where the lit chart and its best sit, how they read, and the
-grade-badge check; and every other row's marks and Perfect Games (D74, D75). Trains the two digit families the list
+grade-badge check; and every other row's marks and Perfect Games (D84, D85). Trains the two digit families the list
 prints in and writes the grade features for templates.py; run it on its own for a report over the labeled song-list
 screens, or with --rows for the rows alone."""
 import json, os
@@ -37,7 +37,7 @@ def box_digits(i):
     return P.R(x0 + 21, 574, x0 + 66, 604)
 
 # The list's seven rows, the lit song in the fourth (watcher.md D66). Under each level in a row three bars light gold from
-# the left for the chart's best mark: one No Miss, two Full Combo, three a Perfect Game (D74). Measured on the first
+# the left for the chart's best mark: one No Miss, two Full Combo, three a Perfect Game (D84). Measured on the first
 # tester's 4K lists, halved: the bars' centre line, the row pitch, the six places for a level (right-aligned), and the
 # inside of each bar clear of its dark edges.
 ROWS, LIT_ROW = 7, 4
@@ -91,7 +91,7 @@ def bar_state(img, r):
     return "."
 
 def read_rows(img, templates):
-    """Every row but the lit one, as the watcher reads it (D75): per row, None for the lit row, '?' for one that can't be
+    """Every row but the lit one, as the watcher reads it (D85): per row, None for the lit row, '?' for one that can't be
     read on this frame, else [(level or None, lit bars)] left to right — the level read only where all three are lit."""
     out = {}
     for row in range(1, ROWS + 1):
@@ -188,7 +188,7 @@ SIX_K = {
 EXPECTED_LIST.update({name: exp for name, (exp, _, _) in (TESTER | SIX_K).items()})
 BOX_LEVELS.update({name: boxes for name, (_, boxes, _) in (TESTER | SIX_K).items()})
 NOTES = {name: note for name, (_, _, note) in (TESTER | SIX_K).items()}
-# every row but the lit one, per place 1-7, as the owner's and the testers' screens show them, read by eye (D74): each
+# every row but the lit one, per place 1-7, as the owner's and the testers' screens show them, read by eye (D84): each
 # chart's level and lit bars; None for the lit row, and "" for one with no chart (the bottom row under the lab's old
 # player-card mask)
 ROW_LABELS = {
@@ -359,7 +359,7 @@ def rows_agree(label, got):
                                          for (level, lit), (got_level, got_lit) in zip(want, got))
 
 def rows_report(templates):
-    """Every labeled song list's rows through read_rows (D74, D75): what disagrees with the label, and the totals."""
+    """Every labeled song list's rows through read_rows (D84, D85): what disagrees with the label, and the totals."""
     charts = perfect = unread = bad = 0
     for name in sorted(ROW_LABELS):
         if not source(name):
