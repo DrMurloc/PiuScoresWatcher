@@ -9,8 +9,8 @@
         WindowStartupLocation="CenterScreen">
     <!-- Iteration 1: the mocks' settings window (watcher.md D37), plus the notification switches of
          D35; iteration 2 adds bulk capture (D51): the status card during a run, its section, its
-         summary's switch, and a run's one line in Recent; the Language section closes it (D59). Every
-         string is Copy's (D36). -->
+         summary's switch, and a run's one line in Recent; the Language section closes it (D59); Sessions
+         follows Watching (D75). Every string is Copy's (D36). -->
     <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="20,10,20,16">
             <Border Style="{StaticResource Card}">
@@ -70,6 +70,30 @@
                             <TextBlock Text="{x:Static app:Copy.SoundsWhilePlayingDetail}" Style="{StaticResource Secondary}" />
                         </StackPanel>
                     </CheckBox>
+                </StackPanel>
+            </Border>
+
+            <!-- When a session ends (D74–D78): two switches that work on their own, either, both or neither, and PIU
+                 Scores' four hours under them whatever they say. The minutes box sits inside its sentence where the
+                 language puts the number. -->
+            <TextBlock Text="{x:Static app:Copy.SectionSessions}" Style="{StaticResource SectionLabel}" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="{x:Static app:Copy.SessionsLine}" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    <CheckBox x:Name="EndWhenRiseClosesBox" Margin="0,8,0,0" Content="{x:Static app:Copy.SessionEndsWhenRiseCloses}"
+                              Checked="OnSessionsChanged" Unchecked="OnSessionsChanged" />
+                    <CheckBox x:Name="EndAfterQuietBox" Margin="0,4,0,0" Checked="OnSessionsChanged" Unchecked="OnSessionsChanged">
+                        <StackPanel>
+                            <WrapPanel>
+                                <TextBlock x:Name="QuietBefore" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                <ComboBox x:Name="QuietMinutesBox" MinWidth="72" VerticalAlignment="Center" SelectionChanged="OnQuietMinutesChanged" />
+                                <TextBlock x:Name="QuietAfter" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </WrapPanel>
+                            <TextBlock Text="{x:Static app:Copy.SessionEndsAfterQuietDetail}" Style="{StaticResource Secondary}" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </CheckBox>
+                    <Border Height="1" Margin="0,10" Background="{DynamicResource DividerStrokeColorDefaultBrush}" />
+                    <TextBlock Text="{x:Static app:Copy.SessionFallback}" Style="{StaticResource Secondary}" />
                 </StackPanel>
             </Border>
 

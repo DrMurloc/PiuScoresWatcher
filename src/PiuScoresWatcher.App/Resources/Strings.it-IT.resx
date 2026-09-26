@@ -39,6 +39,12 @@
   <data name="Account" xml:space="preserve">
     <value>Account</value>
   </data>
+  <data name="After 4 hours without a play, PIU Scores ends a session and posts its card by itself, whatever is checked here." xml:space="preserve">
+    <value>Dopo 4 ore senza partite, PIU Scores chiude la sessione e ne pubblica la scheda da solo, qualunque cosa sia selezionata qui.</value>
+  </data>
+  <data name="After {0} minutes without a play" xml:space="preserve">
+    <value>Dopo {0} minuti senza partite</value>
+  </data>
   <data name="Both" xml:space="preserve">
     <value>Entrambi</value>
   </data>
@@ -113,6 +119,9 @@
   </data>
   <data name="Each best on Warm Up's song list becomes a play on PIU Scores: the song, the chart and the score, no judgments." xml:space="preserve">
     <value>Ogni miglior punteggio della lista delle canzoni di Warm Up diventa una partita su PIU Scores: la canzone, il chart e il punteggio, senza giudizi.</value>
+  </data>
+  <data name="Even with RISE still open." xml:space="preserve">
+    <value>Anche con RISE ancora aperto.</value>
   </data>
   <data name="Every recorded play" xml:space="preserve">
     <value>Ogni partita registrata</value>
@@ -285,6 +294,9 @@
   <data name="PIU Scores has {0} of your Warm Up bests. Only higher ones are sent." xml:space="preserve">
     <value>PIU Scores ha {0} dei tuoi migliori punteggi di Warm Up. Vengono inviati solo quelli più alti.</value>
   </data>
+  <data name="PIU Scores posts the session card when a session ends." xml:space="preserve">
+    <value>PIU Scores pubblica la scheda della sessione quando questa termina.</value>
+  </data>
   <data name="PIU Scores refused it. Not recorded." xml:space="preserve">
     <value>PIU Scores l'ha rifiutata. Non registrata.</value>
   </data>
@@ -341,6 +353,9 @@
   </data>
   <data name="Sent to PIU Scores." xml:space="preserve">
     <value>Inviato a PIU Scores.</value>
+  </data>
+  <data name="Sessions" xml:space="preserve">
+    <value>Sessioni</value>
   </data>
   <data name="Set it up" xml:space="preserve">
     <value>Configura</value>
@@ -527,6 +542,9 @@
   </data>
   <data name="When a bulk capture finishes" xml:space="preserve">
     <value>Quando finisce un'acquisizione in blocco</value>
+  </data>
+  <data name="When RISE closes" xml:space="preserve">
+    <value>Quando RISE si chiude</value>
   </data>
   <data name="When the token stops working" xml:space="preserve">
     <value>Quando il token smette di funzionare</value>

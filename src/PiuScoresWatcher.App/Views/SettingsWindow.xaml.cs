@@ -26,9 +26,9 @@ public sealed record RecentRow(string Song, string Chart, string Score, string G
 public sealed record LanguageChoice(string? Code, string Name);
 
 /// <summary>
-///     The settings window (D37): what the watcher is doing, the account, how it watches, bulk capture
-///     (D51), start-up, the plays since it started, anything kept for review, and the notification
-///     switches (D35). Every change saves the moment it is made; there is no Save button.
+///     The settings window (D37): what the watcher is doing, the account, how it watches, when a session
+///     ends (D75), bulk capture (D51), start-up, the plays since it started, anything kept for review, and
+///     the notification switches (D35). Every change saves the moment it is made; there is no Save button.
 /// </summary>
 public partial class SettingsWindow : Window
 {
@@ -69,6 +69,14 @@ public partial class SettingsWindow : Window
         ModeBoth.IsChecked = current.Mode == CaptureMode.Both;
         StartWithWindowsBox.IsChecked = current.StartWithWindows;
         PlaySoundsBox.IsChecked = current.PlaySounds;
+        var sessions = current.EffectiveSessions;
+        EndWhenRiseClosesBox.IsChecked = sessions.WhenRiseCloses;
+        EndAfterQuietBox.IsChecked = sessions.AfterQuiet;
+        var (beforeMinutes, afterMinutes) = Copy.SessionEndsAfterQuiet;
+        Words(QuietBefore, beforeMinutes);
+        Words(QuietAfter, afterMinutes);
+        QuietMinutesBox.ItemsSource = SessionSettings.MinuteChoices;
+        QuietMinutesBox.SelectedItem = sessions.EffectiveQuietMinutes;
         BulkSoundsBox.IsChecked = current.BulkCaptureSounds;
         var notifications = current.EffectiveNotifications;
         NotificationsBox.IsChecked = notifications.Enabled;
@@ -221,6 +229,40 @@ public partial class SettingsWindow : Window
         if (_loading)
             return;
         _settings.Save(_settings.Load() with { BulkCaptureSounds = BulkSoundsBox.IsChecked == true });
+    }
+
+    private void OnSessionsChanged(object sender, RoutedEventArgs e)
+    {
+        if (_loading)
+            return;
+        SaveSessions();
+    }
+
+    /// <summary>Picking a number turns the minutes on (D78).</summary>
+    private void OnQuietMinutesChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading)
+            return;
+        if (EndAfterQuietBox.IsChecked == true)
+            SaveSessions();
+        else
+            EndAfterQuietBox.IsChecked = true; // saves through its Checked
+    }
+
+    private void SaveSessions()
+    {
+        _settings.Save(_settings.Load() with
+        {
+            Sessions = new SessionSettings(EndWhenRiseClosesBox.IsChecked == true, EndAfterQuietBox.IsChecked == true,
+                QuietMinutesBox.SelectedItem as int? ?? SessionSettings.Default.QuietMinutes)
+        });
+    }
+
+    /// <summary>One side of the minutes box: its words, or nothing where the language puts none.</summary>
+    private static void Words(TextBlock side, string words)
+    {
+        side.Text = words;
+        side.Visibility = words.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private async void OnConnect(object sender, RoutedEventArgs e)
