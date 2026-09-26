@@ -63,6 +63,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <TextBlock Text="1." Margin="0,0,8,6" />
                 <TextBlock Grid.Column="1" Margin="0,0,0,6" Text="{x:Static app:Copy.BulkStep1}" TextWrapping="Wrap" />
@@ -71,6 +72,9 @@
                            LineStackingStrategy="BlockLineHeight" LineHeight="23" />
                 <TextBlock Grid.Row="2" Text="3." Margin="0,0,8,0" />
                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Static app:Copy.BulkStep3}" TextWrapping="Wrap" />
+                <!-- The other rows' Perfect Games go up without being lit (watcher.md D74, D78). -->
+                <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,8,0,0" Text="{x:Static app:Copy.BulkPerfectGamesTip}"
+                           Style="{StaticResource Secondary}" TextWrapping="Wrap" />
             </Grid>
         </Border>
 
@@ -82,6 +86,14 @@
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock x:Name="ChimeName" Text="{x:Static app:Copy.SoundChime}" FontWeight="SemiBold" />
                         <TextBlock Text="{x:Static app:Copy.SoundChimeMeaning}" Style="{StaticResource Secondary}" />
+                    </StackPanel>
+                </DockPanel>
+                <DockPanel Margin="0,0,0,10">
+                    <Button Style="{StaticResource PlaySound}" Tag="{x:Static sounds:CaptureSound.LevelUp}" Click="OnPreview"
+                            AutomationProperties.LabeledBy="{Binding ElementName=LevelUpName}" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="LevelUpName" Text="{x:Static app:Copy.SoundLevelUp}" FontWeight="SemiBold" />
+                        <TextBlock Text="{x:Static app:Copy.SoundLevelUpMeaning}" Style="{StaticResource Secondary}" />
                     </StackPanel>
                 </DockPanel>
                 <DockPanel Margin="0,0,0,10">

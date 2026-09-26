@@ -21,8 +21,11 @@
   <data name="1 screen couldn't be read" xml:space="preserve">
     <value>1件の画面を読み取れませんでした</value>
   </data>
-  <data name="A chime when a play is recorded, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it." xml:space="preserve">
-    <value>プレイが記録されるとチャイム、画面を読み取れないと低い音、PIU Scoresが受け付けないとカチッと鳴ります。</value>
+  <data name="A chime when a play is recorded, a level-up for a Perfect Game, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it." xml:space="preserve">
+    <value>プレイが記録されるとチャイム、Perfect Gameならレベルアップ、画面を読み取れないと低い音、PIU Scoresが受け付けないとカチッと鳴ります。</value>
+  </data>
+  <data name="A Perfect Game, sent to PIU Scores." xml:space="preserve">
+    <value>Perfect GameをPIU Scoresに送信しました。</value>
   </data>
   <data name="A play PIU Scores didn't take" xml:space="preserve">
     <value>PIU Scoresが受け付けなかったプレイ</value>
@@ -177,6 +180,9 @@
   <data name="Last recorded {0}" xml:space="preserve">
     <value>最終記録：{0}</value>
   </data>
+  <data name="Level up" xml:space="preserve">
+    <value>レベルアップ</value>
+  </data>
   <data name="Looks at RISE once a second while it is running. Nothing else on your screen." xml:space="preserve">
     <value>RISEの起動中、1秒に1回RISEだけを見ます。画面のほかの部分は見ません。</value>
   </data>
@@ -251,6 +257,9 @@
   </data>
   <data name="Perfect Game" xml:space="preserve">
     <value>Perfect Game</value>
+  </data>
+  <data name="Perfect Games don't need to be highlighted: every one on screen is sent once the list stops moving." xml:space="preserve">
+    <value>Perfect Gameは選択しなくても大丈夫です。リストが止まると、画面上のものがすべて送信されます。</value>
   </data>
   <data name="PIU Scores already has this best, or a higher one." xml:space="preserve">
     <value>PIU Scoresにはすでにこの記録か、それ以上の記録があります。</value>
@@ -560,6 +569,12 @@
   </data>
   <data name="{0} new bests sent · {1} already on PIU Scores · {2} couldn't be read" xml:space="preserve">
     <value>新しい自己ベスト{0}件を送信 · {1}件はPIU Scoresに登録済み · {2}件は読み取れず</value>
+  </data>
+  <data name="{0} of them a Perfect Game" xml:space="preserve">
+    <value>うち{0}件はPerfect Game</value>
+  </data>
+  <data name="{0} of them Perfect Games" xml:space="preserve">
+    <value>うち{0}件はPerfect Game</value>
   </data>
   <data name="{0} play today" xml:space="preserve">
     <value>今日{0}プレイ</value>

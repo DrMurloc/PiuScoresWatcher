@@ -21,8 +21,11 @@
   <data name="1 screen couldn't be read" xml:space="preserve">
     <value>화면 1개를 읽지 못했습니다</value>
   </data>
-  <data name="A chime when a play is recorded, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it." xml:space="preserve">
-    <value>플레이가 기록되면 차임, 화면을 읽지 못하면 낮은 음, PIU Scores가 받지 않으면 틱이 울립니다.</value>
+  <data name="A chime when a play is recorded, a level-up for a Perfect Game, a low tone when a screen can't be read, a tick when PIU Scores doesn't take it." xml:space="preserve">
+    <value>플레이가 기록되면 차임, 퍼펙트 게임이면 레벨 업, 화면을 읽지 못하면 낮은 음, PIU Scores가 받지 않으면 틱이 울립니다.</value>
+  </data>
+  <data name="A Perfect Game, sent to PIU Scores." xml:space="preserve">
+    <value>퍼펙트 게임을 PIU Scores로 전송했습니다.</value>
   </data>
   <data name="A play PIU Scores didn't take" xml:space="preserve">
     <value>PIU Scores가 받지 않은 플레이</value>
@@ -177,6 +180,9 @@
   <data name="Last recorded {0}" xml:space="preserve">
     <value>마지막 기록: {0}</value>
   </data>
+  <data name="Level up" xml:space="preserve">
+    <value>레벨 업</value>
+  </data>
   <data name="Looks at RISE once a second while it is running. Nothing else on your screen." xml:space="preserve">
     <value>RISE가 실행 중일 때 1초에 한 번 RISE만 봅니다. 화면의 다른 것은 보지 않습니다.</value>
   </data>
@@ -251,6 +257,9 @@
   </data>
   <data name="Perfect Game" xml:space="preserve">
     <value>퍼펙트 게임</value>
+  </data>
+  <data name="Perfect Games don't need to be highlighted: every one on screen is sent once the list stops moving." xml:space="preserve">
+    <value>퍼펙트 게임은 선택하지 않아도 됩니다. 목록이 멈추면 화면에 보이는 것이 모두 전송됩니다.</value>
   </data>
   <data name="PIU Scores already has this best, or a higher one." xml:space="preserve">
     <value>PIU Scores에 이미 이 기록이나 더 높은 기록이 있습니다.</value>
@@ -560,6 +569,12 @@
   </data>
   <data name="{0} new bests sent · {1} already on PIU Scores · {2} couldn't be read" xml:space="preserve">
     <value>새 최고 기록 {0}개 전송 · {1}개는 이미 PIU Scores에 있음 · {2}개는 읽지 못함</value>
+  </data>
+  <data name="{0} of them a Perfect Game" xml:space="preserve">
+    <value>그중 {0}개는 퍼펙트 게임</value>
+  </data>
+  <data name="{0} of them Perfect Games" xml:space="preserve">
+    <value>그중 {0}개는 퍼펙트 게임</value>
   </data>
   <data name="{0} play today" xml:space="preserve">
     <value>오늘 {0}회 플레이</value>
