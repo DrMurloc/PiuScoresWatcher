@@ -4,7 +4,7 @@ Status: **the MVP shipped as v0.1.0 from one pull request, #8** (merged 2026-09-
 one of the owner's result screens and reconciles them; the client posts; the tray app captures the game window once
 a second while RISE runs and reads every F12 screenshot Steam writes, posting each reconciled play once; bulk
 capture reads Warm Up's song list. The testers' first evenings (2026-09-24/25) and what they led to are D66–D73, on
-their own pull request.
+their own pull request. Who ends a session, and so when its card posts, is D74–D83 (2026-09-26), on another.
 Phase 2 of PIU
 Scores' RISE plan
 ([rise.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/design/rise.md) §8): phase 1 added
@@ -414,6 +414,46 @@ day).
   recorded." and, in review, "PIU Scores doesn't list this chart, so it wasn't recorded.", where it used to blame a
   misread title.
 
+**Sessions** (owner, 2026-09-26: "I want to change the default to just be 'when the game closes', with an X minutes of
+inactivity as opt-in option", then the two "can both be selected (and technically neither)"; mock
+https://claude.ai/artifact/Sej2vgVep3tVkPYdHJ4JZ3; the site's contract, handed over the same day; "Get it all in").
+
+- **D74 (owner, 2026-09-26). The watcher decides when a session ends.** PIU Scores ended a session 15 minutes after
+  its last play (rise.md D21), so a dinner break split an evening in two and the last card came a quarter of an hour
+  after the player stopped, RISE open or not. On RISE the site now keeps a play in the open session on its mix for up
+  to four hours and ends a session when the watcher says so, one call per mix (§4). The setting stays on the PC: the
+  site never learns which one the player picked.
+- **D75 (owner, 2026-09-26). Two switches: When RISE closes, and After N minutes without a play.** The first is on
+  and the second off by default. Either, both or neither can be on: with both, whichever comes first ends the session;
+  with neither, the watcher never ends one. They are their own section, Sessions, under Watching; first run doesn't
+  ask.
+- **D76 (owner, 2026-09-26). Four hours without a play ends a session whatever the switches say.** It is PIU Scores'
+  own fallback, a net for a watcher that crashed or never came back, not a setting, and the note under the switches
+  says so. A watcher-side limit longer than that would never fire, so there is none.
+- **D77. A session is every mix the watcher posted to since it last ended one**, and ending it is one close per mix: a
+  night on Warm Up and the Arcade Station is two sessions and two cards, ended together. "Without a play" means without
+  a play PIU Scores recorded, on either station.
+- **D78. The minutes are 10, 15, 20, 30, 45 or 60, starting at 15**, the site's number until now, and picking one
+  turns the switch on. With only the minutes on, closing RISE doesn't end the session: the watcher, still in the tray,
+  ends it when they run out.
+- **D79. When RISE closes, the watcher waits ten seconds and ends the session behind the last post**, long enough for
+  Steam to finish writing an F12 of the last result and the watcher to post it. A close always waits its turn behind
+  the frame being handled, so it never overtakes the post before it; a play the site records after a close starts a
+  new session.
+- **D80. With either switch on, a bulk capture is a session of its own.** Starting a run ends the session the player
+  is in, and the run's end posts the run's card, so a hundred bests don't crowd the evening's.
+- **D81. With either switch on, quitting the watcher ends the open session, and so does Windows ending when the
+  watcher catches it in time**: the watcher can't follow the session any further. A session a crash left open ends at
+  the next start, when RISE isn't running or the minutes have run out.
+- **D82. A close is written down before it is sent, and one that didn't get through goes out again.** No network, the
+  site down, a rate limit or a refused token leave it owed, sent again at the next check (every 30 seconds) or the next
+  start; a `400`, or a `404` from a site without the close, is final. A close still owed four hours after its session's
+  last play is dropped unsent: the site has ended that session itself, and a late close could only end a newer one. It
+  is kept in `session.json`, beside the settings. Disconnecting forgets it all: those sessions belonged to the token
+  that left.
+- **D83. Nothing new to look at.** No notification, tray line or Recent entry: the session card on PIU Scores is the
+  feedback.
+
 ## 3. The pipeline
 
 `IScreenSource` (one adapter per mode) → `ResultScreenDetector` (pixel anchors; which station) →
@@ -461,6 +501,13 @@ base64("anything:<token>")`. One request per play:
 run also reads `GET api/v2/charts?mix=rise` (the chart list the titles are matched against) and `GET
 api/v2/players/{id}/scores?mix=rise` (the player's bests), following each page's `next` link (D49).
 
+`POST api/v2/players/me/sittings/close` ends a session (the site's contract of 2026-09-26; D74–D82). The body is the
+mix and nothing else, `{"mix":"Rise"}` or `{"mix":"RiseArcade"}`, and the site closes every open sitting the player has
+on that mix and posts each one's card. `204` whether or not anything was open; its `400` problem types
+(`body-required`, `mix-required`, `legacy-mix`, `tool-has-no-self`) are final; `401` is the token; a `429`, a `5xx` or
+no network is tried again (D82). Until the site ships, the route answers `404`, which is final too: the site's 15
+minutes still end the session.
+
 ## 5. Player experience
 
 1. **Install.** One download, one click, no wizard; a tray icon and a Start menu entry. Signed (D4), so no
@@ -468,8 +515,9 @@ api/v2/players/{id}/scores?mix=rise` (the player's bests), following each page's
 2. **First run.** Paste the token (checked on the spot: "Connected as …"); choose the mode; Start with
    Windows (on). Done.
 3. **Then nothing.** RISE starts, it wakes. A result screen → a notification: "Recorded · Gargoyle · 5K S18 ·
-   975,429 · SS · Full Combo". RISE closes, it sleeps. A screen it cannot read → a notification that says so, and
-   the frame kept for review. Every kind of notification can be switched off (D35).
+   975,429 · SS · Full Combo". RISE closes, it ends the session (the card posts on PIU Scores, D74) and sleeps. A
+   screen it cannot read → a notification that says so, and the frame kept for review. Every kind of notification
+   can be switched off (D35).
 
 ## 6. The MVP — one pull request (D33)
 
