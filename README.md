@@ -3,21 +3,20 @@
 A Windows desktop app that watches for scores in PUMP IT UP RISE and records them on
 [PIU Scores](https://piuscores.arroweclip.se).
 
-Status: **the MVP is being built on one pull request, #8.** The reader, posting and capture are in: the tray
-app captures the RISE window once a second while the game runs and reads every F12 screenshot, posting each
-reconciled play once. The first-run and settings windows and the toasts are next; then one test session with
-the game, then v0.1.0. The plan is [docs/design/watcher.md](docs/design/watcher.md) §6.
+Status: **v1.0.0, released 2026-09-27**, after v0.1.0 (the MVP, 2026-09-24) and v0.2.0 (2026-09-26). The design
+of record, and which decisions each release carried, is [docs/design/watcher.md](docs/design/watcher.md).
 
-## What it will do
+## What it does
 
 Install → paste your PIU Scores token → pick how it watches (the game window, your Steam F12
 screenshots, or both) → it sits in the tray. RISE starts, it wakes; a result screen appears, it
-reads it and posts the play; a toast confirms it; RISE closes, it sleeps. The server recomputes
-every score from the judgments and refuses anything that does not reconcile, so a misread never
-becomes a record.
+reads it and posts the play; a toast confirms it; RISE closes, it ends the session and sleeps. The
+server recomputes every score from the judgments and refuses anything that does not reconcile, so a
+misread never becomes a record.
 
-Download, once released:
-`https://github.com/DrMurloc/PiuScoresWatcher/releases/latest/download/PiuScoresWatcher-win-Setup.exe`
+Download: <https://github.com/DrMurloc/PiuScoresWatcher/releases/latest/download/PiuScoresWatcher-win-Setup.exe>
+— Windows 10 (version 2004 or later) or 11. The installer adds the .NET 10 Desktop Runtime if it is missing, and
+the watcher updates itself from then on.
 
 ## Documentation
 
