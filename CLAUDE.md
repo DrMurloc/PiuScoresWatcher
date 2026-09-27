@@ -17,7 +17,7 @@ Reader-facing docs live in `docs/` (README.md at the root). Keep them current **
 - [docs/HOW-TO-TEST.md](docs/HOW-TO-TEST.md) — the rungs + the manual checklist with the game
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — update in the same PR that changes a structural pattern
 - [docs/DOMAIN.md](docs/DOMAIN.md) — the RISE result screen, scoring, grades, marks, the two stations
-- [docs/PRIVACY.md](docs/PRIVACY.md) — what the app looks at, sends and keeps; player-facing, the owner's copy
+- [docs/PRIVACY.md](docs/PRIVACY.md) — the privacy policy: what the app looks at, sends and keeps. A standard policy, not the owner's copy (owner, 2026-09-27). Every claim in it binds the code: a change to what the app reads, sends or stores updates it, and its date, in the same PR
 - [docs/TECHNOLOGIES.md](docs/TECHNOLOGIES.md) — new stack pieces get an entry
 - [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) — the owner's contribution policies
 - [docs/LOCALIZATION.md](docs/LOCALIZATION.md) — the eight languages: how a line is translated, the site glossaries each follows, the watcher's own words
