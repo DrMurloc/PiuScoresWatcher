@@ -25,7 +25,7 @@ Download, once released:
 - [docs/HOW-TO-TEST.md](docs/HOW-TO-TEST.md) — the test rungs and the checklist with the game open
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — the two halves, the pipeline, the ports, what is deliberately absent
 - [docs/DOMAIN.md](docs/DOMAIN.md) — what a RISE result screen says and what the watcher makes of it
-- [docs/PRIVACY.md](docs/PRIVACY.md) — what it looks at, what it sends, what it keeps
+- [docs/PRIVACY.md](docs/PRIVACY.md) — the privacy policy: what it looks at, what it sends, what it keeps
 - [docs/TECHNOLOGIES.md](docs/TECHNOLOGIES.md) — the stack, and why each piece
 - [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) — the contribution policies
 - [docs/LOCALIZATION.md](docs/LOCALIZATION.md) — the eight languages and how a line is translated
