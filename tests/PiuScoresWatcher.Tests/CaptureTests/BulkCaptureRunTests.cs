@@ -376,7 +376,7 @@ public sealed class BulkCaptureRunTests
         Assert.StartsWith("the song list with no tab lit", kept.Reason);
         Assert.Equal(new BulkTally(0, 0, 1, 0), run.Tally);
         // on screen all along: the run doesn't end for the list being gone
-        Assert.Equal(_clock.Now, run.ListLastSeen);
+        Assert.Equal(_clock.Now, run.ListLastInWindow);
     }
 
     [Fact]
@@ -441,6 +441,7 @@ public sealed class BulkCaptureRunTests
         Assert.IsType<BulkOutcome.NotTheList>(await run.HandleAsync(Window(AResultScreen), CancellationToken.None));
 
         Assert.Null(run.ListLastSeen);
+        Assert.Null(run.ListLastInWindow);
     }
 
     [Fact]
@@ -451,6 +452,67 @@ public sealed class BulkCaptureRunTests
         await run.HandleAsync(Window(Aragami), CancellationToken.None);
 
         Assert.Equal(Start, run.ListLastSeen);
+        Assert.Equal(Start, run.ListLastInWindow);
+    }
+
+    // ---- When a run ends by itself (D51), and a run from F12 alone, RISE in full screen (D90) ----
+
+    /// <summary>What the game window hands over while RISE runs in exclusive full screen: black (D89).</summary>
+    private static readonly Lazy<ScreenImage> FullScreenBlack = new(() => new ScreenImage(1920, 1080, new byte[1920 * 1080 * 4]));
+
+    [Fact]
+    public async Task AScreenshotShowsTheListWithoutStartingTheWindowsHalfMinute()
+    {
+        var run = Run();
+
+        await run.HandleAsync(Screenshot(Aragami), CancellationToken.None);
+
+        Assert.Equal(Start, run.ListLastSeen);
+        Assert.Null(run.ListLastInWindow);
+    }
+
+    [Fact]
+    public async Task TheListGoneFromTheWindowForHalfAMinuteEndsTheRun()
+    {
+        var run = Run();
+        await run.HandleAsync(Window(Aragami), CancellationToken.None);
+
+        _clock.Advance(BulkCaptureRun.ListGone - TimeSpan.FromSeconds(1));
+        Assert.IsType<BulkOutcome.NotTheList>(await run.HandleAsync(Window(AResultScreen), CancellationToken.None));
+        Assert.Null(run.EndsBecause(_clock.Now));
+
+        _clock.Advance(TimeSpan.FromSeconds(1));
+        Assert.Equal("the song list has been gone for half a minute", run.EndsBecause(_clock.Now));
+    }
+
+    [Fact]
+    public async Task InFullScreenARunGoesOnHoweverLongBetweenTwoScreenshots()
+    {
+        var run = Run();
+        Assert.IsType<BulkOutcome.Sent>(await run.HandleAsync(Screenshot(Aragami), CancellationToken.None));
+
+        for (var minute = 0; minute < 20; minute++)
+        {
+            _clock.Advance(TimeSpan.FromMinutes(1));
+            Assert.IsType<BulkOutcome.NotTheList>(await run.HandleAsync(Window(FullScreenBlack.Value), CancellationToken.None));
+            Assert.Null(run.EndsBecause(_clock.Now));
+        }
+
+        TitleIs("Morrighan");
+        Assert.IsType<BulkOutcome.Sent>(await run.HandleAsync(Screenshot(Morrighan), CancellationToken.None));
+        Assert.Equal(new BulkTally(2, 0, 0, 0), run.Tally);
+    }
+
+    [Fact]
+    public void ARunTheListNeverShowsInEndsAfterTenMinutes()
+    {
+        var run = Run();
+
+        _clock.Advance(BulkCaptureRun.ListNeverShown - TimeSpan.FromSeconds(1));
+        Assert.Null(run.EndsBecause(_clock.Now));
+
+        _clock.Advance(TimeSpan.FromSeconds(1));
+        Assert.Equal("the song list never showed", run.EndsBecause(_clock.Now));
     }
 
     [Fact]

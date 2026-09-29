@@ -28,13 +28,11 @@ public abstract record BulkPreparation
 ///     The bulk capture run the player started (D45-D52): prepared from PIU Scores (the chart list and
 ///     their bests), fed every frame the capture loop sees while it runs, heard through the sounds, and
 ///     ended — from the tray or settings, when a result screen appears, when RISE closes, when the song
-///     list has been gone for half a minute, or when it never shows in ten minutes — with one summary.
+///     list has been gone from the game window for half a minute, or when it never shows in ten minutes
+///     (D90) — with one summary.
 /// </summary>
 public sealed class BulkCaptureService : IDisposable
 {
-    public static readonly TimeSpan ListGone = TimeSpan.FromSeconds(30);
-    public static readonly TimeSpan ListNeverShown = TimeSpan.FromMinutes(10);
-
     private readonly SongCatalogs _catalogs;
     private readonly IClock _clock;
     private readonly Connection _connection;
@@ -228,16 +226,13 @@ public sealed class BulkCaptureService : IDisposable
         RunningChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>Every five seconds while a run is on: has the song list gone, or never come?</summary>
+    /// <summary>Every five seconds while a run is on: has the song list gone from the window, or never come (D51, D90)?</summary>
     private void CheckEnd()
     {
         BulkCaptureRun? run;
         lock (_gate)
             run = _run;
-        if (run is null)
-            return;
-        var now = _clock.Now;
-        if (run.ListLastSeen is { } seen ? now - seen >= ListGone : now - run.StartedAt >= ListNeverShown)
-            Stop(run.ListLastSeen is null ? "the song list never showed" : "the song list has been gone for half a minute");
+        if (run?.EndsBecause(_clock.Now) is { } why)
+            Stop(why);
     }
 }

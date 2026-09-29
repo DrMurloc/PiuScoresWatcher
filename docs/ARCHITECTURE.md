@@ -88,9 +88,9 @@ PiuScoresWatcher.sln
 │   │                                synthesized to WAV, D50, D87)
 │   └── Capture/                     CapturePipeline (one frame → one outcome), Deduplicator + PlayKey,
 │                                    BulkCaptureRun (a bulk capture: the wait, the match, the bests, D48–D52;
-│                                    the title read again while the panel holds, a chart kept once, D69;
-│                                    a list it can't place kept the first time, D72; each row's Perfect Games
-│                                    once a run, heard only when sent, D85, D86),
+│                                    when it ends by itself, D90; the title read again while the panel holds,
+│                                    a chart kept once, D69; a list it can't place kept the first time, D72;
+│                                    each row's Perfect Games once a run, heard only when sent, D85, D86),
 │                                    the ports IScreenSource / IGameSession / IFailedScreenStore / INotifier,
 │                                    WatcherNotice, SteamScreenshotFolders
 ├── src/PiuScoresWatcher.App         net10.0-windows10.0.19041.0 — WPF + adapters

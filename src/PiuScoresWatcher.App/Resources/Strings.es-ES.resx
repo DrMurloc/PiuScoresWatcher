@@ -156,6 +156,9 @@
   <data name="Ignore" xml:space="preserve">
     <value>Ignorar</value>
   </data>
+  <data name="In full screen, press {F12} on each chart, then wait for the sound." xml:space="preserve">
+    <value>En pantalla completa, pulsa {F12} en cada chart y espera al sonido.</value>
+  </data>
   <data name="In the tray at sign-in; wakes when RISE starts." xml:space="preserve">
     <value>En la bandeja del sistema al iniciar sesión; se activa cuando arranca RISE.</value>
   </data>
@@ -452,6 +455,9 @@
   </data>
   <data name="The game window" xml:space="preserve">
     <value>La ventana del juego</value>
+  </data>
+  <data name="The game window only works while RISE runs windowed, not in full screen. In full screen, use Steam screenshots." xml:space="preserve">
+    <value>La ventana del juego solo funciona mientras RISE está en modo ventana, no en pantalla completa. En pantalla completa, usa las capturas de Steam.</value>
   </data>
   <data name="The grade didn't match the score, so nothing was sent." xml:space="preserve">
     <value>El grado no coincidía con el score, así que no se envió nada.</value>

@@ -58,6 +58,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] F12 on a result screen with the game window mode off → the file is picked up and posted once.
 - [ ] Both modes on, F12 pressed on a screen the grab already read → still one play.
 - [ ] A screen that can't be trusted (F12 in Steam-screenshot mode before the numbers finish counting) → refused locally, saved under `failed\`, surfaced, not posted. Covering the screen with another window does nothing: both modes read the game's own frame, never what's on top of it.
+- [ ] RISE in full screen → the first run's second step and settings' Watching both say the game window works only windowed; F12 on a result → posted once (watcher.md D89).
 - [ ] Wrong token → the settings window says so; nothing posts.
 - [ ] Quit RISE → the watcher sleeps (no capture, no CPU); start RISE → it wakes.
 - [ ] A few plays, then close RISE → the session card posts on PIU Scores within a minute (D74; the site's change has to be live — before it, the log says the close answered 404).
@@ -91,6 +92,7 @@ This is the MVP's one loop (watcher.md §6, D33) — the installed build, a toke
 - [ ] Perfect Games without highlighting them (D84–D86): on a list with three gold bars under some levels, press W or S the moment each sound starts, as a sweep goes → Level up a beat later whenever a Perfect Game PIU Scores didn't have went up, silence otherwise; the site shows each at 1,000,000 as a Perfect Game. Scroll back over the same songs → silence. Both tabs, 5K SINGLE and 6K DOUBLE.
 - [ ] Start a song → the run ends; one summary notification, which says how many of the new bests were Perfect Games; one line in Recent.
 - [ ] Run it again over the same charts → ticks only, nothing sent.
+- [ ] RISE in full screen, watching on The game window: the start window's last tip shows F12 as a key; F12 on each chart → its sound; more than half a minute between two F12s → the run goes on; F12 a result screen → the run ends with its summary (D90).
 - [ ] The sounds are clear over the song list's music at your usual volume, Level up included.
 - [ ] Sounds switched off → a silent run; the summary still arrives.
 - [ ] Settings → Language → 한국어 → the settings window redraws in Korean at once, the tray menu follows, and the next notification is in Korean; Machine Default → back to Windows' language.

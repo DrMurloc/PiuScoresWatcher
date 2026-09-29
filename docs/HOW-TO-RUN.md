@@ -71,7 +71,7 @@ The report's `connection` says who the token is (`connected`, `unauthorized`, or
 
 ### If the game comes out black
 
-Game-window mode copies the window through Windows' own compositor (`PrintWindow`), which works for the borderless fullscreen Unity uses by default. A setup that returns black frames — exclusive fullscreen, an unusual overlay — shows up as a watcher that never sees a result screen while F12 mode still works; say so, and the Graphics Capture path gets added for it.
+Game-window mode copies the window through Windows' own compositor (`PrintWindow`), which sees RISE while it runs windowed. RISE's full screen is exclusive, and there the copy comes back black or stuck on an old frame: the watcher never sees a result screen while F12 mode still works. That is the design (watcher.md D89): the first run and settings say the game window works only windowed, and a bulk capture runs from F12 alone (D90). Graphics Capture saw full screen live in the 2026-09-28 probe, borderless, if it is ever wanted. Another setup that comes out black — an unusual overlay — shows up the same way; say so.
 
 ## Packaging locally
 

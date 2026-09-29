@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**PIU Scores Watcher** · Last updated September 27, 2026
+**PIU Scores Watcher** · Last updated September 28, 2026
 
 This privacy policy explains how PIU Scores Watcher ("the app") handles information: what it looks at on your computer, what it sends and to whom, what it stores, and the choices you have. The app is free, open-source software published by DrMurloc ("we", "us", "our"). Its source code is public at [github.com/DrMurloc/PiuScoresWatcher](https://github.com/DrMurloc/PiuScoresWatcher), so anything this policy says can be checked against the code.
 
@@ -36,7 +36,7 @@ If you do not agree with this policy, please do not install or use the app.
 *In short: the RISE window and your Steam screenshots of RISE, depending on the mode you choose, and little else.*
 
 - **The game window**, if you choose this mode, and whatever the mode while a bulk capture you start is running. While PUMP IT UP RISE is running, the app copies the picture in the RISE window about once a second, or about five times a second during a bulk capture. It copies RISE's window only, never your desktop or another program's window. A picture that isn't a result screen (or, during a bulk capture, RISE's song list) is discarded immediately. A result screen is read, and its picture is then discarded too, unless the app couldn't turn it into a recorded play (see [section 4](#4-what-does-the-app-store-on-my-computer)).
-- **Your Steam screenshots of RISE**, if you choose this mode. The app reads the screenshots Steam saves when F12 is pressed in RISE, from RISE's screenshot folder for every Steam account on the computer, or from the one folder you choose in settings. On a computer shared by several Steam accounts, a RISE result screenshot taken on any of them is recorded on the PIU Scores account the app is connected to. To find these folders, the app looks up where Steam is installed and which Steam accounts on the computer have a folder there. Apart from that, it reads nothing from Steam.
+- **Your Steam screenshots of RISE**, if you choose this mode, and whatever the mode while a bulk capture you start is running. The app reads the screenshots Steam saves when F12 is pressed in RISE, from RISE's screenshot folder for every Steam account on the computer, or from the one folder you choose in settings. On a computer shared by several Steam accounts, a RISE result screenshot taken on any of them is recorded on the PIU Scores account the app is connected to. To find these folders, the app looks up where Steam is installed and which Steam accounts on the computer have a folder there. Apart from that, it reads nothing from Steam.
 - **Whether RISE is running.** Every few seconds, the app checks whether a program named PUMP IT UP RISE is running. It doesn't record or send anything about the other programs on your computer.
 - **Song titles** are read off the screen with the text recognition built into Windows, which runs on your computer. No image is sent to a recognition service.
 - **Your Windows language settings**, to show the app in your language unless you choose one in settings.

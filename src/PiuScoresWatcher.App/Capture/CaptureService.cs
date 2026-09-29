@@ -12,7 +12,8 @@ namespace PiuScoresWatcher.App.Capture;
 ///     Runs the sources the settings ask for and feeds every frame through the pipeline, one at a
 ///     time. Pausing, changing the mode or the screenshots folder, or a bulk capture starting or ending
 ///     ends the current round and starts the next with what is asked for now. While a bulk capture runs,
-///     every frame goes to it first and the game window is watched whatever the mode (D51); a frame that
+///     every frame goes to it first, and the game window and the Steam screenshots are both watched whatever
+///     the mode (D51, D90): in full screen, F12 is all a run can see. A frame that
 ///     is not the song list still reaches the result pipeline, and a result screen ends the run. What each
 ///     frame became goes to the log; the notifier has already told the player.
 ///     A frame already being handled when a round ends is finished, not dropped: an F12 screenshot is read once, so
@@ -97,7 +98,7 @@ public sealed class CaptureService(
         var sources = new List<IScreenSource>();
         if (current.Mode is CaptureMode.Game or CaptureMode.Both || bulkRunning)
             sources.Add(window);
-        if (current.Mode is CaptureMode.SteamScreenshots or CaptureMode.Both)
+        if (current.Mode is CaptureMode.SteamScreenshots or CaptureMode.Both || bulkRunning)
             sources.Add(steamScreenshots());
         log.LogInformation("Capture mode {Mode}{Bulk}: {Sources}", current.Mode, bulkRunning ? " with a bulk capture" : "",
             string.Join(", ", sources.Select(s => s.Kind)));

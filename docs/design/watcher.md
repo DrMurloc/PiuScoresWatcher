@@ -125,7 +125,8 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   (`PW_RENDERFULLCONTENT`) into a bitmap — a CPU copy of one frame, a few milliseconds, no border drawn
   on Windows 10, no Direct3D interop, and nothing but that one window ever captured. A frame identical
   to the last (a sparse pixel fingerprint) is skipped before the detector sees it. If a player's setup
-  comes out black (exclusive fullscreen), Graphics Capture is the fallback to add then, not now.
+  comes out black (exclusive fullscreen), Graphics Capture is the fallback to add then, not now. Exclusive
+  full screen turned up on 2026-09-28, and the owner kept this capture and had the watcher say so (D89).
 - **D29. Handled once per ten minutes, keyed by the numbers.** A play is remembered when it is posted or
   kept for review — never when it was merely "not yet" — so the window's once-a-second view of the same
   result screen costs a detect and a read and nothing more, and OCR runs once per play. The key is mix,
@@ -234,13 +235,13 @@ leaderboards — rise.md §1), so the screen is what gets read. Two ways to see 
   No notification during a run; one summary when it ends, with its own switch (the seventh kind, D35); one line in
   Recent per run.
 - **D51. A run starts from the tray or settings, through a window** that explains the keys every time and says
-  how many bests PIU Scores already has. It ends when the song list has been gone for thirty seconds (a song
-  started), when a result screen appears, when RISE closes, when the list never shows in ten minutes, or from the
-  tray or settings. A run looks at the game window whatever the watching mode, and overrides a pause while it is on:
-  starting one is the player asking for exactly that.
+  how many bests PIU Scores already has. It ends when the song list has been gone from the game window for thirty
+  seconds (a song started; D90), when a result screen appears, when RISE closes, when the list never shows in ten
+  minutes, or from the tray or settings. A run looks at the game window, and reads Steam screenshots (D90), whatever
+  the watching mode, and overrides a pause while it is on: starting one is the player asking for exactly that.
 - **D52. A capture's `source` is `watcher-songlist`**, so the journal and the Undo page name it; it is dated when
   it is read, like a first import. F12 works during a run too: a Steam screenshot of the song list is read the same
-  way, without the half-second wait — a file is already still.
+  way, without the half-second wait — a file is already still. In full screen it is the only way (D90).
 
 **Reading titles** — found by the bulk capture smoke, 2026-09-23: Morrighan's title on the song list read as nothing.
 
@@ -510,6 +511,31 @@ leftmost level beat an exact one at another (Beethoven Virus -FULL SONG- over Be
 the latter's charts). And, with the owner's go, rows that had held still were dropped when the list moved on at the lit
 chart's sound, the moment the start window says to move (the check's sweep of three tester lists sent none of 26), and
 their reads and posts could use up the lit chart's two seconds (D69): they now wait with their frame (D85).
+
+**Full screen** (owner, 2026-09-28: "It doesn't seem to be working in full screen mode for screen capture"; then
+"let's put a disclaimer on the 'capture mode' … that the game watching only works in windowed modes. We need to make
+sure that bulk upload supports F12 image saves then"; the lines approved as written, "go for it").
+
+- **D89 (owner, 2026-09-28). The game window is for RISE windowed; full screen is F12's.** RISE's full screen is
+  exclusive: Unity's `ExclusiveFullScreen`, a topmost window over Direct3D's full-screen swap chain. There `PrintWindow`
+  hands back black, or the last frame the compositor drew before the game took the screen over. The owner's own evening
+  showed both halves: a result only F12 caught, and a bulk capture that went on "seeing" a still song list for three
+  and a half minutes while a song was played. A probe on the owner's laptop (Windows 11, RISE on the discrete GPU, the
+  panel on the integrated one) copied RISE in full screen while the song list scrolled, twelve looks per way:
+  `PrintWindow` was black every time; Graphics Capture was live, borderless, its first frame about 5 ms after a session
+  started; a GDI copy of the screen and DXGI duplication were live too, but they copy the screen, not the window, which
+  PRIVACY.md rules out. The owner kept D28's capture and had the watcher say so rather than add D28's fallback: under
+  the three ways to watch, in the first run and in settings, "The game window only works while RISE runs windowed, not
+  in full screen. In full screen, use Steam screenshots." Nothing watches for full screen while RISE runs; the note is
+  the notice. New copy since the mocks (D36).
+- **D90 (owner's go, 2026-09-28). A bulk capture works from F12 alone.** A run reads Steam screenshots whatever the
+  watching mode, as it looks at the game window whatever the mode (D51). Only the window starts D51's thirty seconds: a
+  screenshot shows the list at one moment, and in full screen, where the window shows nothing, half a minute between two
+  F12s ended the run and dropped every screenshot after it. A run the window never shows the list in ends when a
+  result screen appears (an F12 of one), when RISE closes, or from the tray or settings; ten minutes without the list
+  in the window or a screenshot still end a run that never began. Under the steps: "In full screen, press F12 on each
+  chart, then wait for the sound", F12 drawn as a key cap. "It stops by itself when a song starts or RISE closes" stays:
+  in full screen the song's result, F12'd, is where it stops. New copy since the mocks (D36).
 
 ## 3. The pipeline
 
