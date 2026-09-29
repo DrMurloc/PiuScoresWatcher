@@ -7,9 +7,10 @@ using PiuScoresWatcher.Core.Settings;
 namespace PiuScoresWatcher.App.Views;
 
 /// <summary>
-///     The start of a bulk capture (D51): the moves, and that Perfect Games need no highlight (D88), the four sounds
-///     with a button to hear each, what PIU Scores already has, and the sound switch. Start stays off until the chart list and the player's
-///     bests are in, because a run without them cannot tell a new best from an old one.
+///     The start of a bulk capture (D51): the moves, that Perfect Games need no highlight (D88) and that full screen takes
+///     an F12 on each chart (D90), the four sounds with a button to hear each, what PIU Scores already has, and the sound
+///     switch. Start stays off until the chart list and the player's bests are in, because a run without them cannot tell a
+///     new best from an old one.
 /// </summary>
 public partial class BulkCaptureWindow : Window
 {
@@ -27,6 +28,7 @@ public partial class BulkCaptureWindow : Window
         _settings = settings;
         InitializeComponent();
         Feedback.Keys(Step2, Copy.BulkStep2, (Style)FindResource("KeyCap"));
+        Feedback.Keys(FullScreenTip, Copy.BulkFullScreenTip, (Style)FindResource("KeyCap"));
 
         _loading = true;
         SoundsBox.IsChecked = settings.Load().BulkCaptureSounds;

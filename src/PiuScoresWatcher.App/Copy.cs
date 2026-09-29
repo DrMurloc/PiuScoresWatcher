@@ -98,6 +98,10 @@ public static class Copy
     public static string ModeSteamDetail => L("Press F12 on the result screen; the screenshot is read. Costs nothing during play.");
     public static string Recommended => L("(recommended)");
     public static string ModeBothDetail => L("A screen seen twice is still one play.");
+
+    /// <summary>Under the three ways to watch, in the first run and in settings: RISE's full screen hides the game window (D89).</summary>
+    public static string ModeWindowedOnly => L("The game window only works while RISE runs windowed, not in full screen. In full screen, use Steam screenshots.");
+
     public static string StartWithWindows => L("Start with Windows");
     public static string StartWithWindowsDetail => L("Sits in the tray, wakes when RISE starts, sleeps when it closes. Off, it only runs when you open it.");
     public static string PrivacyLink => L("What it looks at and sends");
@@ -205,6 +209,9 @@ public static class Copy
 
     /// <summary>Under the steps: the other rows' Perfect Games go up without being lit (D84, D88).</summary>
     public static string BulkPerfectGamesTip => L("Perfect Games don't need to be highlighted: every one on screen is sent once the list stops moving.");
+
+    /// <summary>Under the steps: in full screen the window sees nothing, so each chart is an F12 (D90). {F12} is drawn as a key cap.</summary>
+    public static string BulkFullScreenTip => L("In full screen, press {F12} on each chart, then wait for the sound.");
 
     public static string SoundChime => L("Chime");
     public static string SoundChimeMeaning => L("Sent to PIU Scores.");

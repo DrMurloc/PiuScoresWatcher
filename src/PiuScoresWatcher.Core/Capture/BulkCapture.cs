@@ -113,6 +113,12 @@ public sealed class BulkCaptureRun
     /// <summary>How long the window shows the list with a chart it can't place before a frame of it is kept (D72).</summary>
     public static readonly TimeSpan UnplacedFor = TimeSpan.FromSeconds(2);
 
+    /// <summary>How long the list may be gone from the game window before the run ends by itself: a song started (D51).</summary>
+    public static readonly TimeSpan ListGone = TimeSpan.FromSeconds(30);
+
+    /// <summary>How long a run waits for the list to show at all, in the window or a screenshot (D51).</summary>
+    public static readonly TimeSpan ListNeverShown = TimeSpan.FromMinutes(10);
+
     /// <summary>The list with a chart it can't place, among the charts a run keeps: one entry, so it is kept once (D72).</summary>
     private static readonly Fingerprint UnplacedList = new(SongListStatus.Unplaced, null, null, null, null, 0);
 
@@ -162,13 +168,34 @@ public sealed class BulkCaptureRun
 
     public DateTimeOffset StartedAt { get; }
 
-    /// <summary>When the song list was last on screen; null until it first is.</summary>
+    /// <summary>When the song list was last seen, in the game window or a screenshot; null until it first is.</summary>
     public DateTimeOffset? ListLastSeen { get; private set; }
+
+    /// <summary>
+    ///     When the game window last showed the song list; null while it never has. Only the window starts
+    ///     <see cref="ListGone" />: a screenshot shows the list at one moment, and in full screen, where the window shows
+    ///     nothing, the screenshots are all a run has (D90).
+    /// </summary>
+    public DateTimeOffset? ListLastInWindow { get; private set; }
 
     public BulkTally Tally { get; private set; } = BulkTally.None;
 
     /// <summary>How many of the player's bests PIU Scores held when the run started, for the start window (D51).</summary>
     public int StoredBestCount => _bests.Values.Count(best => best.Score is not null);
+
+    /// <summary>
+    ///     Why the run ends by itself at <paramref name="now" />, for the log, or null while it goes on: the list gone from
+    ///     the game window for <see cref="ListGone" />, or not seen at all in <see cref="ListNeverShown" /> (D51). A run
+    ///     only screenshots have shown the list ends at a result screen, when RISE closes or from the tray (D90).
+    /// </summary>
+    public string? EndsBecause(DateTimeOffset now)
+    {
+        if (ListLastInWindow is { } seen && now - seen >= ListGone)
+            return "the song list has been gone for half a minute";
+        if (ListLastSeen is null && now - StartedAt >= ListNeverShown)
+            return "the song list never showed";
+        return null;
+    }
 
     public async Task<BulkOutcome> HandleAsync(CapturedFrame frame, CancellationToken cancellationToken)
     {
@@ -194,6 +221,8 @@ public sealed class BulkCaptureRun
         if (reading is null)
             return new BulkOutcome.NotTheList(KeepUnnamed());
         ListLastSeen = _clock.Now;
+        if (fromWindow)
+            ListLastInWindow = ListLastSeen;
         if (reading.Status == SongListStatus.Unplaced)
             return Unplaced(frame, reading.Reason ?? "the song list with a chart lit that can't be placed", fromWindow);
         if (RowsToActOn(reading.ChartType!.Value, reading.Rows, fromWindow) is { } rows)

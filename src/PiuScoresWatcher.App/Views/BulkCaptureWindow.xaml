@@ -64,6 +64,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <TextBlock Text="1." Margin="0,0,8,6" />
                 <TextBlock Grid.Column="1" Margin="0,0,0,6" Text="{x:Static app:Copy.BulkStep1}" TextWrapping="Wrap" />
@@ -75,6 +76,9 @@
                 <!-- The other rows' Perfect Games go up without being lit (watcher.md D84, D88). -->
                 <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,8,0,0" Text="{x:Static app:Copy.BulkPerfectGamesTip}"
                            Style="{StaticResource Secondary}" TextWrapping="Wrap" />
+                <!-- In full screen the window sees nothing, so each chart is an F12 (watcher.md D90); the key cap is drawn in code. -->
+                <TextBlock x:Name="FullScreenTip" Grid.Row="4" Grid.Column="1" Margin="0,6,0,0" Style="{StaticResource Secondary}"
+                           TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight" LineHeight="21" />
             </Grid>
         </Border>
 
