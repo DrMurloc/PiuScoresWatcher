@@ -1,13 +1,13 @@
 # PIU Scores Watcher — the capture app for PUMP IT UP RISE
 
-Status: **the MVP shipped as v0.1.0 from one pull request, #8** (merged 2026-09-24, D33). The reader reads every
-one of the owner's result screens and reconciles them; the client posts; the tray app captures the game window once
-a second while RISE runs and reads every F12 screenshot Steam writes, posting each reconciled play once; bulk
-capture reads Warm Up's song list. The testers' first evenings (2026-09-24/25) and what they led to are D66–D73, on
-their own pull request. Who ends a session, and so when its card posts, is D74–D83 (2026-09-26), on another;
-Perfect Games read off every row of the list, with a sound of their own, are D84–D88.
-Phase 2 of PIU
-Scores' RISE plan
+Status: **v1.0.0, released 2026-09-27.** The MVP shipped as v0.1.0 from one pull request, #8 (merged 2026-09-24,
+D33). The reader reads every one of the owner's result screens and reconciles them; the client posts; the tray app
+captures the game window once a second while RISE runs and reads every F12 screenshot Steam writes, posting each
+reconciled play once; bulk capture reads Warm Up's song list. The testers' first evenings (2026-09-24/25) and what
+they led to are D66–D73, on their own pull request. Who ends a session, and so when its card posts, is D74–D83
+(2026-09-26), on another; Perfect Games read off every row of the list, with a sound of their own, are D84–D88. All
+three shipped in v0.2.0 (2026-09-26); v1.0.0 is the same code, released with a standard privacy policy
+([PRIVACY.md](../PRIVACY.md)). Phase 2 of PIU Scores' RISE plan
 ([rise.md](https://github.com/DrMurloc/PumpItUpScoreTracker/blob/main/docs/design/rise.md) §8): phase 1 added
 RISE as two mixes with the v2 plays write this app posts to; phase 3 (boards and PUMBILITY) is the site's.
 
